@@ -1,0 +1,9 @@
+description: Configuration file for checklist::check_pkg()
+package: no
+allowed:
+  warnings:
+  - motivation: '"INBO repository names use a hyphen"'
+    value: |-
+      Use `_` as separator in the basename of non-graphics files.
+        File: `moneos-benthos-revisie.Rproj`
+  notes: []

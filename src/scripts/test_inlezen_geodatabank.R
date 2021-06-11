@@ -2,7 +2,12 @@ library(sf)
 library(ggplot2)
 library(dplyr)
 
-gdb_path <- "G:/Mijn Drive/Team_BMK/Kennisopbouw/Meetnetontwerp/RevisieMeetnetten/MONEOSMacrozoöbenthos/Data/GIS/MONEOS.gdb"
+library(rprojroot)
+source(find_root_file("src/utils/utility_functions.R",
+                      criterion = is_git_root))
+
+data_path <- get_map_data_moneos()
+gdb_path <- file.path(data_path, "GIS/MONEOS.gdb")
 
 layers <- st_layers(gdb_path)
 

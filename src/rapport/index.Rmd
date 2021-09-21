@@ -13,8 +13,6 @@ ordernr: "Het optionele nummer van de opdrachtgever"
 bibliography: moneos.bib
 link-citations: TRUE
 site: bookdown::bookdown_site
-csl: https://raw.githubusercontent.com/citation-style-language/styles/master/research-institute-for-nature-and-forest.csl
-reference-section-title: Referenties
 output:
   bookdown::gitbook:
     split_by: "chapter+number"
@@ -29,7 +27,7 @@ output:
     floatbarrier: subsection
 ---
 
-# Voorwoord
+# Voorwoord {.unnumbered}
 
 ```{r setup, include = FALSE}
 library(knitr)
@@ -79,4 +77,6 @@ if (interactive()) {
 library(rprojroot)
 source(find_root_file("src/utils/utility_functions.R",
                       criterion = is_git_root))
+library(sf)
+library(srvyr)
 ```

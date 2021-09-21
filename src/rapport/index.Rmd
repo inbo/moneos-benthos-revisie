@@ -13,6 +13,8 @@ ordernr: "Het optionele nummer van de opdrachtgever"
 bibliography: moneos.bib
 link-citations: TRUE
 site: bookdown::bookdown_site
+csl: https://raw.githubusercontent.com/citation-style-language/styles/master/research-institute-for-nature-and-forest.csl
+reference-section-title: Referenties
 output:
   bookdown::gitbook:
     split_by: "chapter+number"
@@ -25,15 +27,9 @@ output:
     lof: TRUE
     lot: TRUE
     floatbarrier: subsection
-  bookdown::epub_book:
-    stylesheet: "css/inbo_rapport.css"
-    template: !expr INBOmd::inbo_rapport_css("epub")
-    pandoc_args: !expr c("--csl", system.file("research-institute-for-nature-and-forest.csl", package = "INBOmd"))
 ---
 
-
 # Voorwoord
-
 
 ```{r setup, include = FALSE}
 library(knitr)

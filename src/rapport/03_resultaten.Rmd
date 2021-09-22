@@ -1,0 +1,33 @@
+---
+bibliography: moneos.bib
+---
+
+# Resultaten
+
+## Inschatting tonnage droge massa macrozoöbenthos (totaal + foutenmarge)
+
+```{r eval=FALSE}
+# data.frame maken met alle survey design variabele en responsvariabelen
+srv_data <- data.frame()
+
+mzb_strata <- srv_data %>%
+  as_survey_design(strata = strata,
+                   weights = weights)
+
+# https://cran.r-project.org/web/packages/srvyr/vignettes/srvyr-vs-survey.html
+# Horvitz-Thomson type schatters (eventueel eerst sqrt-transformeren;
+# of log, maar nullen)
+mzb_strata %>%
+  #group_by(...) %>%
+  summarize(mzb_tot = survey_total(x = responsvar, na.rm = TRUE,
+                                   vartype = "ci", level = 0.95))
+
+
+# ofwel droge stof via zero-inflated lognormal distributie?
+# cf examples in ?survey::svymle (voor censored lognormal)
+# censored kan eventueel ook een optie zijn: alle nullen beschouwen als
+# links-gecensureerde data met kleine cutoff
+# zie ook ?survey::svysurvreg
+```
+
+## Vergelijking raaien met gestratificeerde aselecte steekproef

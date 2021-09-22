@@ -25,15 +25,9 @@ output:
     lof: TRUE
     lot: TRUE
     floatbarrier: subsection
-  bookdown::epub_book:
-    stylesheet: "css/inbo_rapport.css"
-    template: !expr INBOmd::inbo_rapport_css("epub")
-    pandoc_args: !expr c("--csl", system.file("research-institute-for-nature-and-forest.csl", package = "INBOmd"))
 ---
 
-
-# Voorwoord
-
+# Voorwoord {.unnumbered}
 
 ```{r setup, include = FALSE}
 library(knitr)
@@ -83,4 +77,6 @@ if (interactive()) {
 library(rprojroot)
 source(find_root_file("src/utils/utility_functions.R",
                       criterion = is_git_root))
+library(sf)
+library(srvyr)
 ```

@@ -29,5 +29,5 @@ Ze zijn voornamelijk gelegd in ecologisch interessantste gebieden met een intakt
 
 ## Databeschikbaarheid
 
-Databeschikbaarheid: Scheldedatabank: historische databank waar ze op aan het werken zijn; We verwachten dat dit vanaf het najaar (Sept/Okt) een mooie databank hebben om op te werken.
+Databeschikbaarheid: Scheldedatabank: historische databank waar ze op aan het werken zijn; We verwachten vanaf het najaar (Sept/Okt) een mooie databank te hebben om op te werken.
 Meest recente gegevens in Google sheets

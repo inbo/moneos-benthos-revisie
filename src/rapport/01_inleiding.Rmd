@@ -17,11 +17,7 @@ Voor het stratified random sample moeten veel oninteressante (ecologisch gezien)
 Het is de vraag in hoeverre we die oninteressante zouden moeten meenemen voor draagkracht van de rivier want de vogels foerageren daar niet.
 De raaien zijn echter niet representatief voor het volledige systeem waardoor geen onvertekende inschatting van biomassa mogelijk is enkel en alleen aan de hand van de raaien.
 
-To do: Voorlopig hebben ze nog geen poging gedaan om een foutenmarge te berekenen op de jaarlijkse schatting van biomassa voor het volledige systeem (referentiewaarde 30 ton).
-
-```{=html}
-<!--
 To do (frank/Joost) Alle achtergrondliteratuur samen zetten Data (google sheets) delen.
 Berekening eindcijfer uitschrijven / script / ... Kaartmaterialen / shapefiles / rasters zijn op schaal van een vierkante meter.
--->
-```
+
+To do: Voorlopig hebben ze nog geen poging gedaan om een foutenmarge te berekenen op de jaarlijkse schatting van biomassa voor het volledige systeem (referentiewaarde 30 ton).

@@ -14,7 +14,7 @@ Vraagstellingen:
 -   Ze willen nu zo veel mogelijk vaste raaien in het systeem krijgen maar toch nog een randomisatie behouden. Eén van de vraagstellingen die men aan de hand van de raaien wil onderzoeken is welke effecten sedimenthoogteveranderingen hebben op het benthos. Bvb door verdieping van de Schelde zijn er wel heel wat sediment hoogteverandering en door die vaste raaien kunnen ze de effecten daarvan op MZB veel beter opvolgen.
 
 Voor het stratified random sample moeten veel oninteressante (ecologisch gezien) gebieden ook meegenomen worden.
-Het is de vraag in hoeverre we die oninteressante zouden moeten meenemen voor draagkracht van de rivier want de vogels foerageren daar niet.
+Het is de vraag in hoeverre we die oninteressante zouden moeten meenemen voor de berekening van de draagkracht van de rivier want de vogels foerageren daar niet.
 De raaien zijn echter niet representatief voor het volledige systeem waardoor geen onvertekende inschatting van biomassa mogelijk is enkel en alleen aan de hand van de raaien.
 
 To do (frank/Joost) Alle achtergrondliteratuur samen zetten Data (google sheets) delen.

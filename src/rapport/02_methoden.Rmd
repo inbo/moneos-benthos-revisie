@@ -1,1 +1,33 @@
+---
+bibliography: moneos.bib
+---
+
 # Materiaal en methoden
+
+## SPATIAL campagne
+
+Het gaat om een stratified random design over waterlichamen en fysiotopen (fysiotoop is dynamisch want verandert ieder jaar)[@speybroeck2014].
+
+Er worden zo 228 stalen genomen per jaar en om de drie jaar komen ook de zijrivieren er bij: 298 stalen.
+Er zijn 3 mensen bijna fulltime mee bezig en uiteindelijk komt er maar 1 getal uit terwijl er eigenlijk veel meer data is.
+
+## Raaien
+
+Daarom werden er Vaste Raaien de afgelopen 2 (of 3?) jaar bemonstert (170 punten), bovenop de 228 random stalen voor jaarlijkse rapportage.
+Raai: vaste hoogte bij een doorsnede van een rivier.
+Het gaat om 35 raaien (transecten) in de intertidale zone (dus niet in het subtidaal).
+Ze hebben op vaste hoogtes (raaien) staalnames genomen zodat er ook iets over de spreiding kan worden gezegd over de hoogte.
+
+Ze hebben nu al 2 jaar dezelfde locatie bemonsterd op dezelfde hoogte (170 extra punten).
+
+Raaien zijn nog nooit beschreven want rapportage is altijd op basis van het random stratified sample; volgend jaar zouden ze een rapport schrijven over MZB op die raaien.
+Toporaaien zijn er ook al wel voor andere monitoring netwerken bij MONEOS maar daar wordt alleen sediment en hoogte bekeken, geen benthos metingen!
+
+Subtidaal zijn er geen raaien, enkel in het intertidaal.
+Raaien zijn gekozen voor ecologisch belang en dekking van het systeem.
+Ze zijn voornamelijk gelegd in ecologisch interessantste gebieden met een intakte slibplaat (veel delen van de Schelde zijn verstevigd met breuksteen, bv ongeveer volledig westerschelde IV, wat een veel minder geschikt substraat is voor MZB).
+
+## Databeschikbaarheid
+
+Databeschikbaarheid: Scheldedatabank: historische databank waar ze op aan het werken zijn; We verwachten dat dit vanaf het najaar (Sept/Okt) een mooie databank hebben om op te werken.
+Meest recente gegevens in Google sheets

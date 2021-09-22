@@ -1,1 +1,11 @@
+---
+bibliography: moneos.bib
+---
+
 # Resultaten
+
+## Inschatting tonnage droge massa macrozoöbenthos (totaal + foutenmarge)
+
+## Vergelijking raaien met gestratificeerde aselecte steekproef
+
+## 

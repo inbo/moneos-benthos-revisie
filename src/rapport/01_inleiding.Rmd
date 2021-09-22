@@ -1,1 +1,27 @@
+---
+bibliography: moneos.bib
+---
+
 # Inleiding
+
+Jaarlijks wordt er een monitoring gedaan van macrozoöbenthos (MZB) in de Zeeschelde (dit is de SPATIAL campagne).
+Het doel van deze campagne is om de systeembiomassa van MZB in zacht substraat in te schatten.
+Deze systeembiomassa is een maat voor de draagkracht van de Zeeschelde (ZS).
+Er is een vast criterium voor evaluatie: 30 ton droge massa moet minstens aanwezig zijn over de hele schelde en er zijn ook enkele subcriteria voor een uniforme verdeling over de hele Zeeschelde.
+
+Vraagstellingen:
+
+-   Ze willen nu zo veel mogelijk raaien in het systeem krijgen maar toch nog een randomisatie behouden. Eén van de vraagstellingen die men aan de hand van de raaien wil onderzoeken is welke effecten sedimenthoogteveranderingen hebben op het benthos. Bvb door verdieping van de Schelde zijn er wel heel wat sediment hoogteverandering en door die vaste raaien kunnen ze de effecten daarvan op MZB veel beter opvolgen.
+
+Voor het stratified random sample moeten veel oninteressante (ecologisch gezien) gebieden ook meegenomen worden.
+Het is de vraag in hoeverre we die oninteressante zouden moeten meenemen voor draagkracht van de rivier want de vogels foerageren daar niet.
+De raaien zijn echter niet representatief voor het volledige systeem waardoor geen onvertekende inschatting van biomassa mogelijk is enkel en alleen aan de hand van de raaien.
+
+To do: Voorlopig hebben ze nog geen poging gedaan om een foutenmarge te berekenen op de jaarlijkse schatting van biomassa voor het volledige systeem (referentiewaarde 30 ton).
+
+```{=html}
+<!--
+To do (frank/Joost) Alle achtergrondliteratuur samen zetten Data (google sheets) delen.
+Berekening eindcijfer uitschrijven / script / ... Kaartmaterialen / shapefiles / rasters zijn op schaal van een vierkante meter.
+-->
+```

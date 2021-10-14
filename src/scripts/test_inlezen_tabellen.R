@@ -22,10 +22,10 @@ walk(paths, load_excel)
 
 sp2018_metadata %>%
   rename(ecotoop_gepland = `ecotoop gepland`) %>%
-  mutate(year = 2018) -> sp2018_metadata
+  mutate(jaar = 2018) -> sp2018_metadata
 sp2019_metadata %>%
   rename(datum = Datum) %>%
-  mutate(year = 2019,
+  mutate(jaar = 2019,
          ecotoop_gepland = NA) %>%
   bind_rows(sp2018_metadata) %>%
   mutate(campagne = as.factor(campagne),
@@ -33,7 +33,7 @@ sp2019_metadata %>%
          tidaal = as.factor(tidaal),
          geomorf = as.factor(geomorf),
          ecotoop_gepland = as.factor(ecotoop_gepland),
-         ecotoop_werkelijk = as.factor(ecotoop_gepland),
+         ecotoop_werkelijk = as.factor(ecotoop_werkelijk),
          SalZone = as.factor(SalZone),
          Vallei_deel = as.factor(Vallei_deel),
          Omessegment = as.factor(Omessegment),

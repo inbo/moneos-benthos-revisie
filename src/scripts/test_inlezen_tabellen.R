@@ -38,14 +38,21 @@ sp2019_metadata %>%
          Vallei_deel = as.factor(Vallei_deel),
          Omessegment = as.factor(Omessegment),
          KRWzone = as.factor(KRWzone),
-         year = as.factor(year)) -> metadata
+         jaar = as.factor(jaar)) -> metadata
 sp2018_benthos %>%
-  mutate(year = 2018) ->sp2018_benthos
+  mutate(jaar = 2018) ->sp2018_benthos
 sp2019_benthos %>%
-  mutate(year = 2019) %>%
+  mutate(jaar = 2019) %>%
   bind_rows(sp2018_benthos) %>%
   mutate(staalcode = as.factor(substr(staal,1,nchar(staal)-3)),
-         soort = as.factor(soort)) -> benthos
+         soort = as.factor(soort),
+         jaar = as.factor(jaar)) -> benthos
 rm(sp2018_benthos, sp2019_benthos, sp2018_metadata, sp2019_metadata)
 
+#check voor dubbels in the metadata
+a <- which(duplicated(metadata[,c("staal", "staalcode", "jaar")]))
+a <- c(a, which(duplicated(metadata[,c("staal", "staalcode", "jaar")], fromLast=T)))
+#Staal DI_SP_04 staat voor beide jaren twee keer in de metadata met lichtjes andere X-Y coordinaten en ander ecotoop_werkelijk. Dit dient uitgeklaard te worden want anders krijgen we dubbels in onderstaande left join.
+
+benthos %>% left_join(metadata, by = c("staal", "staalcode", "jaar", "datum")) -> benthos
 

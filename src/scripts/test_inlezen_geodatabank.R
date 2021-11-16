@@ -15,7 +15,9 @@ layers
 
 ecotoop <- read_sf(gdb_path,
                    layer = layers$name[1]) %>%
-  st_cast("MULTIPOLYGON")
+  st_cast("MULTIPOLYGON") %>%
+  mutate(ecotoop_werkelijk = as.factor(Ecotoop),
+         KRWzone = as.factor(KRWzone))
 
 random_points_2020 <- read_sf(gdb_path,
                       layer = layers$name[2])

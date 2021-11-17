@@ -1,33 +1,65 @@
 ---
 title: "Revisie van het MONEOS macrozoöbenthos meetnet"
 author: 
-  - 
-    name: "Raïsa Carmen"
-    email: "raisa.carmen@inbo.be"
-  - 
-    name: "Hans Van Calster"
-    email: "hans.vancalster@inbo.be"
-subtitle: "Hier komt de optionele ondertitel"
-reportnr: "Hier komt de DOI van het rapport"
-ordernr: "Het optionele nummer van de opdrachtgever"
+  - firstname: Raïsa
+    name: Carmen
+    email: raisa.carmen@inbo.be
+    orcid: 0000-0003-1025-8702
+  - firstname: Hans
+    name: "Van Calster"
+    email: hans.vancalster@inbo.be
+    orcid: 0000-0001-8595-8426
+style: INBO
+lang: nl
+
+#colofon
+shortauthor: "Carmen, R. & Van Calster, H."
+corresponding: hans.vancalster@inbo.be
+reviewer:
+  - firstname: Frank
+    name: "Van de Meutter"
+    email: frank.vandemeutter@inbo.be
+    orcid: 0000-0002-9850-1860
+  - firstname: Joost
+    name: "Vanoverbeke"
+    email: joost.vanoverbeke@inbo.be
+    orcid: 0000-0002-3893-9529
+year: 2021
+cover_photo:
+cover_description:
+doi:
+reportnr:
+depotnr:
+
 bibliography: moneos.bib
 link-citations: TRUE
 site: bookdown::bookdown_site
+
+# HTML report specific options. See ?INBOmd::gitbook() for full list and more details.
+github-repo: inbo/moneos-benthos-revisie
+split_by: "chapter+number"
+
 output:
-  bookdown::gitbook:
-    split_by: "chapter+number"
-    template: !expr INBOmd::inbo_rapport_css("html")
-    pandoc_args: !expr c("--csl", system.file("research-institute-for-nature-and-forest.csl", package = "INBOmd"))
-  bookdown::pdf_book:
-    base_format: INBOmd::inbo_rapport
-    style: INBO
-    tocdepth: 2
-    lof: TRUE
-    lot: TRUE
-    floatbarrier: subsection
+  INBOmd::gitbook: default
 ---
 
 # Voorwoord {.unnumbered}
+
+# Samenvatting {.unnumbered}
+
+De tekst voor de verplichte samenvatting.
+Hou het [Heerlijk Helder](https://overheid.vlaanderen.be/communicatie/heerlijk-helder).
+
+# Aanbevelingen voor beheer en/of beleid {.unnumbered}
+
+Verplicht wanneer relevant.
+
+\benglish
+
+# English abstract {.unnumbered}
+
+Insert a translation of the summary here.
+\eenglish
 
 ```{r setup, include = FALSE}
 library(knitr)
@@ -35,8 +67,6 @@ opts_chunk$set(
   echo = FALSE,
   eval = TRUE,
   cache = FALSE,
-  fig.width = 150 / 25.4,
-  fig.height = 100 / 25.4,
   warning = TRUE,
   error = FALSE,
   message = TRUE
@@ -44,33 +74,22 @@ opts_chunk$set(
 library(tidyverse)
 library(INBOtheme)
 if (interactive()) {
-  theme_set(
-    theme_inbo(
-      base_family = "Calibri", # "FlandersArtSans-Regular",
-      base_size = 10
-    )
-  )
+  theme_set(theme_inbo(base_size = 10))
 } else {
   switch(
     opts_knit$get("rmarkdown.pandoc.to"),
     html = {
       opts_chunk$set(dev = "png", dpi = 72)
-      theme_set(
-        theme_inbo(
-          base_family = "Calibri", # "FlandersArtSans-Regular",
-          base_size = 12
-        )
-      )
+      theme_set(theme_inbo(base_size = 12))
     },
     latex = {
       opts_chunk$set(dev = "cairo_pdf", dpi = 300)
-      theme_set(
-        theme_inbo(
-          base_family = "Calibri", # "FlandersArtSans-Regular",
-          base_size = 9
-        )
-      )
+      theme_set(theme_inbo(base_size = 9))
       update_geom_defaults("point", list(size = 1.5))
+    },
+    epub3 = {
+      opts_chunk$set(dev = "png", dpi = 300)
+      theme_set(theme_inbo(base_size = 12))
     }
   )
 }

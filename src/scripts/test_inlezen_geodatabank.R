@@ -1,7 +1,7 @@
 library(sf)
 library(ggplot2)
 library(dplyr)
-
+library(tidyverse)
 library(rprojroot)
 source(find_root_file("src/utils/utility_functions.R",
                       criterion = is_git_root))
@@ -16,8 +16,16 @@ layers
 ecotoop <- read_sf(gdb_path,
                    layer = layers$name[1]) %>%
   st_cast("MULTIPOLYGON") %>%
-  mutate(ecotoop_werkelijk = as.factor(Ecotoop),
-         KRWzone = as.factor(KRWzone))
+  mutate(ecotoop_werkelijk = recode(as.factor(Ecotoop),
+                                    "breuksteen" = "hard substraat",
+                                    "hard antropogeen" = "hard substraat",
+                                    "hoog slik"= "hoge slikzone",
+                                    "middelhoog slik" = "middelhoge slikzone",
+                                    "laag slik" = "lage slikzone",
+                                    "intertidaal" = "slik"),
+         KRWzone = recode(as.factor(KRWzone),
+                          "TijarmZwijnaarde" = "Tijarm")
+         )
 
 random_points_2020 <- read_sf(gdb_path,
                       layer = layers$name[2])

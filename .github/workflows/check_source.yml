@@ -13,3 +13,4 @@ jobs:
       - uses: inbo/actions/check_src@master
         with:
           token: ${{ secrets.pat }}
+          path: "src"

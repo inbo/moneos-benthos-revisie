@@ -1,5 +1,5 @@
 ---
-bibliography: moneos.bib
+bibliography: [moneos.bib, packages.bib]
 ---
 
 # Materiaal en methoden
@@ -141,20 +141,21 @@ Omvang van het geassocieerde labowerk:
 ## Raaien
 
 Sinds 2018 werden vaste raaien jaarlijks bemonstert (170 punten), bovenop de 228 random stalen voor jaarlijkse rapportage.
-Raai: vaste hoogte bij een doorsnede van een rivier.
 Het gaat om 35 raaien (transecten) in de intertidale zone (dus niet in het subtidaal).
-Ze hebben op vaste hoogtes (raaien) staalnames genomen zodat er ook iets over de spreiding kan worden gezegd over de hoogte.
+Dus gemiddeld worden een `r round(170/35)` locaties per raai bemonsterd.
 
-Ze hebben nu al 2 jaar dezelfde **locaties** bemonsterd op dezelfde hoogte (170 extra punten).
-
-Raaien zijn nog nooit beschreven want rapportage is altijd op basis van het random stratified sample; volgend jaar zouden ze een rapport schrijven over MZB op die raaien.
-Toporaaien zijn er ook al wel voor andere monitoring netwerken bij MONEOS maar daar wordt alleen sediment en hoogte bekeken, geen benthos metingen!
-
-Subtidaal zijn er geen raaien, enkel in het intertidaal.
-Raaien zijn gekozen voor ecologisch belang en dekking van het systeem.
-Ze zijn voornamelijk gelegd in ecologisch interessantste gebieden met een intakte slibplaat (veel delen van de Schelde zijn verstevigd met breuksteen, bv ongeveer volledig westerschelde IV, wat een veel minder geschikt substraat is voor MZB).
+De ligging van de raaien is gekozen in functie van het ecologisch belang en dekking van het systeem.
+Ze zijn voornamelijk gelegd in de ecologisch interessantste gebieden met een intakte slibplaat (veel delen van de Schelde zijn verstevigd met breuksteen, bv ongeveer volledig westerschelde IV, wat een veel minder geschikt substraat is voor MZB).
 
 ## Databeschikbaarheid
 
-Databeschikbaarheid: Scheldedatabank: historische databank waar ze op aan het werken zijn; We verwachten vanaf het najaar (Sept/Okt) een mooie databank te hebben om op te werken.
-Meest recente gegevens in Google sheets
+Momenteel zitten de meest recente gegevens in Google sheets.
+Er wordt gewerkt aan een SQL databank (Scheldedatabank) waarin actuele en historische gegevens terecht komen.
+
+## Gegevensverwerking
+
+Voor de inschatting van de foutenmarge op de biomassa MZB, maken we gebruik van design-based formules voor de schatting van een totaal in een gestratificeerde steekproef.
+Om het totaal in te schatten is het belangrijk dat we de juiste gewichten (inverse van inclusiekansen) gebruiken om de extrapolatie te doen van de totale biomassa geobserveerd in de steekproef naar de totale biomassa in het gehele systeem (de statistische populatie).
+
+Alle analyses werden uitgevoerd in R [@R-base] .
+We maken hierbij gebruik van verschillende R packages: `dplyr` [@R-dplyr] voor het voorbereiden van de ruwe data, `ggplot2` [@R-ggplot2] voor aanmaken van figuren en `srvyr` [@R-srvyr] voor design-based inferentie.

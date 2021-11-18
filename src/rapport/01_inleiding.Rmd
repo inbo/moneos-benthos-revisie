@@ -7,7 +7,9 @@ bibliography: moneos.bib
 Het MONEOS langetermijn monitoring- en onderzoeksprogramma heeft als belangrijkste doelstelling om grensoverschrijdende samenwerking over het beheer en beleid rond het Zeeschelde estuarium en zijn getijderivieren te ondersteunen.
 Dit programma staat beschreven in @meire2008.
 Het betreft een breed programma waar zowel fysisch-chemische als biologische variabelen worden ingezameld en onderzocht sinds 2008.
-Binnen de biologische variabelen kijkt men onder meer naar het macrozoöbenthos (MZB) [@speybroeck2014\]. Deze gegevens worden niet alleen gebruikt voor de beoordeling van de draagkracht en het ecologisch functioneren van het Zeeschelde-estuarium, maar ook voor beoordelingen voor de Europese Kaderrichtlijn Water. Jaarlijks publiceert INBO een datarapport waarin een overzicht staat van de ruwe gegevens, die door INBO worden ingezameld in het kader van MONEOS \[e.g. @ryckegem2020].
+Binnen de biologische variabelen kijkt men onder meer naar het macrozoöbenthos (MZB) [@speybroeck2014].
+Deze gegevens worden niet alleen gebruikt voor de beoordeling van de draagkracht en het ecologisch functioneren van het Zeeschelde-estuarium, maar ook voor beoordelingen voor de Europese Kaderrichtlijn Water.
+Jaarlijks publiceert INBO een datarapport waarin een overzicht staat van de ruwe gegevens, die door INBO worden ingezameld in het kader van MONEOS [e.g. @ryckegem2020].
 
 Sinds 2008, wordt jaarlijks een monitoring gedaan van MZB in de Zeeschelde (dit is de SPATIAL campagne).
 In @speybroeck2014 worden ook de historische MZB gegevens besproken die tussen 1999 en 2008 ingezameld werden.
@@ -38,3 +40,4 @@ Berekening eindcijfer uitschrijven / script / ... Kaartmaterialen / shapefiles /
 
 -->
 ```
+

@@ -727,7 +727,7 @@
       "RemoteHost": "api.github.com",
       "RemoteUsername": "rstudio",
       "RemoteRepo": "renv",
-      "RemoteRef": "main",
+      "RemoteRef": "0.14.0-50",
       "RemoteSha": "2749d175371e4dc7feb9820b689fdb05896b8e7d"
     },
     "reprex": {

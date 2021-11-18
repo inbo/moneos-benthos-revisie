@@ -24,7 +24,7 @@ We zullen voor deze oefening de data daarom beperken tot die delen die wel jaarl
 
 ```{r strata-krw}
 strata_krw <- data.frame(
-  `gebruikt stratum`= c("Zeeschelde IV",
+  `gebruikt stratum` = c("Zeeschelde IV",
                         "Zeeschelde III",
                         "Zeeschelde II",
                         "Zeeschelde I",
@@ -33,7 +33,7 @@ strata_krw <- data.frame(
                         "Netes",
                         "Dijle",
                         "Zenne"),
-  `KRW-waterlichaam`= c("Zeeschelde IV",
+  `KRW-waterlichaam` = c("Zeeschelde IV",
                         "Zeeschelde III + Rupel",
                         "Zeeschelde II",
                         "Zeeschelde I",
@@ -54,7 +54,7 @@ strata_krw <- data.frame(
 )
 
 strata_krw %>%
-  kable(caption = '(ref:strata-krw)')
+  kable(caption = "(ref:strata-krw)")
 ```
 
 De ligging en oppervlakte van de fysiotopen verandert ieder jaar gedeeltelijk.
@@ -66,17 +66,20 @@ Tabel \@ref(tab:strata-fysiotopen) toont de indeling volgens fysiotopen (tweede 
 ```{r strata-fysiotopen}
 strata_fysiotopen <- data.frame(
       getijdenzone = c("intertidaal hoog",
-                       "intertidaal","intertidaal","subtidaal","subtidaal","subtidaal"),
+                       "intertidaal", "intertidaal", "subtidaal", "subtidaal",
+                       "subtidaal"),
          Fysiotoop = c("intertidaal",
-                       "midden intertidaal","laag intertidaal","ondiep subtidaal",
-                       "matig diep subtidaal","diep subtidaal"),
+                       "midden intertidaal", "laag intertidaal",
+                       "ondiep subtidaal",
+                       "matig diep subtidaal", "diep subtidaal"),
          definitie = c("0-25% overspoelingsduur",
-                       "25-75% overspoelingsduur","75% overspoelingsduur - GLWS",
-                       "0-2m onder GLWS","2-5m onder GLWS",">5m onder GLWS")
+                       "25-75% overspoelingsduur",
+                       "75% overspoelingsduur - GLWS",
+                       "0-2m onder GLWS", "2-5m onder GLWS", ">5m onder GLWS")
 )
 
 strata_fysiotopen %>%
-  kable(caption = '(ref:strata-fysiotopen)')
+  kable(caption = "(ref:strata-fysiotopen)")
 ```
 
 Voor elke combinatie waterlichaam x fysiotoop worden jaarlijks random staalnamelocaties vastgelegd.

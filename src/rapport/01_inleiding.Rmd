@@ -37,7 +37,5 @@ In dit rapport behandelen we de volgende **vraagstellingen**:
 <!--
 To do (frank/Joost) Alle achtergrondliteratuur samen zetten Data (google sheets) delen.
 Berekening eindcijfer uitschrijven / script / ... Kaartmaterialen / shapefiles / rasters zijn op schaal van een vierkante meter.
-
 -->
 ```
-

@@ -15,6 +15,10 @@ Het steekproefkader (ruimtelijke begrenzing), waarmee deze doelpopulatie benader
 
 Het gaat om een stratified random design over waterlichamen en fysiotopen [@speybroeck2014].
 Tabel \@ref(tab:strata-krw) toont het eerste niveau van stratificatie volgens waterlichamen en hun link met de KRW-waterlichamen.
+De Zeeschelde wordt jaarlijks bemonsterd.
+De zijrivieren worden om de drie jaar bemonsterd.
+Voor de vraagstelling waarbij we willen vergelijken hoe/of de benthosraaien inwisselbaar/vergelijkbaar zijn met de random punten (en wat de fout is op de schatting van systeembiomassa) zijn de zijrivieren niet van belang.
+We zullen voor deze oefening de data daarom beperken tot die delen die wel jaarlijks bemonsterd worden.
 
 (ref:strata-krw) Strata van eerste niveau en hun verband met de KRW-waterlichamen [@speybroeck2014].
 
@@ -79,9 +83,6 @@ Voor elke combinatie waterlichaam x fysiotoop worden jaarlijks random staalnamel
 In de meeste gevallen zijn dit 5 locaties per combinatie.
 Voor het grootste areaal, Zeeschelde IV, wordt dit aantal opgetrokken naar 10 locaties per fysiotoop.
 Voor de kleinste arealen, Dijle en Zenne, komt men toe met respectievelijk 3 en 2 locaties per fysiotoop.
-
-De Zeeschelde wordt jaarlijks bemonsterd.
-De zijrivieren worden om de drie jaar bemonsterd.
 Dit komt neer op 150 locaties die jaarlijks bemonsterd worden en 115 locaties driejaarlijks.
 Dit is het theoretisch vooropgestelde aantal locaties volgens @speybroeck2014.
 In de praktijk zien we dat er een iets hoger aantal locaties bemonsterd worden.

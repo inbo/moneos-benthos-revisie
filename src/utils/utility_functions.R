@@ -25,3 +25,11 @@ get_map_data_moneos <- function() {
   path <- Sys.getenv("MAP_DATA_MONEOS")
   return(path)
 }
+
+load_excel <- function(path) {
+  name <- path |>
+    fs::path_file() |>
+    fs::path_ext_remove() |>
+    tolower()
+  assign(name, readxl::read_excel(path), inherits = TRUE)
+}

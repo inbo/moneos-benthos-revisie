@@ -37,7 +37,6 @@ site: bookdown::bookdown_site
 
 # HTML report specific options. See ?INBOmd::gitbook() for full list and more details.
 github-repo: inbo/moneos-benthos-revisie
-split_by: "chapter+number"
 
 output:
   INBOmd::gitbook: default

@@ -11,8 +11,16 @@ bibliography: [moneos.bib, packages.bib]
 De doelpopulatie betreft de subtidale geul (permanent ondergedoken) en de intertidale slikgebieden van de Zeeschelde en de getij-onderhevige delen van zijn zijrivieren (Rupel, Dijle, Zenne, Netes, Durme).
 Het steekproefkader (ruimtelijke begrenzing), waarmee deze doelpopulatie benaderd wordt, wordt samengesteld aan de hand van 7 waterlichamen overeenkomend met waterlichamen afgebakend voor beoordeling in het kader van de Europese Kaderrichtlijn Water (KRW) [@speybroeck2014].
 
-Voor de beoordeling van MZB systeembiomassa is er een referentiewaarde vooropgesteld van 30 ton droge biomassa.
-Deze referentiewaarde geldt echter enkel voor de Zeeschelde - dus exclusief de zijrivieren.
+De biomassa doelstelling 30 ton wordt berekend op het intertidaal (slik) voor de Zeeschelde + Rupel + Durme.
+Deze totaal doelstelling zal eveneens ook opgesplitst worden naar een minimum per zone: 
+
+-   Saliniteitsgradiënt: 14,2 ton
+
+-   Oligohalien (+Rupel): 8,3 ton
+
+-   Zoet Lange Verblijftijd (+Durme): 5 ton
+
+-   Zoet Korte Verblijftijd: 2,5 ton
 
 ### Steekproefdesign
 

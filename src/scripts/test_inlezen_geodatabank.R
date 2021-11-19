@@ -24,7 +24,9 @@ ecotoop <- read_sf(gdb_path,
                                     "laag slik" = "lage slikzone",
                                     "intertidaal" = "slik"),
          KRWzone = recode(as.factor(KRWzone),
-                          "TijarmZwijnaarde" = "Tijarm")
+                          "TijarmZwijnaarde" = "Tijarm-Zwijnaarde"),
+         KRWzone = replace_na(KRWzone, "Getijdedijle en -zenne")
+         
          )
 
 random_points_2020 <- read_sf(gdb_path,
@@ -38,9 +40,14 @@ schelde_contour <- read_sf(gdb_path,
 
 ecotoop %>%
   ggplot() +
-  geom_sf() +
+  geom_sf(aes(fill = is.na(KRWzone))) +
   geom_sf(data = raaien, colour = "red", alpha = 0.3) +
   geom_sf(data = random_points_2020, colour = "blue", alpha = 0.3)
+
+#Overzicht van zones met ontbrekende KRWzone; Enkel een stukje Dijle heeft missing KRWzone.
+ecotoop %>%
+  ggplot() +
+  geom_sf()
 
 ecotoop %>%
   st_drop_geometry() %>%

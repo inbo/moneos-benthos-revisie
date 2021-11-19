@@ -394,6 +394,23 @@
       "Repository": "CRAN",
       "Hash": "38c2580abbda249bd6afeec00d14f531"
     },
+    "git2r": {
+      "Package": "git2r",
+      "Version": "0.29.0",
+      "Source": "Repository",
+      "Repository": "https://ropensci.r-universe.dev",
+      "RemoteUrl": "https://github.com/ropensci/git2r",
+      "RemoteRef": "master",
+      "RemoteSha": "e561cc18cd5c47d56fd8a0975923cde494c58e64",
+      "Hash": "b114135c4749076bd5ef74a5827b6f62"
+    },
+    "git2rdata": {
+      "Package": "git2rdata",
+      "Version": "0.3.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "42391cea59cc785157b9fefaf9a223ef"
+    },
     "gitcreds": {
       "Package": "gitcreds",
       "Version": "0.1.1",
@@ -728,7 +745,8 @@
       "RemoteUsername": "rstudio",
       "RemoteRepo": "renv",
       "RemoteRef": "0.14.0-50",
-      "RemoteSha": "2749d175371e4dc7feb9820b689fdb05896b8e7d"
+      "RemoteSha": "2749d175371e4dc7feb9820b689fdb05896b8e7d",
+      "Hash": "c0d03f24f550e9ac48e848271fc9b3c8"
     },
     "reprex": {
       "Package": "reprex",

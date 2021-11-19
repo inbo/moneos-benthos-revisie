@@ -1,0 +1,487 @@
+..generic:
+  git2rdata: 0.3.1
+  optimize: yes
+  NA string: NA
+  sorting: staal
+  hash: c731b08bffbcc4616993e184148c566e7e7c0908
+  data_hash: 78a0fb71a5d26e73cf5757c4d8bf3270bb7474bf
+campagne.x:
+  class: character
+staal:
+  class: character
+datum.x:
+  class: POSIXct
+  origin: 1970-01-01 00:00:00
+  timezone: UTC
+fractie:
+  class: numeric
+soort:
+  class: factor
+  labels:
+  - Alita succinea
+  - Amphibalanus improvisus
+  - Apocorophium lacustre
+  - bathyporeia pilosa
+  - Bathyporeia pilosa
+  - Bivalvia sp
+  - Boccardiella ligerica
+  - Brachycera cyclorrhapha
+  - Branchiura sowerbyi
+  - Ceratopogonidae
+  - Chironomidae
+  - Chloropidae sp
+  - Collembola
+  - Copepoda
+  - Corbicula fluminea
+  - Corophium multisetosum
+  - corophium volutator
+  - Corophium volutator
+  - Crangon crangon
+  - Culicidae sp
+  - Cyathura carinata
+  - Daphnia pulex groep
+  - Dolichopodidae
+  - eiseniella tetraedra
+  - Eiseniella tetraedra
+  - Ephydridae
+  - Eriocheir sinensis
+  - Eteone longa
+  - Eteone/Hypereteone
+  - Galba truncatula
+  - geen
+  - Georissidae sp
+  - Hediste diversicolor
+  - Heleobia charruana
+  - Heteromastus filiformis
+  - Hydrobia ulvae
+  - Hypereteone cf lighti
+  - Hypereteone sp
+  - Hypereteone sp.
+  - Ilyocryptus agilis
+  - Limecola balthica
+  - Manayunkia aestuarina
+  - Marenzelleria neglecta
+  - Microturbellaria
+  - Microturbellaria sp
+  - Mulinia lateralis
+  - Muscidae sp
+  - Mya arenaria
+  - Nematoda
+  - Nereis succinea
+  - Notiphila sp
+  - Oligochaeta
+  - Oligochaeta sp
+  - Peringia ulvae
+  - Peripsychoda sp
+  - Podura aquatica
+  - Polydora cornuta
+  - Potamocorbula amurensis
+  - Pygospio elegans
+  - Rhithropanopeus harrisii
+  - Scrobicularia plana
+  - Sminthurinus sp
+  - Streblospio benedicti
+  - Streblospio sp.
+  - Tharyx sp.
+  - Tipula cf. luna
+  - Tubificoides heterochaetus
+  index:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 17
+  - 18
+  - 19
+  - 20
+  - 21
+  - 22
+  - 23
+  - 24
+  - 25
+  - 26
+  - 27
+  - 28
+  - 29
+  - 30
+  - 31
+  - 32
+  - 33
+  - 34
+  - 35
+  - 36
+  - 37
+  - 38
+  - 39
+  - 40
+  - 41
+  - 42
+  - 43
+  - 44
+  - 45
+  - 46
+  - 47
+  - 48
+  - 49
+  - 50
+  - 51
+  - 52
+  - 53
+  - 54
+  - 55
+  - 56
+  - 57
+  - 58
+  - 59
+  - 60
+  - 61
+  - 62
+  - 63
+  - 64
+  - 65
+  - 66
+  - 67
+  ordered: no
+aantal:
+  class: numeric
+AFDW:
+  class: numeric
+jaar:
+  class: factor
+  labels:
+  - '2018'
+  - '2019'
+  index:
+  - 1
+  - 2
+  ordered: no
+staalcode:
+  class: factor
+  labels:
+  - APa_SP
+  - APc_SP
+  - BAL_SP
+  - BALa_SP
+  - BM_SP
+  - BMa_SP
+  - BR_SP
+  - BRa_SP
+  - DD18
+  - DD19
+  - DG18
+  - DG19
+  - DI_SP
+  - DIa_SP
+  - DK_SP
+  - DO_SP
+  - DU_SP
+  - DU18
+  - DU19
+  - DUH_SP
+  - DUkb_SP
+  - GBSa_SP
+  - GBSc_SP
+  - GK18
+  - GK19
+  - GM18
+  - GM19
+  - GSc_SP
+  - HEUa_SP
+  - HEUa1_SP
+  - HO_SP
+  - HOa_SP
+  - KD18
+  - KD19
+  - KPb_SP
+  - KPe_SP
+  - LP_SP
+  - NOTc_SP
+  - NOTc1_SP
+  - OB2_SP
+  - OB3_SP
+  - PD_SP
+  - PDa_SP
+  - RU18
+  - RU19
+  - TB_SP
+  - TBa_SP
+  - TZ18
+  - TZ19
+  - WE_SP
+  - WEa_SP
+  index:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 17
+  - 18
+  - 19
+  - 20
+  - 21
+  - 22
+  - 23
+  - 24
+  - 25
+  - 26
+  - 27
+  - 28
+  - 29
+  - 30
+  - 31
+  - 32
+  - 33
+  - 34
+  - 35
+  - 36
+  - 37
+  - 38
+  - 39
+  - 40
+  - 41
+  - 42
+  - 43
+  - 44
+  - 45
+  - 46
+  - 47
+  - 48
+  - 49
+  - 50
+  - 51
+  ordered: no
+campagne.y:
+  class: factor
+  labels:
+  - SP18
+  - SP18 raai
+  - SP18&FF18
+  - SP19
+  - SP19 raai
+  index:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  ordered: no
+tidaal:
+  class: factor
+  labels:
+  - inter
+  - sub
+  index:
+  - 1
+  - 2
+  ordered: no
+datum.y:
+  class: POSIXct
+  origin: 1970-01-01 00:00:00
+  timezone: UTC
+real_X:
+  class: numeric
+real_Y:
+  class: numeric
+Z:
+  class: numeric
+geomorf:
+  class: factor
+  labels:
+  - breuksteen zichtbaar < 50%
+  - breuksteen zichtbaar > 50%
+  - clay
+  - klei
+  - meer slib minder zand
+  - meer zand minder slib
+  - more mud than sand
+  - more sand than mud
+  - mud
+  - other
+  - riprap -muddy
+  - riprap -sand
+  - sand
+  - schor
+  - slib
+  - slib film on clay
+  - veen
+  - zand
+  index:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 17
+  - 18
+  ordered: no
+ecotoop_werkelijk:
+  class: factor
+  labels:
+  - diep subtidaal
+  - hard substraat
+  - hoge slikzone
+  - lage slikzone
+  - matig diep subtidaal
+  - middelhoge slikzone
+  - ondiep subtidaal
+  - schor; hard substraat
+  - schor; hoge slikzone
+  - schor; middelhoge slikzone
+  index:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  ordered: no
+SalZone:
+  class: factor
+  labels:
+  - Mesohalien
+  - Oligohalien
+  - TBR
+  - TijarmZwijnaarde
+  - Zoet korte verblijftijd
+  - Zoet lange verblijftijd
+  - Zone met sterke saliniteitsgradiënt
+  index:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  ordered: no
+Vallei_deel:
+  class: factor
+  labels:
+  - Beneden Dijle
+  - Durme
+  - Rupel
+  - TijarmZwijnaarde
+  - Zeeschelde
+  index:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  ordered: no
+Omessegment:
+  class: factor
+  labels:
+  - '10'
+  - '11'
+  - '12'
+  - '13'
+  - '14'
+  - '15'
+  - '16'
+  - '17'
+  - '18'
+  - '19'
+  - 19  trGM
+  - '9'
+  - Beneden Dijle
+  - Durme
+  - Rupel
+  - Tijarm
+  index:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  ordered: no
+KRWzone:
+  class: factor
+  labels:
+  - Getijdedijle en -zenne
+  - Getijdedurme
+  - Tijarm-Zwijnaarde
+  - Zeeschelde I
+  - Zeeschelde II
+  - Zeeschelde III + Rupel
+  - Zeeschelde IV
+  index:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  ordered: no
+ecotoop_gepland:
+  class: factor
+  labels:
+  - diep subtidaal
+  - exacte locatie
+  - hard substraat
+  - hoge slikzone
+  - lage slikzone
+  - matig diep subtidaal
+  - middelhoge slikzone
+  - ondiep subtidaal
+  index:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  ordered: no

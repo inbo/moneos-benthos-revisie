@@ -3,9 +3,11 @@ library(rprojroot)
 library(fs)
 library(purrr)
 library(tidyverse)
+library(git2rdata)
 source(find_root_file("src/utils/utility_functions.R",
   criterion = is_git_root
 ))
+
 
 data_path <- get_map_data_moneos()
 
@@ -42,7 +44,8 @@ sp2019_metadata %>%
     SalZone = as.factor(SalZone),
     Vallei_deel = as.factor(Vallei_deel),
     Omessegment = as.factor(Omessegment),
-    KRWzone = as.factor(KRWzone),
+    KRWzone = recode(as.factor(KRWzone),
+                     "Tijarm" = "Tijarm-Zwijnaarde"),
     jaar = as.factor(jaar)
   ) -> metadata
 sp2018_benthos %>%
@@ -71,3 +74,10 @@ a <- c(a, which(duplicated(metadata[, c("staal", "staalcode", "jaar")],
 benthos %>%
   left_join(metadata, by = c("staal", "staalcode", "jaar")) ->
 benthos
+
+
+# bewaren als git2rdata object
+root <- find_root_file("data", 
+                       criterion = has_file("moneos-benthos-revisie.RProj"))
+D <- write_vc(benthos, "benthos", root, sorting = c("staal"))
+rm(D)

@@ -1,33 +1,172 @@
 ---
-bibliography: moneos.bib
+bibliography: [moneos.bib, packages.bib]
 ---
 
 # Materiaal en methoden
 
 ## SPATIAL campagne
 
-Het gaat om een stratified random design over waterlichamen en fysiotopen (fysiotoop is dynamisch want verandert ieder jaar)[@speybroeck2014].
+### Steekproefkader
 
-Er worden zo 228 stalen genomen per jaar en om de drie jaar komen ook de zijrivieren er bij: 298 stalen.
+De doelpopulatie betreft de subtidale geul (permanent ondergedoken) en de intertidale slikgebieden van de Zeeschelde en de getij-onderhevige delen van zijn zijrivieren (Rupel, Dijle, Zenne, Netes, Durme).
+Het steekproefkader (ruimtelijke begrenzing), waarmee deze doelpopulatie benaderd wordt, wordt samengesteld aan de hand van 7 waterlichamen overeenkomend met waterlichamen afgebakend voor beoordeling in het kader van de Europese Kaderrichtlijn Water (KRW) [@speybroeck2014].
+
+De biomassa doelstelling 30 ton wordt berekend op het intertidaal (slik) voor de Zeeschelde + Rupel + Durme.
+Deze totaal doelstelling zal eveneens ook opgesplitst worden naar een minimum per zone: 
+
+-   Saliniteitsgradiënt: 14,2 ton
+
+-   Oligohalien (+Rupel): 8,3 ton
+
+-   Zoet Lange Verblijftijd (+Durme): 5 ton
+
+-   Zoet Korte Verblijftijd: 2,5 ton
+
+### Steekproefdesign
+
+Het gaat om een stratified random design over waterlichamen en fysiotopen [@speybroeck2014].
+Tabel \@ref(tab:strata-krw) toont het eerste niveau van stratificatie volgens waterlichamen en hun link met de KRW-waterlichamen.
+De Zeeschelde wordt jaarlijks bemonsterd.
+De zijrivieren worden om de drie jaar bemonsterd.
+Voor de vraagstelling waarbij we willen vergelijken hoe/of de benthosraaien inwisselbaar/vergelijkbaar zijn met de random punten (en wat de fout is op de schatting van systeembiomassa) zijn de zijrivieren niet van belang.
+We zullen voor deze oefening de data daarom beperken tot die delen die wel jaarlijks bemonsterd worden.
+
+(ref:strata-krw) Strata van eerste niveau en hun verband met de KRW-waterlichamen [@speybroeck2014].
+
+```{r strata-krw}
+strata_krw <- data.frame(
+  `gebruikt stratum` = c("Zeeschelde IV",
+                        "Zeeschelde III",
+                        "Zeeschelde II",
+                        "Zeeschelde I",
+                        "Rupel",
+                        "Durme",
+                        "Netes",
+                        "Dijle",
+                        "Zenne"),
+  `KRW-waterlichaam` = c("Zeeschelde IV",
+                        "Zeeschelde III + Rupel",
+                        "Zeeschelde II",
+                        "Zeeschelde I",
+                        "Zeescheld III + Rupel",
+                        "Getijdedurme",
+                        "Getijdenetes",
+                        "Getijdedijle en -zenne",
+                        "Getijdedijle en -zenne"),
+  `saliniteitszone` = c("Mesohalien",
+                        "Oligohalien",
+                        "Zoet",
+                        "Zoet",
+                        "Oligohalien",
+                        "Zoet",
+                        "Zoet",
+                        "Zoet",
+                        "Zoet")
+)
+
+strata_krw %>%
+  kable(caption = "(ref:strata-krw)")
+```
+
+De ligging en oppervlakte van de fysiotopen verandert ieder jaar gedeeltelijk.
+Deze kan afgeleid worden uit de gebiedsdekkende ecotoopkarteringen, die echter niet voor elk jaar beschikbaar is.
+Tabel \@ref(tab:strata-fysiotopen) toont de indeling volgens fysiotopen (tweede niveau van stratificatie).
+
+(ref:strata-fysiotopen) Strata van tweede niveau - fysiotopentypologie (Van Braeckel et al. 2006)
+
+```{r strata-fysiotopen}
+strata_fysiotopen <- data.frame(
+      getijdenzone = c("intertidaal hoog",
+                       "intertidaal", "intertidaal", "subtidaal", "subtidaal",
+                       "subtidaal"),
+         Fysiotoop = c("intertidaal",
+                       "midden intertidaal", "laag intertidaal",
+                       "ondiep subtidaal",
+                       "matig diep subtidaal", "diep subtidaal"),
+         definitie = c("0-25% overspoelingsduur",
+                       "25-75% overspoelingsduur",
+                       "75% overspoelingsduur - GLWS",
+                       "0-2m onder GLWS", "2-5m onder GLWS", ">5m onder GLWS")
+)
+
+strata_fysiotopen %>%
+  kable(caption = "(ref:strata-fysiotopen)")
+```
+
+Voor elke combinatie waterlichaam x fysiotoop worden jaarlijks random staalnamelocaties vastgelegd.
+In de meeste gevallen zijn dit 5 locaties per combinatie.
+Voor het grootste areaal, Zeeschelde IV, wordt dit aantal opgetrokken naar 10 locaties per fysiotoop.
+Voor de kleinste arealen, Dijle en Zenne, komt men toe met respectievelijk 3 en 2 locaties per fysiotoop.
+Dit komt neer op 150 locaties die jaarlijks bemonsterd worden en 115 locaties driejaarlijks.
+Dit is het theoretisch vooropgestelde aantal locaties volgens @speybroeck2014.
+In de praktijk zien we dat er een iets hoger aantal locaties bemonsterd worden.
+
+Alle stalen worden genomen in de tweede en derde week van september.
+Er zijn geen replica's binnen eenzelfde locatie.
+
+### Bemonsteringsprotocol
+
+Voor de gedetailleerde beschrijving van het staalnameprotocol verwijzen we naar @speybroeck2014 (sectie 2.4.2).
+We beperken ons hier tot enkel die elementen die van belang kunnen zijn voor onze vraagstellingen.
+Er worden twee types stalen genomen, enkel het basisstaal is voor dit rapport van belang.
+
+Zowel in het subtidaal als het intertidaal neemt men een steekbuisstaal met diameter van 4,5 cm tot 15 cm diepte, behalve in Zeeschelde IV tot 30 cm diep.
+De bemonsterde oppervlakte en volume (bij 15 cm diepte) per locatie bedraagt dus respectievelijk: `r round(pi*4.5^2/4)` cm² en `round(pi*4.5^2/4*15/1000,2)` liter (x2 bij 30 cm diepte).
+
+### Procedure berekening van analysevariabelen
+
+De stalen worden gefixeerd (dood de aanwezige organismen) en pas daarna nat gezeefd over maaswijdtes van 0,5 en 1 mm.
+Op de fractie \< 0,5 mm heeft men dus geen zicht, maar dit leidt slechts tot een beperkte onderschatting van de biomassa van 7,7% (+/- 2,7% standaardfout) volgens @speybroeck2014.
+
+Alle individuen worden gedetermineerd tot op het laagste taxonomische niveau, behalve de oligochaeten die als één taxon worden beschouwd (om de drie jaar is er wel een apart staal waarop oligochaeten worden gedetermineerd).
+
+De totale biomassa van een soort wordt per stratum bepaald en wordt berekend als het verschil tussen het drooggewicht (gewicht na drogen) en het asgewicht (gewicht na verassing).
+
+De gegevens laten ook toe om allerlei verschillende soortdiversiteitsmaten te berekenen of soortsaccumulatiecurves te bepalen (verwacht aantal soorten in functie van gecumuleerd aantal stalen of aantal individuen).
+
+### Belangrijkste kostenposten
+
+```{=html}
+<!--
 Er zijn 3 mensen bijna fulltime mee bezig en uiteindelijk komt er maar 1 getal uit terwijl er eigenlijk veel meer data is.
+-->
+```
+Omvang van het veldwerk:
 
+-   staalname in intertidaal
+-   staalname in subtidaal
+
+Omvang van het geassocieerde labowerk:
+
+-   zeven van de stalen
+-   uitsorteren van de stalen
+-   determineren van de soorten
+-   bepalen drooggewicht per soort per stratum
+-   bepalen asgewicht per soort per stratum
+
+```{=html}
+<!--
+(labowerk wellicht groter dan het veldwerk dat geconcentreerd is in de tijd binnen 2-3 weken).
+-->
+```
 ## Raaien
 
-Daarom werden er Vaste Raaien de afgelopen 2 (of 3?) jaar bemonstert (170 punten), bovenop de 228 random stalen voor jaarlijkse rapportage.
-Raai: vaste hoogte bij een doorsnede van een rivier.
+Sinds 2018 werden vaste raaien jaarlijks bemonstert (170 punten), bovenop de 228 random stalen voor jaarlijkse rapportage.
 Het gaat om 35 raaien (transecten) in de intertidale zone (dus niet in het subtidaal).
-Ze hebben op vaste hoogtes (raaien) staalnames genomen zodat er ook iets over de spreiding kan worden gezegd over de hoogte.
+Dus gemiddeld worden een `r round(170/35)` locaties per raai bemonsterd.
 
-Ze hebben nu al 2 jaar dezelfde **locaties** bemonsterd op dezelfde hoogte (170 extra punten).
-
-Raaien zijn nog nooit beschreven want rapportage is altijd op basis van het random stratified sample; volgend jaar zouden ze een rapport schrijven over MZB op die raaien.
-Toporaaien zijn er ook al wel voor andere monitoring netwerken bij MONEOS maar daar wordt alleen sediment en hoogte bekeken, geen benthos metingen!
-
-Subtidaal zijn er geen raaien, enkel in het intertidaal.
-Raaien zijn gekozen voor ecologisch belang en dekking van het systeem.
-Ze zijn voornamelijk gelegd in ecologisch interessantste gebieden met een intakte slibplaat (veel delen van de Schelde zijn verstevigd met breuksteen, bv ongeveer volledig westerschelde IV, wat een veel minder geschikt substraat is voor MZB).
+De ligging van de raaien is gekozen in functie van het ecologisch belang en dekking van het systeem.
+Ze zijn voornamelijk gelegd in de ecologisch interessantste gebieden met een intakte slibplaat (veel delen van de Schelde zijn verstevigd met breuksteen, bv ongeveer volledig westerschelde IV, wat een veel minder geschikt substraat is voor MZB).
 
 ## Databeschikbaarheid
 
-Databeschikbaarheid: Scheldedatabank: historische databank waar ze op aan het werken zijn; We verwachten vanaf het najaar (Sept/Okt) een mooie databank te hebben om op te werken.
-Meest recente gegevens in Google sheets
+Momenteel zitten de meest recente gegevens in Google sheets.
+Er wordt gewerkt aan een SQL databank (Scheldedatabank) waarin actuele en historische gegevens terecht komen.
+
+## Gegevensverwerking
+
+Voor de inschatting van de foutenmarge op de biomassa MZB, maken we gebruik van design-based formules voor de schatting van een totaal in een gestratificeerde steekproef.
+Om het totaal in te schatten is het belangrijk dat we de juiste gewichten (inverse van inclusiekansen) gebruiken om de extrapolatie te doen van de totale biomassa geobserveerd in de steekproef naar de totale biomassa in het gehele systeem (de statistische populatie).
+
+Alle analyses werden uitgevoerd in R [@R-base] .
+We maken hierbij gebruik van verschillende R packages: `dplyr` [@R-dplyr] voor het voorbereiden van de ruwe data, `ggplot2` [@R-ggplot2] voor aanmaken van figuren en `srvyr` [@R-srvyr] voor design-based inferentie.

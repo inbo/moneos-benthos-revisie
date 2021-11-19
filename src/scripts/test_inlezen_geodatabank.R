@@ -19,14 +19,13 @@ ecotoop <- read_sf(gdb_path,
   mutate(ecotoop_werkelijk = recode(as.factor(Ecotoop),
                                     "breuksteen" = "hard substraat",
                                     "hard antropogeen" = "hard substraat",
-                                    "hoog slik"= "hoge slikzone",
+                                    "hoog slik" = "hoge slikzone",
                                     "middelhoog slik" = "middelhoge slikzone",
                                     "laag slik" = "lage slikzone",
                                     "intertidaal" = "slik"),
          KRWzone = recode(as.factor(KRWzone),
                           "TijarmZwijnaarde" = "Tijarm-Zwijnaarde"),
          KRWzone = replace_na(KRWzone, "Getijdedijle en -zenne")
-         
          )
 
 random_points_2020 <- read_sf(gdb_path,
@@ -44,7 +43,8 @@ ecotoop %>%
   geom_sf(data = raaien, colour = "red", alpha = 0.3) +
   geom_sf(data = random_points_2020, colour = "blue", alpha = 0.3)
 
-#Overzicht van zones met ontbrekende KRWzone; Enkel een stukje Dijle heeft missing KRWzone.
+#Overzicht van zones met ontbrekende KRWzone;
+#Enkel een stukje Dijle heeft missing KRWzone.
 ecotoop %>%
   ggplot() +
   geom_sf()

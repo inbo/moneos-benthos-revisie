@@ -2,9 +2,16 @@
   git2rdata: 0.3.1
   optimize: yes
   NA string: NA
-  sorting: staal
-  hash: c731b08bffbcc4616993e184148c566e7e7c0908
-  data_hash: 78a0fb71a5d26e73cf5757c4d8bf3270bb7474bf
+  sorting:
+  - staal
+  - jaar
+  - datum.x
+  - fractie
+  - soort
+  - AFDW
+  - real_X
+  hash: 010a8e606a0430527d95be1a5dca45b63e07da1a
+  data_hash: 7ab1a4deb8679028338c87161472b0ccefee70fa
 campagne.x:
   class: character
 staal:
@@ -377,21 +384,19 @@ ecotoop_werkelijk:
 SalZone:
   class: factor
   labels:
-  - Mesohalien
+  - Zone met sterke saliniteitsgradiënt
   - Oligohalien
   - TBR
   - TijarmZwijnaarde
   - Zoet korte verblijftijd
   - Zoet lange verblijftijd
-  - Zone met sterke saliniteitsgradiënt
   index:
-  - 1
+  - 7
   - 2
   - 3
   - 4
   - 5
   - 6
-  - 7
   ordered: no
 Vallei_deel:
   class: factor

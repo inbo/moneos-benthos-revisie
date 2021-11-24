@@ -127,4 +127,27 @@ benthos_design %>%
 # zie ook ?survey::svysurvreg
 ```
 
+```{r schattingen-subtargets}
+# data.frame maken met alle survey design variabele en responsvariabelen
+benthos_design <- benthos_afdw_spatial %>%
+  as_survey_design(strata = c(KRWzone, ecotoop_werkelijk.benthos),
+                   weights = stratum_weight)
+
+# https://cran.r-project.org/web/packages/srvyr/vignettes/srvyr-vs-survey.html
+# Horvitz-Thomson type schatters
+benthos_design %>%
+  group_by(jaar, SalZone) %>%
+  summarize(mzb_tonnage = survey_total(
+    x = tot_afdw / 1e6,
+    na.rm = TRUE,
+    vartype = "ci",
+    level = 0.95))
+
+# ofwel droge stof via zero-inflated lognormal distributie?
+# cf examples in ?survey::svymle (voor censored lognormal)
+# censored kan eventueel ook een optie zijn: alle nullen beschouwen als
+# links-gecensureerde data met kleine cutoff
+# zie ook ?survey::svysurvreg
+```
+
 ## Vergelijking raaien met gestratificeerde aselecte steekproef

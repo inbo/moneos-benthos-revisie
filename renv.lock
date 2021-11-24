@@ -46,14 +46,14 @@
     },
     "INBOtheme": {
       "Package": "INBOtheme",
-      "Version": "0.5.9",
+      "Version": "0.5.10",
       "Source": "Repository",
       "Repository": "https://inbo.r-universe.dev",
       "Remotes": "clauswilke/colorblindr",
       "RemoteUrl": "https://github.com/inbo/inbotheme",
       "RemoteRef": "HEAD",
-      "RemoteSha": "2a41272624e9092d24f0e92772bfebeef12c695c",
-      "Hash": "b9a442f47af951da83cf0dedb630a083"
+      "RemoteSha": "06caf5f0b53e67052d48aae50851423969af4d29",
+      "Hash": "fc8f899c5f3fbc49ce39bae19100fbef"
     },
     "KernSmooth": {
       "Package": "KernSmooth",
@@ -823,20 +823,6 @@
       "Repository": "CRAN",
       "Hash": "464dca3e4f0bb13cf202630bfed2753a"
     },
-    "showtext": {
-      "Package": "showtext",
-      "Version": "0.9-4",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "57151c081eee689dc669d1bb9a77bbb7"
-    },
-    "showtextdb": {
-      "Package": "showtextdb",
-      "Version": "3.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "c12e756cf947e58b0f2c2a520521a5a8"
-    },
     "srvyr": {
       "Package": "srvyr",
       "Version": "1.1.0",
@@ -878,13 +864,6 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "b227d13e29222b4574486cfcbde077fa"
-    },
-    "sysfonts": {
-      "Package": "sysfonts",
-      "Version": "0.8.5",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "d5e2db91a3aa1ac242a6edb6b2093eb5"
     },
     "tibble": {
       "Package": "tibble",

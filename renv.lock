@@ -686,13 +686,10 @@
     },
     "qpdf": {
       "Package": "qpdf",
-      "Version": "1.2.0",
+      "Version": "1.1",
       "Source": "Repository",
-      "Repository": "https://ropensci.r-universe.dev",
-      "RemoteUrl": "https://github.com/ropensci/qpdf",
-      "RemoteRef": "master",
-      "RemoteSha": "4ffc867a86e6fe3d4da304728e7cd153ef71bdfc",
-      "Hash": "ce50e88dc60e80fb30d5fee25ab97164"
+      "Repository": "CRAN",
+      "Hash": "5a2907cd44279b5861ac5f813465b5c9"
     },
     "qrcode": {
       "Package": "qrcode",

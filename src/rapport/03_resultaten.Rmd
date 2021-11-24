@@ -34,7 +34,8 @@ benthos_afdw %>%
 # staal waar real_X 0 is en metadata ontbreken
 benthos_afdw %>%
   filter(real_X == 0)
-# uit mail Frank: DG18_23 is een bestaand benthosstaal (zie benthosdata -niet weggevallen of verlegd dus) in matig diep subtidaal genomen. 
+# uit mail Frank: DG18_23 is een bestaand benthosstaal (zie benthosdata -niet
+# weggevallen of verlegd dus) in matig diep subtidaal genomen.
 ```
 
 ```{r ecotoop, warning=FALSE}
@@ -73,13 +74,16 @@ benthos_afdw_ecotoop %>%
   select(jaar, staal, starts_with("ecotoop"))
 ```
 
+Enkel Zeeschelde, Rupel en Durme / geen raaien
+
+Berekening stratum weight = 1/inclusiekans
+
+Inclusiekans = stratum_n \* opp_per_staal_m2 / stratum_opp_m2
+
 ```{r benthos-afdw-spatial}
 #diameter = 4.5 cm
-opp_per_staal_m2 <- pi*(4.5/100)^2/4 
+opp_per_staal_m2 <- pi * (4.5 / 100) ^ 2 / 4
 
-# enkel Zeeschelde, Rupel en Durme / geen raaien
-# berekening stratum weight = 1/inclusiekans
-# inclusiekans = stratum_n * opp_per_staal_m2 / stratum_opp_m2
 
 benthos_afdw_ecotoop %>%
   select(jaar, survey, staal, staalcode, tot_afdw, tot_aantal,

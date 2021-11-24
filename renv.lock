@@ -372,13 +372,13 @@
     },
     "gert": {
       "Package": "gert",
-      "Version": "1.4.2.9000",
+      "Version": "1.4.3.9000",
       "Source": "Repository",
       "Repository": "https://ropensci.r-universe.dev",
       "RemoteUrl": "https://github.com/r-lib/gert.git",
       "RemoteRef": "main",
-      "RemoteSha": "b4405874b6621fd803fd7947d70d6fbda875ed5c",
-      "Hash": "4cc33812c3764f3cbbdc522d77c55cc8"
+      "RemoteSha": "0fac8c2ac45a28f01cb7c8939e6e3673c0bf4268",
+      "Hash": "36d794690d24782b140fc30b54fc0da4"
     },
     "ggplot2": {
       "Package": "ggplot2",

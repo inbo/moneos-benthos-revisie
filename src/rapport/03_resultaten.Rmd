@@ -6,22 +6,114 @@ bibliography: moneos.bib
 
 ## Inschatting tonnage droge massa macrozoöbenthos (totaal + foutenmarge)
 
-```{r eval=FALSE}
-# data.frame maken met alle survey design variabele en responsvariabelen
-srv_data <- data.frame()
+```{r benthos-afdw}
+benthos <- read_vc(file = "benthos",
+                   root = find_root_file("data",
+                                         criterion = is_git_root))
 
-mzb_strata <- srv_data %>%
-  as_survey_design(strata = strata,
-                   weights = weights)
+benthos_afdw <- benthos %>%
+  mutate(survey = ifelse(grepl("raai", .$campagne.y), "raai", "spatial")) %>%
+  group_by(survey, campagne.x, campagne.y, staal, staalcode, jaar, datum.x,
+           datum.y, real_X, real_Y, Z, geomorf, ecotoop_werkelijk,
+           ecotoop_gepland, SalZone, Vallei_deel, Omessegment, KRWzone) %>%
+  summarise(tot_aantal = sum(aantal),
+            tot_afdw = sum(AFDW),
+           .groups = "drop")
+```
+
+```{r eval=FALSE}
+# mogelijke fouten in de data:
+benthos_afdw %>%
+  filter(str_extract(campagne.x, "SP\\d{2}") !=
+           str_extract(campagne.y, "SP\\d{2}")) %>%
+  select(staal, survey, campagne.x, campagne.y, jaar, datum.x, datum.y)
+# verschillend jaartal in campagne.x en campagne.y
+# variabele jaar komt overeen met campagne.y en is conform datum.x en datum.y
+# dus best variabelen jaar en survey gebruiken (niet campagne.x)
+
+# staal waar real_X 0 is en metadata ontbreken
+benthos_afdw %>%
+  filter(real_X == 0)
+# uit mail Frank: DG18_23 is een bestaand benthosstaal (zie benthosdata -niet weggevallen of verlegd dus) in matig diep subtidaal genomen. 
+```
+
+```{r ecotoop, warning=FALSE}
+layers <- st_layers(gdrive_gdb_path)
+
+ecotoop <- read_sf(gdrive_gdb_path,
+                   layer = layers$name[1]) %>%
+  st_cast("MULTIPOLYGON") %>%
+  mutate(ecotoop_werkelijk = recode(as.factor(Ecotoop),
+                                    "breuksteen" = "hard substraat",
+                                    "hard antropogeen" = "hard substraat",
+                                    "hoog slik" = "hoge slikzone",
+                                    "middelhoog slik" = "middelhoge slikzone",
+                                    "laag slik" = "lage slikzone",
+                                    "intertidaal" = "slik"),
+         KRWzone = recode(as.factor(KRWzone),
+                          "TijarmZwijnaarde" = "Tijarm-Zwijnaarde"),
+         KRWzone = replace_na(KRWzone, "Getijdedijle en -zenne")
+         )
+```
+
+```{r benthos-ecotoop}
+benthos_afdw_ecotoop <- benthos_afdw %>%
+  st_as_sf(coords = c("real_X", "real_Y"), crs = 31370) %>%
+  st_join(ecotoop %>%
+            select(-KRWzone, -SalZone),
+          left = FALSE,
+          suffix = c(".benthos", ".ecotoop"))
+```
+
+```{r eval=FALSE}
+# probleemgevallen met verschillende ecosysteem_werkelijk
+benthos_afdw_ecotoop %>%
+  filter(as.character(ecotoop_werkelijk.benthos) !=
+           as.character(ecotoop_werkelijk.ecotoop)) %>%
+  select(jaar, staal, starts_with("ecotoop"))
+```
+
+```{r benthos-afdw-spatial}
+#diameter = 4.5 cm
+opp_per_staal_m2 <- pi*(4.5/100)^2/4 
+
+# enkel Zeeschelde, Rupel en Durme / geen raaien
+# berekening stratum weight = 1/inclusiekans
+# inclusiekans = stratum_n * opp_per_staal_m2 / stratum_opp_m2
+
+benthos_afdw_ecotoop %>%
+  select(jaar, survey, staal, staalcode, tot_afdw, tot_aantal,
+         ecotoop_werkelijk.benthos,
+         KRWzone,
+         SalZone,
+         Vallei_deel,
+         Naam,
+         stratum_opp_m2 = Shape_Area) %>%
+  filter(survey == "spatial",
+         Naam %in% c("Zeeschelde", "Durme")) %>%
+  group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
+  mutate(stratum_n = n(),
+         stratum_weight = stratum_opp_m2 / (opp_per_staal_m2 * stratum_n)
+         ) %>%
+  arrange(jaar, KRWzone, ecotoop_werkelijk.benthos, staal) %>%
+  ungroup() -> benthos_afdw_spatial
+```
+
+```{r schattingen}
+# data.frame maken met alle survey design variabele en responsvariabelen
+benthos_design <- benthos_afdw_spatial %>%
+  as_survey_design(strata = c(KRWzone, ecotoop_werkelijk.benthos),
+                   weights = stratum_weight)
 
 # https://cran.r-project.org/web/packages/srvyr/vignettes/srvyr-vs-survey.html
-# Horvitz-Thomson type schatters (eventueel eerst sqrt-transformeren;
-# of log, maar nullen)
-mzb_strata %>%
-  #group_by(...) %>%
-  summarize(mzb_tot = survey_total(x = responsvar, na.rm = TRUE,
-                                   vartype = "ci", level = 0.95))
-
+# Horvitz-Thomson type schatters
+benthos_design %>%
+  group_by(jaar) %>%
+  summarize(mzb_tonnage = survey_total(
+    x = tot_afdw / 1e6,
+    na.rm = TRUE,
+    vartype = "ci",
+    level = 0.95))
 
 # ofwel droge stof via zero-inflated lognormal distributie?
 # cf examples in ?survey::svymle (voor censored lognormal)

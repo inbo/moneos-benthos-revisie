@@ -95,8 +95,12 @@ if (interactive()) {
 library(rprojroot)
 source(find_root_file("src/utils/utility_functions.R",
                       criterion = is_git_root))
+gdrive_data_path <- get_map_data_moneos()
+gdrive_gdb_path <- file.path(gdrive_data_path, "GIS/MONEOS.gdb")
+
 library(sf)
 library(srvyr)
+library(git2rdata)
 
 knitr::write_bib(file = find_root_file(
   "src/rapport/packages.bib",

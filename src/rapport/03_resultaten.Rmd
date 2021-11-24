@@ -74,7 +74,7 @@ benthos_afdw_ecotoop %>%
   select(jaar, staal, starts_with("ecotoop"))
 ```
 
-Enkel Zeeschelde, Rupel en Durme / geen raaien
+Enkel Zeeschelde, Rupel en Durme / geen raaien / enkel intertidaal
 
 Berekening stratum weight = 1/inclusiekans
 
@@ -94,7 +94,8 @@ benthos_afdw_ecotoop %>%
          Naam,
          stratum_opp_m2 = Shape_Area) %>%
   filter(survey == "spatial",
-         Naam %in% c("Zeeschelde", "Durme")) %>%
+         Naam %in% c("Zeeschelde", "Durme"),
+         !str_detect(ecotoop_werkelijk.benthos, "subtidaal")) %>%
   group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
   mutate(stratum_n = n(),
          stratum_weight = stratum_opp_m2 / (opp_per_staal_m2 * stratum_n)

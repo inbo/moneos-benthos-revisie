@@ -176,11 +176,13 @@ benthos_afdw_ecotoop %>%
   ungroup() -> benthos_afdw_raai
 ```
 
-```{r}
+(ref:raai-steekproefgrootte) Gerealiseerde steekproefgroottes per stratumcombinatie op basis van enkel de raaigegevens.
+
+```{r raai-steekproefgrootte}
 benthos_afdw_raai %>%
   st_drop_geometry() %>%
   distinct(jaar, ecotoop_werkelijk.benthos, KRWzone, SalZone, stratum_n) %>%
-  kable(caption = "Gerealiseerde steekproefgroottes per stratumcombinatie op basis van enkel de raaigegevens.")
+  kable(caption = "(ref:raai-steekproefgrootte)")
 ```
 
 (ref:schattingen-raai) Vertekende schattingen van de tonnages op basis van de raaigegevens en een foutieve veronderstelling dat de data onafhankelijke en aselect zijn.

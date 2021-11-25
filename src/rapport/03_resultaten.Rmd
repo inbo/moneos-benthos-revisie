@@ -104,6 +104,8 @@ benthos_afdw_ecotoop %>%
   ungroup() -> benthos_afdw_spatial
 ```
 
+(ref:schattingen) Schatting van tonnages biomassa MZB in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar.
+
 ```{r schattingen}
 # data.frame maken met alle survey design variabele en responsvariabelen
 benthos_design <- benthos_afdw_spatial %>%
@@ -118,7 +120,8 @@ benthos_design %>%
     x = tot_afdw / 1e6,
     na.rm = TRUE,
     vartype = "ci",
-    level = 0.95))
+    level = 0.95)) %>%
+  kable(digits = 1, caption = "(ref:schattingen)")
 
 # ofwel droge stof via zero-inflated lognormal distributie?
 # cf examples in ?survey::svymle (voor censored lognormal)
@@ -126,6 +129,8 @@ benthos_design %>%
 # links-gecensureerde data met kleine cutoff
 # zie ook ?survey::svysurvreg
 ```
+
+(ref:schattingen-subtargets) Schatting van tonnages biomassa MZB in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar en saliniteitszone.
 
 ```{r schattingen-subtargets}
 # https://cran.r-project.org/web/packages/srvyr/vignettes/srvyr-vs-survey.html
@@ -136,7 +141,9 @@ benthos_design %>%
     x = tot_afdw / 1e6,
     na.rm = TRUE,
     vartype = "ci",
-    level = 0.95))
+    level = 0.95)) %>%
+  kable(digits = 1, caption = "(ref:schattingen-subtargets)")
+
 
 # ofwel droge stof via zero-inflated lognormal distributie?
 # cf examples in ?survey::svymle (voor censored lognormal)
@@ -146,3 +153,4 @@ benthos_design %>%
 ```
 
 ## Vergelijking raaien met gestratificeerde aselecte steekproef
+

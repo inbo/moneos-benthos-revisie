@@ -128,11 +128,6 @@ benthos_design %>%
 ```
 
 ```{r schattingen-subtargets}
-# data.frame maken met alle survey design variabele en responsvariabelen
-benthos_design <- benthos_afdw_spatial %>%
-  as_survey_design(strata = c(KRWzone, ecotoop_werkelijk.benthos),
-                   weights = stratum_weight)
-
 # https://cran.r-project.org/web/packages/srvyr/vignettes/srvyr-vs-survey.html
 # Horvitz-Thomson type schatters
 benthos_design %>%

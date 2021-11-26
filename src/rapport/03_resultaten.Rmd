@@ -164,7 +164,8 @@ benthos_afdw_ecotoop %>%
          SalZone,
          Vallei_deel,
          Naam,
-         stratum_opp_m2 = Shape_Area) %>%
+         stratum_opp_m2 = Shape_Area,
+         Z) %>%
   filter(survey == "raai",
          Naam %in% c("Zeeschelde", "Durme"),
          !str_detect(ecotoop_werkelijk.benthos, "subtidaal")) %>%
@@ -205,3 +206,24 @@ benthos_raai_design %>%
 ```
 
 Wellicht sterk vertekende schattingen (overschatting vermits vooral in beste gebieden).
+
+De voorgaande berekening was fout om minstens twee redenen: (1) we hielden geen rekening met de raaien, en (2) we gebruiken design-based inferentie terwijl het geen probabilistische steekproef betreft.
+
+De ligging van de locaties langsheen de raaien is volgens een hoogtegradiënt (loodrecht op de as van de rivier).
+Dit heeft tot voordeel dat er tussen de locaties veel variatie kan verwacht worden terwijl tegelijk het veldwerk beperkt blijft doordat de locaties dicht bij elkaar liggen.
+Dit soort van samplingstrategie wordt bediscussieerd in @gillison1985.
+De auteurs geven aan dat deze strategie, waarbij transecten gericht volgens een omgevingsgradiënt worden gekozen, aanvaardbaar kan zijn op voorwaarde dat de totale steekproef aantoonbaar representatief is voor de gehele doelpopulatie.
+In figuur \@ref(fig:raai-hoogtes) zien we duidelijk dat de locaties langsheen de raaien liggen volgens een hoogtegradiënt.
+Tussen de jaren blijven deze hoogtes meestal gelijk, maar soms zien we grote verschillen wellicht door de rivierwerking of effecten van baggerwerken.
+
+(ref:raai-hoogtes) De hoogteligging van bemonsterde locaties langs elk van de raaien. De lijnen verbinden dezelfde locaties bemonsterd in verschillend jaren.
+
+```{r raai-hoogtes, fig.height=7.5, fig.cap="(ref:raai-hoogtes)"}
+benthos_afdw_raai %>%
+  # er zijn enkele locaties waar Z (hoogte) veel te hoge waarden heeft
+  filter(Z < 20) %>%
+  ggplot() + 
+  geom_point(aes(x = Z, y = staalcode, colour = jaar)) + 
+  geom_line(aes(x = Z, y = staalcode, group = staal)) +
+  labs(x = "Hoogte (m)")
+```

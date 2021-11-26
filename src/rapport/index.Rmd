@@ -99,8 +99,10 @@ gdrive_data_path <- get_map_data_moneos()
 gdrive_gdb_path <- file.path(gdrive_data_path, "GIS/MONEOS.gdb")
 
 library(sf)
+library(survey)
 library(srvyr)
 library(git2rdata)
+library(mapview)
 
 #knitr::write_bib(file = find_root_file(
 #  "src/rapport/packages.bib",

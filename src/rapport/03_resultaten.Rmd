@@ -216,6 +216,8 @@ De auteurs geven aan dat deze strategie, waarbij transecten gericht volgens een 
 In figuur \@ref(fig:raai-hoogtes) zien we duidelijk dat de locaties langsheen de raaien liggen volgens een hoogtegradiënt.
 Tussen de jaren blijven deze hoogtes meestal gelijk, maar soms zien we grote verschillen wellicht door de rivierwerking of effecten van baggerwerken.
 
+Een nadeel: "Gradsects cannot be used to estimate species occurrences per unit area -- for which a stratified random sample design may be needed".
+
 (ref:raai-hoogtes) De hoogteligging van bemonsterde locaties langs elk van de raaien. De lijnen verbinden dezelfde locaties bemonsterd in verschillend jaren.
 
 ```{r raai-hoogtes, fig.height=7.5, fig.cap="(ref:raai-hoogtes)"}

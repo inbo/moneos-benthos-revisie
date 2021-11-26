@@ -31,7 +31,7 @@ doi:
 reportnr:
 depotnr:
 
-bibliography: [moneos.bib, packages.bib]
+bibliography: [moneos.bib]
 link-citations: TRUE
 site: bookdown::bookdown_site
 
@@ -102,8 +102,8 @@ library(sf)
 library(srvyr)
 library(git2rdata)
 
-knitr::write_bib(file = find_root_file(
-  "src/rapport/packages.bib",
-  criterion = is_git_root
-))
+#knitr::write_bib(file = find_root_file(
+#  "src/rapport/packages.bib",
+#  criterion = is_git_root
+#))
 ```

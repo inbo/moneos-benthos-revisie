@@ -138,6 +138,8 @@ benthos_afdw_spatial %>%
 Merk op dat de subtidale locaties niet nodig zijn voor de berekening waarbij een vergelijking nodig is met de streefwaarde van 30 ton biomassa.
 Het gaat om iets minder dan de helft van het aantal locaties de spatial surveys (maar wellicht veel meer dan de helft in termen van tijd en kosten) (tabel \@ref(tab:spatial-steekproefgrootte-tidaal)).
 
+(ref:spatial-steekproefgrootte-tidaal) Totaal aantal bezochte locaties in het subtidaal en het intertidaal in beide jaren.
+
 ```{r spatial-steekproefgrootte-tidaal}
 benthos_afdw_zeeschelde_durme %>%
   filter(survey == "spatial") %>%
@@ -198,7 +200,9 @@ Er lijkt een piek te zijn in de biomassa bij gemiddelde hoogte in het intertidaa
 Dit is zowel in de spatial survey als de raai-survey te zien (Figuur \@ref(fig:biomassa-hoogte)).
 In principe kan dan de hoogtevariabele (die bij benadering overal gekend is via DTM beeld) gebruikt worden om de schattingen te verbeteren via design-based regressieschatters (**kan** leiden tot iets smallere betrouwbaarheidsintervallen).
 
-```{r biomassa-hoogte}
+(ref:biomassa-hoogte) Biomassa in functie van hoogteligging in het intertidaal voor beide survey-types.
+
+```{r biomassa-hoogte, fig.cap="(ref:biomassa-hoogte)"}
 benthos_afdw_zeeschelde_durme %>%
   filter(tidaal == "intertidaal") %>%
   ggplot(aes(x = Z, y = tot_afdw, colour = jaar)) + 
@@ -294,7 +298,9 @@ benthos_afdw_raai %>%
   labs(x = "Hoogte (m)")
 ```
 
-```{r leaflet-map}
+(ref:leaflet-map) Ligging van de raai-locaties en de locaties van de gestratificeerde steekproef voor het jaar 2019.
+
+```{r leaflet-map, out.width="100%", fig.cap="(ref:leaflet-map)"}
 benthos_afdw_zeeschelde_durme %>%
   filter(jaar == "2019") %>%
   mapview(zcol = c("survey"), burst = TRUE)

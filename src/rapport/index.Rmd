@@ -103,9 +103,12 @@ library(survey)
 library(srvyr)
 library(git2rdata)
 library(mapview)
+mapviewOptions(platform = "leaflet", fgb = FALSE)
+```
 
-#knitr::write_bib(file = find_root_file(
-#  "src/rapport/packages.bib",
-#  criterion = is_git_root
-#))
+```{r packages, eval=FALSE}
+knitr::write_bib(file = find_root_file(
+  "src/rapport/packages.bib",
+  criterion = is_git_root
+))
 ```

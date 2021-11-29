@@ -160,7 +160,9 @@ benthos_design <- benthos_afdw_spatial %>%
 # Horvitz-Thomson type schatters
 benthos_design %>%
   group_by(jaar) %>%
-  summarize(mzb_tonnage = survey_total(
+  summarize(
+    n = n(),
+    mzb_tonnage = survey_total(
     x = tot_afdw / 1e6,
     na.rm = TRUE,
     vartype = "ci",
@@ -181,11 +183,13 @@ benthos_design %>%
 # Horvitz-Thomson type schatters
 benthos_design %>%
   group_by(jaar, SalZone) %>%
-  summarize(mzb_tonnage = survey_total(
-    x = tot_afdw / 1e6,
-    na.rm = TRUE,
-    vartype = "ci",
-    level = 0.95)) %>%
+  summarize(
+        n = n(),
+        mzb_tonnage = survey_total(
+          x = tot_afdw / 1e6,
+          na.rm = TRUE,
+          vartype = "ci",
+          level = 0.95)) %>%
   kable(digits = 1, caption = "(ref:schattingen-subtargets)")
 
 
@@ -194,6 +198,19 @@ benthos_design %>%
 # censored kan eventueel ook een optie zijn: alle nullen beschouwen als
 # links-gecensureerde data met kleine cutoff
 # zie ook ?survey::svysurvreg
+```
+
+(ref:spatial-hoogtes) Voorstelling van de steekproef in functie van de hoogte en de verschillende saliniteitszones.
+
+```{r spatial-hoogtes, fig.height=7.5, fig.cap="(ref:spatial-hoogtes)"}
+benthos_afdw_spatial %>%
+  mutate(staalcode = fct_reorder(staalcode, Z)) %>%
+  ggplot() + 
+  geom_point(aes(x = Z, y = KRWzone, colour = jaar,
+                 shape = ecotoop_werkelijk.benthos),
+             position = position_dodge(width = 0.5)) + 
+  labs(x = "Hoogte (m)") +
+  facet_grid(vars(SalZone), scales = "free_y")
 ```
 
 Er lijkt een piek te zijn in de biomassa bij gemiddelde hoogte in het intertidaal.
@@ -268,12 +285,31 @@ benthos_raai_design <- benthos_afdw_raai %>%
 
 benthos_raai_design %>%
   group_by(jaar) %>%
-  summarise(mzb_tonnage = survey_total(
-    x = tot_afdw / 1e6,
-    na.rm = TRUE,
-    vartype = "ci",
-    level = 0.95)) %>%
+  summarise(
+    n_raaien = n_distinct(staalcode),
+    n = n(),
+    mzb_tonnage = survey_total(
+      x = tot_afdw / 1e6,
+      na.rm = TRUE,
+      vartype = "ci",
+      level = 0.95)) %>%
   kable(digits = 1, caption = "(ref:schattingen-raai)")
+```
+
+(ref:schattingen-raai-subtargets) Vertekende schattingen per saliniteitszone van de tonnages op basis van de raaigegevens en een foutieve veronderstelling dat de data onafhankelijke en aselect zijn.
+
+```{r schattingen-raai-subtargets}
+benthos_raai_design %>%
+  group_by(jaar, SalZone) %>%
+  summarise(
+    n_raaien = n_distinct(staalcode),
+    n = n(),
+        mzb_tonnage = survey_total(
+          x = tot_afdw / 1e6,
+          na.rm = TRUE,
+          vartype = "ci",
+          level = 0.95)) %>%
+  kable(digits = 1, caption = "(ref:schattingen-raai-subtargets)")
 ```
 
 Wellicht sterk vertekende schattingen (overschatting vermits vooral in beste gebieden).
@@ -292,10 +328,13 @@ Tussen de jaren blijven deze hoogtes meestal gelijk, maar soms zien we grote ver
 
 ```{r raai-hoogtes, fig.height=7.5, fig.cap="(ref:raai-hoogtes)"}
 benthos_afdw_raai %>%
+  mutate(staalcode = fct_reorder(staalcode, Z)) %>%
   ggplot() + 
-  geom_point(aes(x = Z, y = staalcode, colour = jaar)) + 
+  geom_point(aes(x = Z, y = staalcode, colour = jaar,
+                 shape = ecotoop_werkelijk.benthos)) + 
   geom_line(aes(x = Z, y = staalcode, group = staal)) +
-  labs(x = "Hoogte (m)")
+  labs(x = "Hoogte (m)") +
+  facet_grid(vars(SalZone), scales = "free_y")
 ```
 
 (ref:leaflet-map) Ligging van de raai-locaties en de locaties van de gestratificeerde steekproef voor het jaar 2019.

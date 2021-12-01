@@ -25,6 +25,9 @@ Deze totaal doelstelling zal eveneens ook opgesplitst worden naar een minimum pe
 ### Steekproefdesign
 
 Het gaat om een stratified random design over waterlichamen en fysiotopen [@speybroeck2014].
+De strata volgens waterlichamen komen overeen met een indeling in een saliniteitsgradiënt (dus zout naar zoet hoe verder weg van de monding van de Zeeschelde).
+De stratificatie volgens fysiotoop reflecteert een indeling volgens een gradiënt loodrecht op de as van de rivieren (hoe hoger gelegen, hoe verder van de rivierbedding, hoe minder frequent overstroomt).
+
 Tabel \@ref(tab:strata-krw) toont het eerste niveau van stratificatie volgens waterlichamen en hun link met de KRW-waterlichamen.
 De Zeeschelde wordt jaarlijks bemonsterd.
 De zijrivieren worden om de drie jaar bemonsterd.
@@ -133,8 +136,8 @@ Er zijn 3 mensen bijna fulltime mee bezig en uiteindelijk komt er maar 1 getal u
 ```
 Omvang van het veldwerk:
 
--   staalname in intertidaal
--   staalname in subtidaal
+-   staalname in intertidaal voor de raai- en de spatial campagne
+-   staalname in subtidaal voor de spatial campagne
 
 Omvang van het geassocieerde labowerk:
 
@@ -143,6 +146,21 @@ Omvang van het geassocieerde labowerk:
 -   determineren van de soorten
 -   bepalen drooggewicht per soort per stratum
 -   bepalen asgewicht per soort per stratum
+
+Tabel \@ref(tab:tijdsinschatting) geeft een overzicht hiervan.
+
+(ref:tijdsinschatting) Ruwe schatting van de tijdsverdeling voor het veldwerk en het labowerk in één jaar.
+
+```{r tijdsinschatting}
+werklast <- read_csv(file = find_root_file("data/tijdinschatting.csv",
+                                           criterion = is_git_root))
+
+werklast %>%
+  select(taakgroep, taak, tidaal, campagne, aantal_stalen,
+         `totaal aantal uren gelogd` = tot_uren_gelogd) %>%
+  kable(digits = 0,
+        caption = "(ref:tijdsinschatting)")
+```
 
 ```{=html}
 <!--
@@ -167,6 +185,23 @@ Er wordt gewerkt aan een SQL databank (Scheldedatabank) waarin actuele en histor
 
 Voor de inschatting van de foutenmarge op de biomassa MZB, maken we gebruik van design-based formules voor de schatting van een totaal in een gestratificeerde steekproef.
 Om het totaal in te schatten is het belangrijk dat we de juiste gewichten (inverse van inclusiekansen) gebruiken om de extrapolatie te doen van de totale biomassa geobserveerd in de steekproef naar de totale biomassa in het gehele systeem (de statistische populatie).
+Stratificatie verhoogt de precisie van de schatters op voorwaarde dat de strata homogeen zijn.
+Heterogene strata zullen daarentegen de precisie verlagen.
+De design-based schatters voor het totaal en variantie op het totaal van een gestratificeerde steekproef zijn (voor het geval van één stratificatievariabele met $H$ strata):
+
+$$\hat{y}_{hi} = \sum_{h=1}^H\frac{N_h}{n_h}\sum_{i=1}^{n_h}y_{hi}$$ en $$\hat{\sigma}^2_{\hat{y}} = \sum_{h=1}^H\hat{\sigma}^2_{\hat{y_h}} = \sum_{h=1}^H\frac{N^2_h}{n_h}\frac{1}{n_h-1}\sum_{i=1}^{n_h}(y_{hi}-\bar{y_h})^2$$
+
+waarbij $N_h$ de populatiegrootte van stratum $h$ is, $n_h$ de steekproefgrootte van stratum $h$ en $y_{hi}$ is de waarde van de responsvariabele op locatie $i$ in stratum $h$.
+
+Op basis van deze formules kunnen vervolgens betrouwbaarheidsintervallen berekend worden.
+Hierbij maken we gebruik van de normale distributie omdat de distributie van de schattingen, die je zou bekomen als je telkens opnieuw een steekproef zou trekken, normaal verdeeld is volgens de centrale limietstelling.
+Hier wordt aan voldaan voor een aselecte gestratificeerde steekproef op voorwaarde dat de steekproefgrootte voldoende groot is en er geen invloedrijke datapunten zijn.
+
+Voor een gestratificeerde steekproef kan volgende evenredigheid gebruikt worden voor een optimale allocatie van de totale steekproefgrootte over de verschillende strata:
+
+$$n_h \propto \frac{N_h\sigma_h}{\sqrt{cost_h}}$$.
+
+Dit suggereert dat een groter aandeel moet gaan naar grote strata (in oppervlakte), meer variabele strata en minder kostelijke strata.
 
 Alle analyses werden uitgevoerd in R [@R-base] .
 We maken hierbij gebruik van verschillende R packages: `dplyr` [@R-dplyr] voor het voorbereiden van de ruwe data, `ggplot2` [@R-ggplot2] voor aanmaken van figuren en `srvyr` [@R-srvyr] voor design-based inferentie.

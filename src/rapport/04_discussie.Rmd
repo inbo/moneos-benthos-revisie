@@ -14,3 +14,5 @@ Misschien krijgen we hier ook nulstalen omdat de bovenste laag beneden komt de l
 Hoe vergelijkbaar zijn de randomisatie en vaste raaien en kan (een deel) randomisatie vervangen worden door vaste raaien.
 De raaien liggen op plaatsen met mooi slik en bij de randomisatie zijn ook locaties zonder slik / met breuksteen.
 Als er in praktijk een random punt is met breuksteen, wordt het punt verlegd naar een plaats nabij waar er toch wat slik ligt.
+
+@schweiger2016

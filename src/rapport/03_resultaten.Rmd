@@ -169,11 +169,45 @@ benthos_design %>%
     level = 0.95)) %>%
   kable(digits = 1, caption = "(ref:schattingen)")
 
-# ofwel droge stof via zero-inflated lognormal distributie?
+```
+
+```{r eval=FALSE}
+# ofwel droge stof via hurdle gamma distributie?
 # cf examples in ?survey::svymle (voor censored lognormal)
 # censored kan eventueel ook een optie zijn: alle nullen beschouwen als
 # links-gecensureerde data met kleine cutoff
 # zie ook ?survey::svysurvreg
+
+# not working
+hurdle_gamma2 <- function(y, shape, rate, hu) {
+    ifelse(y == 0,
+           dbinom(1, 1, hu, log = TRUE),
+           dbinom(0, 1, hu, log = TRUE) + dgamma(y, shape, rate, log = TRUE)
+           )
+}
+
+make_derivative <- function(y, shape, rate, hu) {
+  h <- 1e-5
+  y_plus_h <- hurdle_gamma2(y + h, shape, rate, hu)
+  y_min_h <- hurdle_gamma2(y - h, shape, rate, hu)
+  derivative <- (y_plus_h - y_min_h) / (2 * h)
+  return(derivative)
+}
+
+m <- svymle(
+  loglike = hurdle_gamma2,
+  gradient = make_derivative,
+  design = benthos_design,
+  method = "bobyqa",
+  lower = list(c(0, 0), c(0), c(0)),
+  upper = Inf,
+  formulas = list(~tot_afdw,
+                  shape = ~jaar,
+                  rate = ~1,
+                  hu = ~1),
+  start = list(c(0.5, 0), c(0.5), c(0.5)))
+
+summary(m)
 ```
 
 (ref:schattingen-subtargets) Schatting van tonnages biomassa MZB in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar en saliniteitszone.
@@ -343,4 +377,250 @@ benthos_afdw_raai %>%
 benthos_afdw_zeeschelde_durme %>%
   filter(jaar == "2019") %>%
   mapview(zcol = c("survey"), burst = TRUE)
+```
+
+## Alternatieve berekening via post-stratificatie
+
+```{r benthos-afdw-poststrat}
+benthos_afdw_poststrat <- benthos_afdw_zeeschelde_durme %>%
+  filter(tidaal != "subtidaal") %>%
+  st_drop_geometry() %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  distinct(jaar, survey, KRWzone, SalZone,
+           ecotoop_werkelijk,
+           stratum_opp_m2) %>%
+  ungroup()
+```
+
+```{r hg-spatial, message=FALSE}
+# multilevel regression + poststratification
+benthos_afdw_zeeschelde_durme %>%
+  filter(tidaal != "subtidaal",
+         survey == "spatial") %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  st_drop_geometry() %>%
+  brm(bf(
+    tot_afdw ~ 
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone),
+    hu ~ 
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+  ),
+  family = hurdle_gamma(),
+  data = .,
+  silent = 2,
+  cores = 4,
+  control = list(adapt_delta = 0.95),
+  backend = "cmdstanr", 
+  file = "hg_spatial",
+  file_refit = "on_change"
+  ) -> hg_spatial
+```
+
+```{r hg-raai}
+benthos_afdw_zeeschelde_durme %>%
+  filter(tidaal != "subtidaal",
+         survey == "raai") %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  st_drop_geometry() %>%
+  brm(bf(
+    tot_afdw ~ 
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone),
+    hu ~ 
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+  ),
+  family = hurdle_gamma(),
+  data = .,
+  silent = 2,
+  cores = 4,
+  control = list(adapt_delta = 0.95),
+  backend = "cmdstanr", 
+  file = "hg_raai",
+  file_refit = "on_change"
+  ) -> hg_raai
+```
+
+```{r hg-raaispatial}
+benthos_afdw_zeeschelde_durme %>%
+  filter(tidaal != "subtidaal") %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  st_drop_geometry() %>%
+  brm(bf(
+    tot_afdw ~ 
+      jaar
+    + survey
+    + jaar:survey
+    + (1 | survey:jaar:ecotoop_werkelijk)
+    + (1 | survey:jaar:KRWzone)
+    + (1 | survey:jaar:ecotoop_werkelijk:KRWzone),
+    hu ~ 
+      jaar
+    + survey
+    + jaar:survey
+    + (1 | survey:jaar:ecotoop_werkelijk)
+    + (1 | survey:jaar:KRWzone)
+    + (1 | survey:jaar:ecotoop_werkelijk:KRWzone)
+  ),
+  family = hurdle_gamma(),
+  data = .,
+  silent = 2,
+  cores = 4,
+  control = list(adapt_delta = 0.95),
+  backend = "cmdstanr", 
+  file = "hg_raaispatial",
+  file_refit = "on_change"
+  ) -> hg_raaispatial
+```
+
+```{r hg-raaispatial-2}
+benthos_afdw_zeeschelde_durme %>%
+  filter(tidaal != "subtidaal") %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  st_drop_geometry() %>%
+  brm(bf(
+    tot_afdw ~ 
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone),
+    hu ~ 
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+  ),
+  family = hurdle_gamma(),
+  data = .,
+  silent = 2,
+  cores = 4,
+  control = list(adapt_delta = 0.95),
+  backend = "cmdstanr", 
+  file = "hg_raaispatial_2",
+  file_refit = "on_change"
+  ) -> hg_raaispatial_2
+```
+
+```{r hg-spatial-schattingen}
+poststrat_spatial <- benthos_afdw_poststrat %>%
+  filter(survey == "spatial")
+
+hg_spatial %>%
+  add_linpred_draws(newdata = poststrat_spatial) %>%
+  mean_qi() %>%
+  mutate(across(c(.linpred, .lower, .upper),
+                ~exp(.) / opp_per_staal_m2,
+                .names = "exp{.col}")) %>%
+  group_by(jaar) %>%
+  summarise(across(c(exp.linpred, exp.lower, exp.upper),
+                   ~sum(. * stratum_opp_m2) / 1e6)) %>%
+  kable(digits = 1)
+```
+
+```{r hg-spatial-schattingen-subtargets}
+hg_spatial %>%
+  add_linpred_draws(newdata = poststrat_spatial) %>%
+  mean_qi() %>%
+  mutate(across(c(.linpred, .lower, .upper),
+                ~exp(.) / opp_per_staal_m2,
+                .names = "exp{.col}")) %>%
+  group_by(jaar, SalZone) %>%
+  summarise(across(c(exp.linpred, exp.lower, exp.upper),
+                   ~sum(. * stratum_opp_m2) / 1e6)) %>%
+  kable(digits = 1)
+```
+
+```{r hg-raai-schattingen}
+poststrat_raai <- benthos_afdw_poststrat %>%
+  filter(survey == "raai")
+
+hg_raai %>%
+  add_linpred_draws(newdata = poststrat_raai) %>%
+  mean_qi() %>%
+  mutate(across(c(.linpred, .lower, .upper),
+                ~exp(.) / opp_per_staal_m2,
+                .names = "exp{.col}")) %>%
+  group_by(jaar) %>%
+  summarise(across(c(exp.linpred, exp.lower, exp.upper),
+                   ~sum(. * stratum_opp_m2) / 1e6)) %>%
+  kable(digits = 1)
+```
+
+```{r hg-raai-schattingen-subtargets}
+hg_raai %>%
+  add_linpred_draws(newdata = poststrat_raai) %>%
+  mean_qi() %>%
+  mutate(across(c(.linpred, .lower, .upper),
+                ~exp(.) / opp_per_staal_m2,
+                .names = "exp{.col}")) %>%
+  group_by(jaar, SalZone) %>%
+  summarise(across(c(exp.linpred, exp.lower, exp.upper),
+                   ~sum(. * stratum_opp_m2) / 1e6)) %>%
+  kable(digits = 1)
+```
+
+```{r hg-raaispatial-schattingen}
+hg_raaispatial %>%
+  add_linpred_draws(newdata = benthos_afdw_poststrat) %>%
+  mean_qi() %>%
+  mutate(across(c(.linpred, .lower, .upper),
+                ~exp(.) / opp_per_staal_m2,
+                .names = "exp{.col}")) %>%
+  group_by(survey, jaar) %>%
+  summarise(across(c(exp.linpred, exp.lower, exp.upper),
+                   ~sum(. * stratum_opp_m2) / 1e6)) %>%
+  kable(digits = 1)
+```
+
+```{r hg-raaispatial-schattingen-subtargets}
+hg_raaispatial %>%
+  add_linpred_draws(newdata = benthos_afdw_poststrat) %>%
+  mean_qi() %>%
+  mutate(across(c(.linpred, .lower, .upper),
+                ~exp(.) / opp_per_staal_m2,
+                .names = "exp{.col}")) %>%
+  group_by(survey, jaar, SalZone) %>%
+  summarise(across(c(exp.linpred, exp.lower, exp.upper),
+                   ~sum(. * stratum_opp_m2) / 1e6)) %>%
+  kable(digits = 1)
+```
+
+```{r hg-raaispatial-2-schattingen}
+hg_raaispatial_2 %>%
+  add_linpred_draws(newdata = benthos_afdw_poststrat %>%
+                      select(-survey) %>% 
+                      distinct()) %>%
+  mean_qi() %>%
+  mutate(across(c(.linpred, .lower, .upper),
+                ~exp(.) / opp_per_staal_m2,
+                .names = "exp{.col}")) %>%
+  group_by(jaar) %>%
+  summarise(across(c(exp.linpred, exp.lower, exp.upper),
+                   ~sum(. * stratum_opp_m2) / 1e6)) %>%
+  kable(digits = 1)
+```
+
+```{r hg-raaispatial-2-schattingen-subtargets}
+hg_raaispatial_2 %>%
+  add_linpred_draws(newdata = benthos_afdw_poststrat %>%
+                      select(-survey) %>% 
+                      distinct()) %>%
+  mean_qi() %>%
+  mutate(across(c(.linpred, .lower, .upper),
+                ~exp(.) / opp_per_staal_m2,
+                .names = "exp{.col}")) %>%
+  group_by(jaar, SalZone) %>%
+  summarise(across(c(exp.linpred, exp.lower, exp.upper),
+                   ~sum(. * stratum_opp_m2) / 1e6)) %>%
+  kable(digits = 1)
 ```

@@ -104,6 +104,13 @@ library(srvyr)
 library(git2rdata)
 library(mapview)
 mapviewOptions(platform = "leaflet", fgb = FALSE)
+library(brms)
+library(tidybayes)
+```
+
+```{r renv-restore, eval = FALSE}
+renv::restore()
+cmdstanr::install_cmdstan(version = "v2.28.0")
 ```
 
 ```{r packages, eval=FALSE}

@@ -106,6 +106,7 @@ library(mapview)
 mapviewOptions(platform = "leaflet", fgb = FALSE)
 library(brms)
 library(tidybayes)
+library(glmmTMB)
 ```
 
 ```{r renv-restore, eval = FALSE}

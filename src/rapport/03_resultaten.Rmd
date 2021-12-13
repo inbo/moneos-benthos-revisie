@@ -168,10 +168,9 @@ benthos_design %>%
     vartype = "ci",
     level = 0.95)) %>%
   kable(digits = 1, caption = "(ref:schattingen)")
-
 ```
 
-```{r eval=FALSE}
+```{r svymle, eval=FALSE}
 # ofwel droge stof via hurdle gamma distributie?
 # cf examples in ?survey::svymle (voor censored lognormal)
 # censored kan eventueel ook een optie zijn: alle nullen beschouwen als
@@ -179,35 +178,219 @@ benthos_design %>%
 # zie ook ?survey::svysurvreg
 
 # not working
-hurdle_gamma2 <- function(y, shape, rate, hu) {
-    ifelse(y == 0,
-           dbinom(1, 1, hu, log = TRUE),
-           dbinom(0, 1, hu, log = TRUE) + dgamma(y, shape, rate, log = TRUE)
-           )
+# in terms of linear predictors (lp)
+# lp_shape = log(shape)
+# lp_rate = log(rate)
+# l_hu = logit(hu)
+loglike_hurdle_gamma <- function(y, lp_shape, lp_rate, lp_hu) {
+  hu <- plogis(lp_hu)
+  shape <- exp(lp_shape)
+  rate <- exp(lp_rate)
+  ifelse(y == 0,
+         dbinom(1, 1, hu, log = TRUE),
+         dbinom(0, 1, hu, log = TRUE) +
+           dgamma(y, shape = shape, rate = rate, log = TRUE)
+  )
 }
 
-make_derivative <- function(y, shape, rate, hu) {
-  h <- 1e-5
-  y_plus_h <- hurdle_gamma2(y + h, shape, rate, hu)
-  y_min_h <- hurdle_gamma2(y - h, shape, rate, hu)
-  derivative <- (y_plus_h - y_min_h) / (2 * h)
-  return(derivative)
+# derivatives with respect to hu, shape and rate
+
+d_lp_shape <- function(y, lp_shape, lp_rate, lp_hu) {
+  hu <- plogis(lp_hu)
+  shape <- exp(lp_shape)
+  rate <- exp(lp_rate)
+  d_shape <- ifelse(
+    y == 0,
+    - (1 - y) / (1 - hu),
+    y / hu + 
+      exp(-rate * y) * y^(shape - 1) * rate^shape / gamma(shape) *
+      (log(rate) + log(y) - digamma(shape))
+  )
+  return(d_shape * shape)
+}
+
+d_lp_rate <- function(y, lp_shape, lp_rate, lp_hu) {
+  hu <- plogis(lp_hu)
+  shape <- exp(lp_shape)
+  rate <- exp(lp_rate)
+  d_rate <- ifelse(
+    y == 0,
+    - (1 - y) / (1 - hu),
+    y / hu + 
+      y^(shape-1) / gamma(shape) * exp(-rate*y) * rate^(shape - 1)
+    * (shape - y * rate)
+    )
+  return(d_rate * rate)
+}
+
+d_lp_hu <- function(y, lp_shape, lp_rate, lp_hu) {
+  hu <- plogis(lp_hu)
+  shape <- exp(lp_shape)
+  rate <- exp(lp_rate)
+  d_hu <- y / hu - (1 - y) / (1 - hu)
+  return(d_hu * (1 / hu + 1 / (1 - hu)) ^ (-1))
+}
+
+gradient_hurdle_gamma <- function(y, lp_shape, lp_rate, lp_hu) {
+  return(
+    cbind(
+      d_lp_shape(y, lp_shape, lp_rate, lp_hu),
+      d_lp_rate(y, lp_shape, lp_rate, lp_hu),
+      d_lp_hu(y, lp_shape, lp_rate, lp_hu)
+      )
+    )
 }
 
 m <- svymle(
-  loglike = hurdle_gamma2,
-  gradient = make_derivative,
+  loglike = loglike_hurdle_gamma,
+  gradient = gradient_hurdle_gamma,
   design = benthos_design,
-  method = "bobyqa",
-  lower = list(c(0, 0), c(0), c(0)),
-  upper = Inf,
+  method = "Nelder-Mead",
   formulas = list(~tot_afdw,
-                  shape = ~jaar,
-                  rate = ~1,
-                  hu = ~1),
-  start = list(c(0.5, 0), c(0.5), c(0.5)))
+                  lp_shape = ~ 0 + jaar,
+                  lp_rate = ~ 0 + jaar,
+                  lp_hu = ~ 0 + jaar),
+  start = list(c(0.5, 0),
+               c(0.5, 0),
+               c(0.1, 0)
+  ),
+  control = list(maxit = 10000),
+  na.action = "na.omit"
+)
+
 
 summary(m)
+
+# see also https://github.com/strengejacke/sjstats/blob/master/R/svyglmzip.R
+
+# need predict method to obtain population total estimates, but no method for
+# svymle
+
+
+# from ?svymle The usual variance estimator for MLEs in a survey sample is a
+# `sandwich' variance that requires the score vector and the information matrix.
+# It requires only sampling assumptions to be valid (though some model
+# assumptions are required for it to be useful).
+# This is the stderr="robust" option, which is available only when the gradient
+# argument was specified.
+data.frame(est = coef(m), se = SE(m)) %>%
+  rownames_to_column(var = "parameter") %>%
+  separate(parameter, into = c("parameter", "jaar"), sep = ".jaar")
+
+# combine with var-covar matrix to calculate CI on overall mean?
+m$sandwich
+all.equal(SE(m), sqrt(diag(m$sandwich)))
+samples <- MASS::mvrnorm(n = 1e5, mu = coef(m), Sigma = m$sandwich)
+
+mle_summary <- samples %>%
+  as_tibble() %>%
+  mutate(
+    log_zero_part.2018 = log(1 - plogis(lp_hu.jaar2018)),
+    log_gamma_part.2018 = log(exp(lp_shape.jaar2018) / exp(lp_rate.jaar2018)),
+    sum_logparts.2018 = log_zero_part.2018 + log_gamma_part.2018,
+    log_zero_part.2019 = log(1 - plogis(lp_hu.jaar2019)),
+    log_gamma_part.2019 = log(exp(lp_shape.jaar2019) / exp(lp_rate.jaar2019)),
+    sum_logparts.2019 = log_zero_part.2019 + log_gamma_part.2019
+    ) %>%
+  select(starts_with("sum")) %>%
+  pivot_longer(cols = everything()) %>%
+  separate(name, c("name", "jaar"), sep = "\\.") %>%
+  group_by(jaar) %>%
+  summarize(y = exp(median(value)) /
+              opp_per_staal_m2,
+            ymin = exp(quantile(value, 0.025)) /
+              opp_per_staal_m2,
+            ymax = exp(quantile(value, 0.975)) /
+              opp_per_staal_m2,
+            y_alternative = mean(exp(value) / opp_per_staal_m2))
+
+# gram per m2
+mle_summary
+
+# vergelijk met:
+benthos_design %>%
+  group_by(jaar) %>%
+  summarize(
+    n = n(),
+    mzb_gram_per_m2 = survey_mean(
+    x = tot_afdw / opp_per_staal_m2,
+    na.rm = TRUE,
+    vartype = "ci",
+    level = 0.95))
+# er zit zeker nog iets fout
+```
+
+```{r replicate-weights, eval=FALSE}
+# replicate weights?
+benthos_design_repl <- as.svrepdesign(benthos_design)
+
+hg_optim <- withReplicates(
+  benthos_design_repl,
+  quote(
+    glmmTMB(tot_afdw / opp_per_staal_m2 ~ 0 + jaar,
+            family = ziGamma(link = "log"),
+            ziformula = ~ 0 + jaar,
+            dispformula = ~ 0 + jaar,
+            data = model.frame(benthos_design_repl),
+            weights = .weights,
+            se = TRUE,
+            na.action = na.omit,
+            control = glmmTMBControl(
+              optimizer = optim,
+              optArgs = list(method = "BFGS")
+            ))$fit$par),
+  return.replicates = TRUE
+)
+
+hg_optim %>%
+  as_tibble() %>%
+  mutate(param = rep(c("conditional", "hurdle", "dispersion"), each = 2),
+         jaar = rep(c("2018", "2019"), times = 3)) %>%
+  pivot_wider(id_cols = c(jaar),
+              names_from = c(param),
+              values_from = c(theta, SE)) %>%
+  mutate(overall_mean = (1 - plogis(theta_hurdle)) * exp(theta_conditional))
+
+hg_optim_sigma <- attr(hg_optim$theta, which = "var")
+hg_optim_mean <- hg_optim$theta
+
+hg_samples <- MASS::mvrnorm(n = 1e5, mu = hg_optim_mean, Sigma = hg_optim_sigma)
+colnames(hg_samples) <- paste0(colnames(hg_samples), c(".2018", ".2019"))
+
+hg_summary <- hg_samples %>%
+  as_tibble() %>%
+  mutate(
+    log_zero_part.2018 = log(1 - plogis(betazi.2018)),
+    log_gamma_part.2018 = beta.2018,
+    sum_logparts.2018 = log_zero_part.2018 + log_gamma_part.2018,
+    log_zero_part.2019 = log(1 - plogis(betazi.2019)),
+    log_gamma_part.2019 = beta.2019,
+    sum_logparts.2019 = log_zero_part.2019 + log_gamma_part.2019
+    ) %>%
+  select(starts_with("sum")) %>%
+  pivot_longer(cols = everything()) %>%
+  separate(name, c("name", "jaar"), sep = "\\.") %>%
+  group_by(jaar) %>%
+  summarize(y = exp(median(value)),
+            ymin = exp(quantile(value, 0.025)),
+            ymax = exp(quantile(value, 0.975)),
+            y_alternative = mean(exp(value))
+            )
+
+hg_summary
+
+# vergelijk met:
+benthos_design %>%
+  group_by(jaar) %>%
+  summarize(
+    n = n(),
+    mzb_gram_per_m2 = survey_mean(
+    x = tot_afdw / opp_per_staal_m2,
+    na.rm = TRUE,
+    vartype = "ci",
+    level = 0.95))
+
+# lijkt er al beter op
 ```
 
 (ref:schattingen-subtargets) Schatting van tonnages biomassa MZB in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar en saliniteitszone.
@@ -393,6 +576,7 @@ benthos_afdw_poststrat <- benthos_afdw_zeeschelde_durme %>%
 ```
 
 ```{r hg-spatial, message=FALSE}
+fs::dir_create(find_root_file("src/rapport/brms_models", criterion = is_git_root))
 # multilevel regression + poststratification
 benthos_afdw_zeeschelde_durme %>%
   filter(tidaal != "subtidaal",
@@ -417,7 +601,8 @@ benthos_afdw_zeeschelde_durme %>%
   cores = 4,
   control = list(adapt_delta = 0.95),
   backend = "cmdstanr", 
-  file = "hg_spatial",
+  file = find_root_file("src/rapport/brms_models/hg_spatial",
+                        criterion = is_git_root),
   file_refit = "on_change"
   ) -> hg_spatial
 ```
@@ -446,7 +631,8 @@ benthos_afdw_zeeschelde_durme %>%
   cores = 4,
   control = list(adapt_delta = 0.95),
   backend = "cmdstanr", 
-  file = "hg_raai",
+  file = find_root_file("src/rapport/brms_models/hg_raai",
+                        criterion = is_git_root),
   file_refit = "on_change"
   ) -> hg_raai
 ```
@@ -478,7 +664,8 @@ benthos_afdw_zeeschelde_durme %>%
   cores = 4,
   control = list(adapt_delta = 0.95),
   backend = "cmdstanr", 
-  file = "hg_raaispatial",
+  file = find_root_file("src/rapport/brms_models/hg_raaispatial",
+                        criterion = is_git_root),
   file_refit = "on_change"
   ) -> hg_raaispatial
 ```
@@ -506,7 +693,8 @@ benthos_afdw_zeeschelde_durme %>%
   cores = 4,
   control = list(adapt_delta = 0.95),
   backend = "cmdstanr", 
-  file = "hg_raaispatial_2",
+  file = find_root_file("src/rapport/brms_models/hg_raaispatial_2",
+                        criterion = is_git_root),
   file_refit = "on_change"
   ) -> hg_raaispatial_2
 ```

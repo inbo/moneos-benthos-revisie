@@ -167,6 +167,13 @@
       "Repository": "CRAN",
       "Hash": "0459d4dd7a8c239be18469a30c23dd4b"
     },
+    "TMB": {
+      "Package": "TMB",
+      "Version": "1.7.22",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "d1a16b564d4d43d01943002981f45ab6"
+    },
     "V8": {
       "Package": "V8",
       "Version": "3.6.0",
@@ -250,6 +257,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "3837766a1e1b527af25fa3e2d12a2800"
+    },
+    "boot": {
+      "Package": "boot",
+      "Version": "1.3-28",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "0baa960e3b49c6176a4f42addcbacc59"
     },
     "brew": {
       "Package": "brew",
@@ -628,6 +642,13 @@
       "Repository": "CRAN",
       "Hash": "f3aefccc1cc50de6338146b62f115de8"
     },
+    "glmmTMB": {
+      "Package": "glmmTMB",
+      "Version": "1.1.2.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "02720139ead64147c931bf5b2a91ef45"
+    },
     "globals": {
       "Package": "globals",
       "Version": "0.14.0",
@@ -865,6 +886,13 @@
       "Repository": "CRAN",
       "Hash": "0bde42ee282efb18c7c4e63822f5b4f7"
     },
+    "lme4": {
+      "Package": "lme4",
+      "Version": "1.1-27.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "c995b0405ce0894d6fe52b3e08ea9085"
+    },
     "loo": {
       "Package": "loo",
       "Version": "2.4.1",
@@ -979,6 +1007,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "2d632e0d963a653a0329756ce701ecdd"
+    },
+    "nloptr": {
+      "Package": "nloptr",
+      "Version": "1.2.2.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "22eeb1eb7129a2ca17b8eb70b56a02fe"
     },
     "numDeriv": {
       "Package": "numDeriv",

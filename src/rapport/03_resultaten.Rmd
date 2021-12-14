@@ -20,7 +20,7 @@ benthos_afdw <- benthos %>%
   # enkele stalen met negatieve AFDW: op nul zetten
   # bij enkele stalen stonden Z-waarden (hoogte) in mm ipv m
   mutate(AFDW = ifelse(AFDW < 0, 0, AFDW),
-         Z = ifelse(Z >= 20, Z/1000, Z)) %>%
+         Z = ifelse(Z >= 20, Z / 1000, Z)) %>%
   group_by(survey, campagne.x, campagne.y, staal, staalcode, jaar, datum.x,
            datum.y, real_X, real_Y, Z, geomorf, ecotoop_werkelijk,
            ecotoop_gepland, SalZone, Vallei_deel, Omessegment, KRWzone) %>%
@@ -179,9 +179,6 @@ benthos_design %>%
 
 # not working
 # in terms of linear predictors (lp)
-# lp_shape = log(shape)
-# lp_rate = log(rate)
-# l_hu = logit(hu)
 loglike_hurdle_gamma <- function(y, lp_shape, lp_rate, lp_hu) {
   hu <- plogis(lp_hu)
   shape <- exp(lp_shape)
@@ -202,7 +199,7 @@ d_lp_shape <- function(y, lp_shape, lp_rate, lp_hu) {
   d_shape <- ifelse(
     y == 0,
     - (1 - y) / (1 - hu),
-    y / hu + 
+    y / hu +
       exp(-rate * y) * y^(shape - 1) * rate^shape / gamma(shape) *
       (log(rate) + log(y) - digamma(shape))
   )
@@ -216,8 +213,8 @@ d_lp_rate <- function(y, lp_shape, lp_rate, lp_hu) {
   d_rate <- ifelse(
     y == 0,
     - (1 - y) / (1 - hu),
-    y / hu + 
-      y^(shape-1) / gamma(shape) * exp(-rate*y) * rate^(shape - 1)
+    y / hu +
+      y^(shape - 1) / gamma(shape) * exp(-rate * y) * rate^(shape - 1)
     * (shape - y * rate)
     )
   return(d_rate * rate)
@@ -225,8 +222,6 @@ d_lp_rate <- function(y, lp_shape, lp_rate, lp_hu) {
 
 d_lp_hu <- function(y, lp_shape, lp_rate, lp_hu) {
   hu <- plogis(lp_hu)
-  shape <- exp(lp_shape)
-  rate <- exp(lp_rate)
   d_hu <- y / hu - (1 - y) / (1 - hu)
   return(d_hu * (1 / hu + 1 / (1 - hu)) ^ (-1))
 }
@@ -422,10 +417,10 @@ benthos_design %>%
 ```{r spatial-hoogtes, fig.height=7.5, fig.cap="(ref:spatial-hoogtes)"}
 benthos_afdw_spatial %>%
   mutate(staalcode = fct_reorder(staalcode, Z)) %>%
-  ggplot() + 
+  ggplot() +
   geom_point(aes(x = Z, y = KRWzone, colour = jaar,
                  shape = ecotoop_werkelijk.benthos),
-             position = position_dodge(width = 0.5)) + 
+             position = position_dodge(width = 0.5)) +
   labs(x = "Hoogte (m)") +
   facet_grid(vars(SalZone), scales = "free_y")
 ```
@@ -439,11 +434,11 @@ In principe kan dan de hoogtevariabele (die bij benadering overal gekend is via 
 ```{r biomassa-hoogte, fig.cap="(ref:biomassa-hoogte)"}
 benthos_afdw_zeeschelde_durme %>%
   filter(tidaal == "intertidaal") %>%
-  ggplot(aes(x = Z, y = tot_afdw, colour = jaar)) + 
-  geom_point() + 
+  ggplot(aes(x = Z, y = tot_afdw, colour = jaar)) +
+  geom_point() +
   geom_smooth() +
   scale_y_sqrt() +
-  facet_wrap(tidaal~survey, scales = "free") + 
+  facet_wrap(tidaal~survey, scales = "free") +
   labs(x = "Hoogte (m)",
        y = "Biomassa (g)")
 ```
@@ -546,9 +541,9 @@ Tussen de jaren blijven deze hoogtes meestal gelijk, maar soms zien we grote ver
 ```{r raai-hoogtes, fig.height=7.5, fig.cap="(ref:raai-hoogtes)"}
 benthos_afdw_raai %>%
   mutate(staalcode = fct_reorder(staalcode, Z)) %>%
-  ggplot() + 
+  ggplot() +
   geom_point(aes(x = Z, y = staalcode, colour = jaar,
-                 shape = ecotoop_werkelijk.benthos)) + 
+                 shape = ecotoop_werkelijk.benthos)) +
   geom_line(aes(x = Z, y = staalcode, group = staal)) +
   labs(x = "Hoogte (m)") +
   facet_grid(vars(SalZone), scales = "free_y")
@@ -576,7 +571,8 @@ benthos_afdw_poststrat <- benthos_afdw_zeeschelde_durme %>%
 ```
 
 ```{r hg-spatial, message=FALSE}
-fs::dir_create(find_root_file("src/rapport/brms_models", criterion = is_git_root))
+fs::dir_create(find_root_file("src/rapport/brms_models",
+                              criterion = is_git_root))
 # multilevel regression + poststratification
 benthos_afdw_zeeschelde_durme %>%
   filter(tidaal != "subtidaal",
@@ -584,12 +580,12 @@ benthos_afdw_zeeschelde_durme %>%
   rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
   st_drop_geometry() %>%
   brm(bf(
-    tot_afdw ~ 
+    tot_afdw ~
       jaar
     + (1 | jaar:ecotoop_werkelijk)
     + (1 | jaar:KRWzone)
     + (1 | jaar:ecotoop_werkelijk:KRWzone),
-    hu ~ 
+    hu ~
       jaar
     + (1 | jaar:ecotoop_werkelijk)
     + (1 | jaar:KRWzone)
@@ -600,7 +596,7 @@ benthos_afdw_zeeschelde_durme %>%
   silent = 2,
   cores = 4,
   control = list(adapt_delta = 0.95),
-  backend = "cmdstanr", 
+  backend = "cmdstanr",
   file = find_root_file("src/rapport/brms_models/hg_spatial",
                         criterion = is_git_root),
   file_refit = "on_change"
@@ -614,12 +610,12 @@ benthos_afdw_zeeschelde_durme %>%
   rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
   st_drop_geometry() %>%
   brm(bf(
-    tot_afdw ~ 
+    tot_afdw ~
       jaar
     + (1 | jaar:ecotoop_werkelijk)
     + (1 | jaar:KRWzone)
     + (1 | jaar:ecotoop_werkelijk:KRWzone),
-    hu ~ 
+    hu ~
       jaar
     + (1 | jaar:ecotoop_werkelijk)
     + (1 | jaar:KRWzone)
@@ -630,7 +626,7 @@ benthos_afdw_zeeschelde_durme %>%
   silent = 2,
   cores = 4,
   control = list(adapt_delta = 0.95),
-  backend = "cmdstanr", 
+  backend = "cmdstanr",
   file = find_root_file("src/rapport/brms_models/hg_raai",
                         criterion = is_git_root),
   file_refit = "on_change"
@@ -643,14 +639,14 @@ benthos_afdw_zeeschelde_durme %>%
   rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
   st_drop_geometry() %>%
   brm(bf(
-    tot_afdw ~ 
+    tot_afdw ~
       jaar
     + survey
     + jaar:survey
     + (1 | survey:jaar:ecotoop_werkelijk)
     + (1 | survey:jaar:KRWzone)
     + (1 | survey:jaar:ecotoop_werkelijk:KRWzone),
-    hu ~ 
+    hu ~
       jaar
     + survey
     + jaar:survey
@@ -663,7 +659,7 @@ benthos_afdw_zeeschelde_durme %>%
   silent = 2,
   cores = 4,
   control = list(adapt_delta = 0.95),
-  backend = "cmdstanr", 
+  backend = "cmdstanr",
   file = find_root_file("src/rapport/brms_models/hg_raaispatial",
                         criterion = is_git_root),
   file_refit = "on_change"
@@ -676,12 +672,12 @@ benthos_afdw_zeeschelde_durme %>%
   rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
   st_drop_geometry() %>%
   brm(bf(
-    tot_afdw ~ 
+    tot_afdw ~
       jaar
     + (1 | jaar:ecotoop_werkelijk)
     + (1 | jaar:KRWzone)
     + (1 | jaar:ecotoop_werkelijk:KRWzone),
-    hu ~ 
+    hu ~
       jaar
     + (1 | jaar:ecotoop_werkelijk)
     + (1 | jaar:KRWzone)
@@ -692,7 +688,7 @@ benthos_afdw_zeeschelde_durme %>%
   silent = 2,
   cores = 4,
   control = list(adapt_delta = 0.95),
-  backend = "cmdstanr", 
+  backend = "cmdstanr",
   file = find_root_file("src/rapport/brms_models/hg_raaispatial_2",
                         criterion = is_git_root),
   file_refit = "on_change"
@@ -786,7 +782,7 @@ hg_raaispatial %>%
 ```{r hg-raaispatial-2-schattingen}
 hg_raaispatial_2 %>%
   add_linpred_draws(newdata = benthos_afdw_poststrat %>%
-                      select(-survey) %>% 
+                      select(-survey) %>%
                       distinct()) %>%
   mean_qi() %>%
   mutate(across(c(.linpred, .lower, .upper),
@@ -801,7 +797,7 @@ hg_raaispatial_2 %>%
 ```{r hg-raaispatial-2-schattingen-subtargets}
 hg_raaispatial_2 %>%
   add_linpred_draws(newdata = benthos_afdw_poststrat %>%
-                      select(-survey) %>% 
+                      select(-survey) %>%
                       distinct()) %>%
   mean_qi() %>%
   mutate(across(c(.linpred, .lower, .upper),

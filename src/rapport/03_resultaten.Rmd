@@ -155,7 +155,7 @@ benthos_design <- benthos_afdw_spatial %>%
                    weights = stratum_weight)
 
 # https://cran.r-project.org/web/packages/srvyr/vignettes/srvyr-vs-survey.html
-# Horvitz-Thomson type schatters
+# Horvitz-Thompson type schatters
 benthos_design %>%
   group_by(jaar) %>%
   summarize(
@@ -166,7 +166,7 @@ benthos_design %>%
     na.rm = TRUE,
     vartype = "ci",
     level = 0.95)) %>%
-  mutate(methode = "Horvitz-Thomson") -> svytotal_jaar
+  mutate(methode = "Horvitz-Thompson") -> svytotal_jaar
 ```
 
 ```{r svymle, eval=FALSE}
@@ -501,7 +501,7 @@ all.equal(
 
 ```{r schattingen-subtargets}
 # https://cran.r-project.org/web/packages/srvyr/vignettes/srvyr-vs-survey.html
-# Horvitz-Thomson type schatters
+# Horvitz-Thompson type schatters
 benthos_design %>%
   group_by(jaar, SalZone) %>%
   summarize(
@@ -512,7 +512,7 @@ benthos_design %>%
           na.rm = TRUE,
           vartype = "ci",
           level = 0.95)) %>%
-  mutate(methode = "Horvitz-Thomson") -> svytotal_salzone
+  mutate(methode = "Horvitz-Thompson") -> svytotal_salzone
 ```
 
 (ref:schattingen-overzichtstabel) Schatting van tonnages biomassa MZB volgens twee methodes in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar.

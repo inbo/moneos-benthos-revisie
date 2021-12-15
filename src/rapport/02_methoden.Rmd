@@ -183,7 +183,9 @@ Er wordt gewerkt aan een SQL databank (Scheldedatabank) waarin actuele en histor
 
 ## Gegevensverwerking
 
-Voor de inschatting van de foutenmarge op de biomassa MZB, maken we gebruik van design-based formules voor de schatting van een totaal in een gestratificeerde steekproef.
+### Design-based inschatting biomassa
+
+Voor de inschatting van de foutenmarge op de biomassa MZB, kunnen we gebruik maken van design-based formules voor de schatting van een totaal in een gestratificeerde steekproef.
 Om het totaal in te schatten is het belangrijk dat we de juiste gewichten (inverse van inclusiekansen) gebruiken om de extrapolatie te doen van de totale biomassa geobserveerd in de steekproef naar de totale biomassa in het gehele systeem (de statistische populatie).
 Stratificatie verhoogt de precisie van de schatters op voorwaarde dat de strata homogeen zijn.
 Heterogene strata zullen daarentegen de precisie verlagen.
@@ -197,11 +199,39 @@ Op basis van deze formules kunnen vervolgens betrouwbaarheidsintervallen bereken
 Hierbij maken we gebruik van de normale distributie omdat de distributie van de schattingen, die je zou bekomen als je telkens opnieuw een steekproef zou trekken, normaal verdeeld is volgens de centrale limietstelling.
 Hier wordt aan voldaan voor een aselecte gestratificeerde steekproef op voorwaarde dat de steekproefgrootte voldoende groot is en er geen invloedrijke datapunten zijn.
 
+Merk op dat bij deze methode het mogelijk is dat het betrouwbaarheidsinterval negatieve waarden bevat terwijl biomassa uiteraard nooit negatief kan zijn.
+Dit kan gebeuren wanneer de variabiliteit groot is en / of de steekproefgrootte klein.
+We zullen in de resultaten deze negatieve ondergrenzen tonen, maar in de praktijk mogen deze gelijkgesteld worden aan 0.
+Een manier om te vermijden dat de betrouwbaarheidsintervallen waarden kunnen bevatten die buiten het theoretische bereik van de beschouwde variabele liggen, is door te veronderstellen dat de data aan bepaalde statistische distributie volgen.
+Voor continue waarden \>= 0 kunnen we een zogenaamde hurdle-gamma of hurdle-lognormale verdeling veronderstellen.
+Om deze verdelingen te fitten aan de data dient de 'likelihood' gemaximaliseerd te worden om puntschattingen te bekomen van de drie parameters (een parameter voor de kans op nul en twee parameters die het gemiddelde en de variantie van de Gamma of lognormale verdeling beschrijven).
+Klassiek doet men dit met software voor veralgemeende lineaire regressiemodellen.
+Om echter te garanderen dat de puntschattingen rekening houden met de steekproefgewichten (Engels: sampling weights; omgekeerde van de inclusiekansen), zijn er correcties nodig [@lumley2017; @lumley2004].
+
+### Multilevel regressie en poststratificatie
+
+Een alternatieve analysemethode waarmee uitspraken kunnen gedaan worden over de statistische doelpopulatie op basis van een aselecte steekproef is multilevel regressie gevolgd door poststratificatie (MRP)[@gelman2007; @gelman2007a; @si2020].
+
+Bij deze aanpak, wordt eerst een multilevel regressie uitgevoerd waarbij de belangrijkste designvariabelen (strata, clustering, ...) als effecten aan het model worden toegevoegd.
+Er wordt dus niet gewerkt met steekproefgewichten.
+In een tweede poststratificatiestap worden daarna de parameterschattingen aangedikt door ze te wegen volgens de oppervlaktes van elk van de poststrata combinaties zodat uitspraken over de doelpopulatie gedaan kunnen worden.
+Deze methode zou vooral interessant zijn voor uitspraken over kleine subdomeinen van de doelpopulatie.
+
+Waar de design-based methodes absoluut een probabilistische steekproef vereisen, is dat bij MRP minder het geval.
+Dat biedt perspectieven om de preferentieel ingezamelde data via de raaien met deze methode te analyseren of combinaties van beide surveys te exploreren.
+
+Voor de MRP analyse veronderstellen we dat de data een hurdle-gamma verdeeld zijn.
+Als design-variabelen voegen we random intercepten toe voor de ecotopen en KRW zones en hun interactie.
+
+### Allocatie van steekproefeenheden over strata
+
 Voor een gestratificeerde steekproef kan volgende evenredigheid gebruikt worden voor een optimale allocatie van de totale steekproefgrootte over de verschillende strata:
 
 $$n_h \propto \frac{N_h\sigma_h}{\sqrt{cost_h}}$$.
 
 Dit suggereert dat een groter aandeel moet gaan naar grote strata (in oppervlakte), meer variabele strata en minder kostelijke strata.
 
+### Gebruikte software en packages
+
 Alle analyses werden uitgevoerd in R [@R-base] .
-We maken hierbij gebruik van verschillende R packages: `dplyr` [@R-dplyr] voor het voorbereiden van de ruwe data, `ggplot2` [@R-ggplot2] voor aanmaken van figuren en `srvyr` [@R-srvyr] voor design-based inferentie.
+We maken hierbij gebruik van verschillende R packages: `dplyr` [@R-dplyr] voor het voorbereiden van de ruwe data, `ggplot2` [@R-ggplot2] voor aanmaken van figuren, `srvyr` [@R-srvyr] en `survey` [@R-survey] voor design-based inferentie, en `brms` [@R-brms] voor MRP.

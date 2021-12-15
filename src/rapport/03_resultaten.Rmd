@@ -82,7 +82,7 @@ benthos_afdw_ecotoop %>%
            as.character(ecotoop_werkelijk.ecotoop)) %>%
   st_drop_geometry() %>%
   select(jaar, staal, starts_with("ecotoop_werkelijk")) %>%
-  kable()
+  gt()
 ```
 
 Enkel Zeeschelde, Rupel en Durme / geen raaien / enkel intertidaal
@@ -132,7 +132,7 @@ benthos_afdw_zeeschelde_durme %>%
 benthos_afdw_spatial %>%
   st_drop_geometry() %>%
   distinct(jaar, ecotoop_werkelijk.benthos, KRWzone, SalZone, stratum_n) %>%
-  kable(caption = "(ref:spatial-steekproefgrootte)")
+  gt(caption = "(ref:spatial-steekproefgrootte)")
 ```
 
 Merk op dat de subtidale locaties niet nodig zijn voor de berekening waarbij een vergelijking nodig is met de streefwaarde van 30 ton biomassa.
@@ -145,7 +145,7 @@ benthos_afdw_zeeschelde_durme %>%
   filter(survey == "spatial") %>%
   st_drop_geometry() %>%
   count(jaar, tidaal) %>%
-  kable(caption = "(ref:spatial-steekproefgrootte-tidaal)")
+  gt(caption = "(ref:spatial-steekproefgrootte-tidaal)")
 ```
 
 ```{r schattingen}
@@ -382,7 +382,7 @@ n_samples <- benthos_design$variables %>%
     inner_join(n_samples, by = "jaar") -> hg_replicated_jaar
 ```
 
-```{r replicate-weights-salzone}
+```{r replicate-weights-salzone, warning=FALSE, message=FALSE}
 hg_salzone <- withReplicates(
   design = benthos_design_repl,
   quote(glmmTMB(tot_afdw / opp_per_staal_m2 ~ 0 + jaar:SalZone,
@@ -521,7 +521,8 @@ benthos_design %>%
 bind_rows(svytotal_jaar, hg_replicated_jaar) %>%
   select(jaar, methode, n, totopp_km2, starts_with("mzb")) %>%
   arrange(desc(methode), jaar) %>%
-  kable(digits = 1, caption = "(ref:schattingen-overzichtstabel)")
+  gt(caption = "(ref:schattingen-overzichtstabel)") %>%
+  fmt_number(columns = where(is.double), decimals = 1)
 ```
 
 (ref:schattingen-overzichtstabel-salzone) Schatting van tonnages biomassa MZB volgens twee methodes in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar en saliniteitszone.
@@ -530,7 +531,9 @@ bind_rows(svytotal_jaar, hg_replicated_jaar) %>%
 bind_rows(svytotal_salzone, hg_replicated_salzone) %>%
   select(jaar, SalZone, methode, n, totopp_km2, starts_with("mzb")) %>%
   arrange(desc(methode), jaar, SalZone) %>%
-  kable(digits = 1, caption = "(ref:schattingen-overzichtstabel-salzone)")
+  group_by(methode, jaar) %>%
+  gt(caption = "(ref:schattingen-overzichtstabel-salzone)") %>%
+  fmt_number(columns = where(is.double), decimals = 1)
 ```
 
 (ref:spatial-hoogtes) Voorstelling van de steekproef in functie van de hoogte en de verschillende saliniteitszones.
@@ -570,7 +573,7 @@ benthos_afdw_zeeschelde_durme %>%
          Z > 0) %>%
   st_drop_geometry() %>%
   select(jaar, staal, ecotoop_werkelijk.benthos, KRWzone, Z) %>%
-  kable()
+  gt()
 ```
 
 ## Vergelijking raaien met gestratificeerde aselecte steekproef
@@ -595,7 +598,7 @@ benthos_afdw_zeeschelde_durme %>%
 benthos_afdw_raai %>%
   st_drop_geometry() %>%
   distinct(jaar, ecotoop_werkelijk.benthos, KRWzone, SalZone, stratum_n) %>%
-  kable(caption = "(ref:raai-steekproefgrootte)")
+  gt(caption = "(ref:raai-steekproefgrootte)")
 ```
 
 (ref:raai-steekproefgrootte-totaal) Totale jaarlijkse steekproefgrootte voor de raaien.
@@ -604,7 +607,7 @@ benthos_afdw_raai %>%
 benthos_afdw_raai %>%
   st_drop_geometry() %>%
   count(jaar) %>%
-  kable(caption = "(ref:raai-steekproefgrootte-totaal)")
+  gt(caption = "(ref:raai-steekproefgrootte-totaal)")
 ```
 
 (ref:schattingen-raai) Vertekende schattingen van de tonnages op basis van de raaigegevens en een foutieve veronderstelling dat de data onafhankelijke en aselect zijn.
@@ -626,7 +629,8 @@ benthos_raai_design %>%
       na.rm = TRUE,
       vartype = "ci",
       level = 0.95)) %>%
-  kable(digits = 1, caption = "(ref:schattingen-raai)")
+  gt(caption = "(ref:schattingen-raai)") %>%
+  fmt_number(where(is.double), decimals = 1)
 ```
 
 (ref:schattingen-raai-subtargets) Vertekende schattingen per saliniteitszone van de tonnages op basis van de raaigegevens en een foutieve veronderstelling dat de data onafhankelijke en aselect zijn.
@@ -642,7 +646,8 @@ benthos_raai_design %>%
           na.rm = TRUE,
           vartype = "ci",
           level = 0.95)) %>%
-  kable(digits = 1, caption = "(ref:schattingen-raai-subtargets)")
+  gt(caption = "(ref:schattingen-raai-subtargets)") %>%
+  fmt_number(columns = where(is.double), decimals = 1)
 ```
 
 Wellicht sterk vertekende schattingen (overschatting vermits vooral in beste gebieden).
@@ -829,7 +834,8 @@ hg_spatial %>%
   group_by(jaar) %>%
   summarise(across(c(exp.linpred, exp.lower, exp.upper),
                    ~sum(. * stratum_opp_m2) / 1e6)) %>%
-  kable(digits = 1)
+  gt() %>%
+  fmt_number(columns = where(is.double), decimals = 1)
 ```
 
 ```{r hg-spatial-schattingen-subtargets}
@@ -842,7 +848,8 @@ hg_spatial %>%
   group_by(jaar, SalZone) %>%
   summarise(across(c(exp.linpred, exp.lower, exp.upper),
                    ~sum(. * stratum_opp_m2) / 1e6)) %>%
-  kable(digits = 1)
+  gt() %>%
+  fmt_number(columns = where(is.double), decimals = 1)
 ```
 
 ```{r hg-raai-schattingen}
@@ -858,7 +865,8 @@ hg_raai %>%
   group_by(jaar) %>%
   summarise(across(c(exp.linpred, exp.lower, exp.upper),
                    ~sum(. * stratum_opp_m2) / 1e6)) %>%
-  kable(digits = 1)
+  gt() %>%
+  fmt_number(columns = where(is.double), decimals = 1)
 ```
 
 ```{r hg-raai-schattingen-subtargets}
@@ -871,7 +879,8 @@ hg_raai %>%
   group_by(jaar, SalZone) %>%
   summarise(across(c(exp.linpred, exp.lower, exp.upper),
                    ~sum(. * stratum_opp_m2) / 1e6)) %>%
-  kable(digits = 1)
+  gt() %>%
+  fmt_number(columns = where(is.double), decimals = 1)
 ```
 
 ```{r hg-raaispatial-schattingen}
@@ -884,7 +893,8 @@ hg_raaispatial %>%
   group_by(survey, jaar) %>%
   summarise(across(c(exp.linpred, exp.lower, exp.upper),
                    ~sum(. * stratum_opp_m2) / 1e6)) %>%
-  kable(digits = 1)
+  gt() %>%
+  fmt_number(columns = where(is.double), decimals = 1)
 ```
 
 ```{r hg-raaispatial-schattingen-subtargets}
@@ -897,7 +907,8 @@ hg_raaispatial %>%
   group_by(survey, jaar, SalZone) %>%
   summarise(across(c(exp.linpred, exp.lower, exp.upper),
                    ~sum(. * stratum_opp_m2) / 1e6)) %>%
-  kable(digits = 1)
+  gt() %>%
+  fmt_number(columns = where(is.double), decimals = 1)
 ```
 
 ```{r hg-raaispatial-2-schattingen}
@@ -912,7 +923,8 @@ hg_raaispatial_2 %>%
   group_by(jaar) %>%
   summarise(across(c(exp.linpred, exp.lower, exp.upper),
                    ~sum(. * stratum_opp_m2) / 1e6)) %>%
-  kable(digits = 1)
+  gt() %>%
+  fmt_number(columns = where(is.double), decimals = 1)
 ```
 
 ```{r hg-raaispatial-2-schattingen-subtargets}
@@ -927,5 +939,6 @@ hg_raaispatial_2 %>%
   group_by(jaar, SalZone) %>%
   summarise(across(c(exp.linpred, exp.lower, exp.upper),
                    ~sum(. * stratum_opp_m2) / 1e6)) %>%
-  kable(digits = 1)
+  gt() %>%
+  fmt_number(columns = where(is.double), decimals = 1)
 ```

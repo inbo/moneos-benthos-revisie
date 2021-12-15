@@ -114,7 +114,7 @@ We beperken ons hier tot enkel die elementen die van belang kunnen zijn voor onz
 Er worden twee types stalen genomen, enkel het basisstaal is voor dit rapport van belang.
 
 Zowel in het subtidaal als het intertidaal neemt men een steekbuisstaal met diameter van 4,5 cm tot 15 cm diepte, behalve in Zeeschelde IV tot 30 cm diep.
-De bemonsterde oppervlakte en volume (bij 15 cm diepte) per locatie bedraagt dus respectievelijk: `r round(pi*4.5^2/4)` cm² en `round(pi*4.5^2/4*15/1000,2)` liter (x2 bij 30 cm diepte).
+De bemonsterde oppervlakte en volume (bij 15 cm diepte) per locatie bedraagt dus respectievelijk: `r round(pi*4.5^2/4)` cm² en `r round(pi*4.5^2/4*15/1000,2)` liter (x2 bij 30 cm diepte).
 
 ### Procedure berekening van analysevariabelen
 
@@ -151,15 +151,15 @@ Tabel \@ref(tab:tijdsinschatting) geeft een overzicht hiervan.
 
 (ref:tijdsinschatting) Ruwe schatting van de tijdsverdeling voor het veldwerk en het labowerk in één jaar.
 
-```{r tijdsinschatting}
+```{r tijdsinschatting, message=FALSE}
 werklast <- read_csv(file = find_root_file("data/tijdinschatting.csv",
                                            criterion = is_git_root))
 
 werklast %>%
   select(taakgroep, taak, tidaal, campagne, aantal_stalen,
          `totaal aantal uren gelogd` = tot_uren_gelogd) %>%
-  kable(digits = 0,
-        caption = "(ref:tijdsinschatting)")
+  group_by(taakgroep) %>%
+  gt(caption = "(ref:tijdsinschatting)")
 ```
 
 ```{=html}

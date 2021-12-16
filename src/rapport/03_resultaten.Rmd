@@ -4,151 +4,9 @@ bibliography: moneos.bib
 
 # Resultaten
 
-## Inschatting tonnage droge massa macrozoöbenthos (totaal + foutenmarge)
+## Inschatting tonnage droge massa macrozoöbenthos via gestratificeerde aselecte steekproef
 
-```{r benthos-afdw}
-benthos <- read_vc(file = "benthos",
-                   root = find_root_file("data",
-                                         criterion = is_git_root))
-
-# correctie van ecotoop van een punt dat duidelijk in subtidaal lag
-benthos$ecotoop_werkelijk[
-  benthos$staal == "DU18_23" & benthos$jaar == "2018"] <- "matig diep subtidaal"
-
-benthos_afdw <- benthos %>%
-  mutate(survey = ifelse(grepl("raai", .$campagne.y), "raai", "spatial")) %>%
-  # enkele stalen met negatieve AFDW: op nul zetten
-  # bij enkele stalen stonden Z-waarden (hoogte) in mm ipv m
-  mutate(AFDW = ifelse(AFDW < 0, 0, AFDW),
-         Z = ifelse(Z >= 20, Z / 1000, Z)) %>%
-  group_by(survey, campagne.x, campagne.y, staal, staalcode, jaar, datum.x,
-           datum.y, real_X, real_Y, Z, geomorf, ecotoop_werkelijk,
-           ecotoop_gepland, SalZone, Vallei_deel, Omessegment, KRWzone) %>%
-  summarise(tot_aantal = sum(aantal),
-            tot_afdw = sum(AFDW),
-            aantal_fractietaxa = n_distinct(soort, fractie),
-           .groups = "drop")
-```
-
-```{r eval=FALSE}
-# mogelijke fouten in de data:
-benthos_afdw %>%
-  filter(str_extract(campagne.x, "SP\\d{2}") !=
-           str_extract(campagne.y, "SP\\d{2}")) %>%
-  select(staal, survey, campagne.x, campagne.y, jaar, datum.x, datum.y)
-# verschillend jaartal in campagne.x en campagne.y
-# variabele jaar komt overeen met campagne.y en is conform datum.x en datum.y
-# dus best variabelen jaar en survey gebruiken (niet campagne.x)
-
-# staal waar real_X 0 is en metadata ontbreken
-benthos_afdw %>%
-  filter(real_X == 0)
-# uit mail Frank: DG18_23 is een bestaand benthosstaal (zie benthosdata -niet
-# weggevallen of verlegd dus) in matig diep subtidaal genomen.
-```
-
-```{r ecotoop, warning=FALSE}
-layers <- st_layers(gdrive_gdb_path)
-
-ecotoop <- read_sf(gdrive_gdb_path,
-                   layer = layers$name[1]) %>%
-  st_cast("MULTIPOLYGON") %>%
-  mutate(ecotoop_werkelijk = recode(as.factor(Ecotoop),
-                                    "breuksteen" = "hard substraat",
-                                    "hard antropogeen" = "hard substraat",
-                                    "hoog slik" = "hoge slikzone",
-                                    "middelhoog slik" = "middelhoge slikzone",
-                                    "laag slik" = "lage slikzone",
-                                    "intertidaal" = "slik"),
-         KRWzone = recode(as.factor(KRWzone),
-                          "TijarmZwijnaarde" = "Tijarm-Zwijnaarde"),
-         KRWzone = replace_na(KRWzone, "Getijdedijle en -zenne")
-         )
-```
-
-```{r benthos-ecotoop}
-benthos_afdw_ecotoop <- benthos_afdw %>%
-  st_as_sf(coords = c("real_X", "real_Y"), crs = 31370) %>%
-  st_join(ecotoop %>%
-            select(-KRWzone, -SalZone),
-          left = FALSE,
-          suffix = c(".benthos", ".ecotoop"))
-```
-
-```{r eval=FALSE}
-# probleemgevallen met verschillende ecosysteem_werkelijk
-benthos_afdw_ecotoop %>%
-  filter(as.character(ecotoop_werkelijk.benthos) !=
-           as.character(ecotoop_werkelijk.ecotoop)) %>%
-  st_drop_geometry() %>%
-  select(jaar, staal, starts_with("ecotoop_werkelijk")) %>%
-  gt()
-```
-
-Enkel Zeeschelde, Rupel en Durme / geen raaien / enkel intertidaal
-
-Berekening stratum weight = 1/inclusiekans
-
-Inclusiekans = stratum_n \* opp_per_staal_m2 / stratum_opp_m2
-
-```{r zeeschelde-durme}
-benthos_afdw_ecotoop %>%
-  select(jaar, survey, staal, staalcode, tot_afdw, tot_aantal,
-         aantal_fractietaxa,
-         ecotoop_werkelijk.benthos,
-         KRWzone,
-         SalZone,
-         Vallei_deel,
-         Naam,
-         stratum_opp_m2 = Shape_Area,
-         Z) %>%
-  filter(Naam %in% c("Zeeschelde", "Durme")) %>%
-  group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
-  mutate(
-    tidaal = ifelse(str_detect(ecotoop_werkelijk.benthos, "subtidaal"),
-                    "subtidaal", "intertidaal")) %>%
-  arrange(jaar, KRWzone, ecotoop_werkelijk.benthos, staal) %>%
-  ungroup() -> benthos_afdw_zeeschelde_durme
-```
-
-```{r benthos-afdw-spatial}
-#diameter = 4.5 cm
-opp_per_staal_m2 <- pi * (4.5 / 100) ^ 2 / 4
-
-benthos_afdw_zeeschelde_durme %>%
-  filter(survey == "spatial",
-         tidaal != "subtidaal") %>%
-  group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
-  mutate(stratum_n = n(),
-         stratum_weight = stratum_opp_m2 / (opp_per_staal_m2 * stratum_n)
-         ) %>%
-  arrange(jaar, KRWzone, ecotoop_werkelijk.benthos, staal) %>%
-  ungroup() -> benthos_afdw_spatial
-```
-
-(ref:spatial-steekproefgrootte) Gerealiseerde steekproefgroottes per stratumcombinatie op basis van enkel de spatial survey gegevens.
-
-```{r spatial-steekproefgrootte}
-benthos_afdw_spatial %>%
-  st_drop_geometry() %>%
-  distinct(jaar, ecotoop_werkelijk.benthos, KRWzone, SalZone, stratum_n) %>%
-  gt(caption = "(ref:spatial-steekproefgrootte)")
-```
-
-Merk op dat de subtidale locaties niet nodig zijn voor de berekening waarbij een vergelijking nodig is met de streefwaarde van 30 ton biomassa.
-Het gaat om iets minder dan de helft van het aantal locaties de spatial surveys (maar wellicht veel meer dan de helft in termen van tijd en kosten) (tabel \@ref(tab:spatial-steekproefgrootte-tidaal)).
-
-(ref:spatial-steekproefgrootte-tidaal) Totaal aantal bezochte locaties in het subtidaal en het intertidaal in beide jaren.
-
-```{r spatial-steekproefgrootte-tidaal}
-benthos_afdw_zeeschelde_durme %>%
-  filter(survey == "spatial") %>%
-  st_drop_geometry() %>%
-  count(jaar, tidaal) %>%
-  gt(caption = "(ref:spatial-steekproefgrootte-tidaal)")
-```
-
-```{r schattingen}
+```{r svytotal-jaar}
 # data.frame maken met alle survey design variabele en responsvariabelen
 benthos_design <- benthos_afdw_spatial %>%
   as_survey_design(strata = c(KRWzone, ecotoop_werkelijk.benthos),
@@ -167,6 +25,22 @@ benthos_design %>%
     vartype = "ci",
     level = 0.95)) %>%
   mutate(methode = "Horvitz-Thompson") -> svytotal_jaar
+```
+
+```{r svytotal-salzone}
+# https://cran.r-project.org/web/packages/srvyr/vignettes/srvyr-vs-survey.html
+# Horvitz-Thompson type schatters
+benthos_design %>%
+  group_by(jaar, SalZone) %>%
+  summarize(
+        n = n(),
+        totopp_km2 = sum(unique(stratum_opp_m2)) / 1e6,
+        mzb_tonnage = survey_total(
+          x = tot_afdw / 1e6,
+          na.rm = TRUE,
+          vartype = "ci",
+          level = 0.95)) %>%
+  mutate(methode = "Horvitz-Thompson") -> svytotal_salzone
 ```
 
 ```{r svymle, eval=FALSE}
@@ -325,7 +199,7 @@ hg_optim <- withReplicates(
             family = ziGamma(link = "inverse"),
             ziformula = ~ 0 + jaar,
             dispformula = ~ 0 + jaar,
-            data = model.frame(benthos_design_repl),
+            data = model.frame(design),
             weights = .weights,
             se = TRUE,
             na.action = na.omit,
@@ -499,22 +373,6 @@ all.equal(
 
 ```
 
-```{r schattingen-subtargets}
-# https://cran.r-project.org/web/packages/srvyr/vignettes/srvyr-vs-survey.html
-# Horvitz-Thompson type schatters
-benthos_design %>%
-  group_by(jaar, SalZone) %>%
-  summarize(
-        n = n(),
-        totopp_km2 = sum(unique(stratum_opp_m2)) / 1e6,
-        mzb_tonnage = survey_total(
-          x = tot_afdw / 1e6,
-          na.rm = TRUE,
-          vartype = "ci",
-          level = 0.95)) %>%
-  mutate(methode = "Horvitz-Thompson") -> svytotal_salzone
-```
-
 (ref:schattingen-overzichtstabel) Schatting van tonnages biomassa MZB volgens twee methodes in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar.
 
 ```{r schattingen-overzichtstabel}
@@ -536,37 +394,6 @@ bind_rows(svytotal_salzone, hg_replicated_salzone) %>%
   fmt_number(columns = where(is.double), decimals = 1)
 ```
 
-(ref:spatial-hoogtes) Voorstelling van de steekproef in functie van de hoogte en de verschillende saliniteitszones.
-
-```{r spatial-hoogtes, fig.height=7.5, fig.cap="(ref:spatial-hoogtes)"}
-benthos_afdw_spatial %>%
-  mutate(staalcode = fct_reorder(staalcode, Z)) %>%
-  ggplot() +
-  geom_point(aes(x = Z, y = KRWzone, colour = jaar,
-                 shape = ecotoop_werkelijk.benthos),
-             position = position_dodge(width = 0.5)) +
-  labs(x = "Hoogte (m)") +
-  facet_grid(vars(SalZone), scales = "free_y")
-```
-
-Er lijkt een piek te zijn in de biomassa bij gemiddelde hoogte in het intertidaal.
-Dit is zowel in de spatial survey als de raai-survey te zien (Figuur \@ref(fig:biomassa-hoogte)).
-In principe kan dan de hoogtevariabele (die bij benadering overal gekend is via DTM beeld) gebruikt worden om de schattingen te verbeteren via design-based regressieschatters (**kan** leiden tot iets smallere betrouwbaarheidsintervallen).
-
-(ref:biomassa-hoogte) Biomassa in functie van hoogteligging in het intertidaal voor beide survey-types.
-
-```{r biomassa-hoogte, fig.cap="(ref:biomassa-hoogte)"}
-benthos_afdw_zeeschelde_durme %>%
-  filter(tidaal == "intertidaal") %>%
-  ggplot(aes(x = Z, y = tot_afdw, colour = jaar)) +
-  geom_point() +
-  geom_smooth() +
-  scale_y_sqrt() +
-  facet_wrap(tidaal~survey, scales = "free") +
-  labs(x = "Hoogte (m)",
-       y = "Biomassa (g)")
-```
-
 ```{r eval=FALSE}
 benthos_afdw_zeeschelde_durme %>%
   filter(tidaal == "subtidaal",
@@ -580,39 +407,9 @@ benthos_afdw_zeeschelde_durme %>%
 
 In eerste stap veronderstellen we foutief dat de raaigegevens komen van een gestratificeerde aselecte steekproef.
 
-```{r benthos-afdw-raai}
-benthos_afdw_zeeschelde_durme %>%
-  filter(survey == "raai",
-         tidaal != "subtidaal") %>%
-  group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
-  mutate(stratum_n = n(),
-         stratum_weight = stratum_opp_m2 / (opp_per_staal_m2 * stratum_n)
-         ) %>%
-  arrange(jaar, KRWzone, ecotoop_werkelijk.benthos, staal) %>%
-  ungroup() -> benthos_afdw_raai
-```
-
-(ref:raai-steekproefgrootte) Gerealiseerde steekproefgroottes per stratumcombinatie op basis van enkel de raaigegevens.
-
-```{r raai-steekproefgrootte}
-benthos_afdw_raai %>%
-  st_drop_geometry() %>%
-  distinct(jaar, ecotoop_werkelijk.benthos, KRWzone, SalZone, stratum_n) %>%
-  gt(caption = "(ref:raai-steekproefgrootte)")
-```
-
-(ref:raai-steekproefgrootte-totaal) Totale jaarlijkse steekproefgrootte voor de raaien.
-
-```{r raai-steekproefgrootte-totaal}
-benthos_afdw_raai %>%
-  st_drop_geometry() %>%
-  count(jaar) %>%
-  gt(caption = "(ref:raai-steekproefgrootte-totaal)")
-```
-
 (ref:schattingen-raai) Vertekende schattingen van de tonnages op basis van de raaigegevens en een foutieve veronderstelling dat de data onafhankelijke en aselect zijn.
 
-```{r schattingen-raai}
+```{r svytotal-raai}
 # data.frame maken met alle survey design variabele en responsvariabelen
 benthos_raai_design <- benthos_afdw_raai %>%
   as_survey_design(strata = c(KRWzone, ecotoop_werkelijk.benthos),
@@ -655,32 +452,30 @@ Bovendien bekomen we bredere betrouwbaarheidsintervallen ondanks een hoger aanta
 
 De voorgaande berekening was fout om minstens twee redenen: (1) we hielden geen rekening met de raaien, en (2) we gebruiken design-based inferentie terwijl het geen probabilistische steekproef betreft.
 
-De ligging van de locaties langsheen de raaien is volgens een hoogtegradiënt (loodrecht op de as van de rivier).
-Dit heeft tot voordeel dat er tussen de locaties veel variatie kan verwacht worden terwijl tegelijk het veldwerk beperkt blijft doordat de locaties dicht bij elkaar liggen.
-Dit soort van samplingstrategie wordt bediscussieerd in @gillison1985.
-De auteurs geven aan dat deze strategie, waarbij transecten gericht volgens een omgevingsgradiënt worden gekozen, aanvaardbaar kan zijn op voorwaarde dat de totale steekproef aantoonbaar representatief is voor de gehele doelpopulatie én wanneer het doel van de survey is om zoveel mogelijk diversiteit (niet biomassa!) te vatten in de steekproef.
-In figuur \@ref(fig:raai-hoogtes) zien we duidelijk dat de locaties langsheen de raaien liggen volgens een hoogtegradiënt.
-Tussen de jaren blijven deze hoogtes meestal gelijk, maar soms zien we grote verschillen wellicht door de rivierwerking of effecten van baggerwerken.
-
-(ref:raai-hoogtes) De hoogteligging van bemonsterde locaties langs elk van de raaien. De lijnen verbinden dezelfde locaties bemonsterd in verschillend jaren.
-
-```{r raai-hoogtes, fig.height=7.5, fig.cap="(ref:raai-hoogtes)"}
-benthos_afdw_raai %>%
-  mutate(staalcode = fct_reorder(staalcode, Z)) %>%
-  ggplot() +
-  geom_point(aes(x = Z, y = staalcode, colour = jaar,
-                 shape = ecotoop_werkelijk.benthos)) +
-  geom_line(aes(x = Z, y = staalcode, group = staal)) +
-  labs(x = "Hoogte (m)") +
-  facet_grid(vars(SalZone), scales = "free_y")
-```
-
 (ref:leaflet-map) Ligging van de raai-locaties en de locaties van de gestratificeerde steekproef voor het jaar 2019.
 
 ```{r leaflet-map, out.width="100%", fig.cap="(ref:leaflet-map)"}
 benthos_afdw_zeeschelde_durme %>%
   filter(jaar == "2019") %>%
   mapview(zcol = c("survey"), burst = TRUE)
+```
+
+Er lijkt een piek te zijn in de biomassa bij gemiddelde hoogte in het intertidaal.
+Dit is zowel in de spatial survey als de raai-survey te zien (Figuur \@ref(fig:biomassa-hoogte)).
+In principe kan dan de hoogtevariabele (die bij benadering overal gekend is via DTM beeld) gebruikt worden om de schattingen te verbeteren via design-based regressieschatters (**kan** leiden tot iets smallere betrouwbaarheidsintervallen).
+
+(ref:biomassa-hoogte) Biomassa in functie van hoogteligging in het intertidaal voor beide survey-types.
+
+```{r biomassa-hoogte, fig.cap="(ref:biomassa-hoogte)"}
+benthos_afdw_zeeschelde_durme %>%
+  filter(tidaal == "intertidaal") %>%
+  ggplot(aes(x = Z, y = tot_afdw, colour = jaar)) +
+  geom_point() +
+  geom_smooth() +
+  scale_y_sqrt() +
+  facet_wrap(tidaal~survey, scales = "free") +
+  labs(x = "Hoogte (m)",
+       y = "Biomassa (g)")
 ```
 
 ## Alternatieve berekening via post-stratificatie

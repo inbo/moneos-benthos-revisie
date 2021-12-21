@@ -101,7 +101,7 @@ Deze totaal doelstelling zal eveneens ook opgesplitst worden naar een minimum pe
 
 -   Zoet Korte Verblijftijd: 2,5 ton
 
-```{r zeeschelde-durme}
+```{r zeeschelde-durme-rupel}
 benthos_afdw_ecotoop %>%
   select(jaar, survey, staal, staalcode, tot_afdw, tot_aantal,
          aantal_fractietaxa,
@@ -116,7 +116,8 @@ benthos_afdw_ecotoop %>%
   group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
   mutate(
     tidaal = ifelse(str_detect(ecotoop_werkelijk.benthos, "subtidaal"),
-                    "subtidaal", "intertidaal")) %>%
+                    "subtidaal", "intertidaal"),
+    SalZone = factor(SalZone)) %>%
   arrange(jaar, KRWzone, ecotoop_werkelijk.benthos, staal) %>%
   ungroup() -> benthos_afdw_zeeschelde_durme_rupel
 ```
@@ -320,7 +321,7 @@ Het gaat om 35 raaien (transecten) in de intertidale zone (dus niet in het subti
 Dus gemiddeld worden een `r round(170/35)` locaties per raai bemonsterd.
 
 ```{r benthos-afdw-raai}
-benthos_afdw_zeeschelde_durme %>%
+benthos_afdw_zeeschelde_durme_rupel %>%
   filter(survey == "raai",
          tidaal != "subtidaal") %>%
   group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
@@ -369,6 +370,16 @@ benthos_afdw_raai %>%
   facet_grid(vars(SalZone), scales = "free_y")
 ```
 
+## Ligging van de locaties
+
+(ref:leaflet-map) Ligging van de raai-locaties en de locaties van de gestratificeerde steekproef voor het jaar 2019.
+
+```{r leaflet-map, out.width="100%", fig.cap="(ref:leaflet-map)"}
+benthos_afdw_zeeschelde_durme_rupel %>%
+  filter(jaar == "2019") %>%
+  mapview(zcol = c("survey"), burst = TRUE)
+```
+
 ## Databeschikbaarheid
 
 Momenteel zitten de meest recente gegevens in Google sheets.
@@ -415,6 +426,8 @@ Dat biedt perspectieven om de preferentieel ingezamelde data via de raaien met d
 
 Voor de MRP analyse veronderstellen we dat de data een hurdle-gamma verdeeld zijn.
 Als design-variabelen voegen we random intercepten toe voor de ecotopen en KRW zones en hun interactie.
+We gebruiken in deze gevallen de modus (meest voorkomende/waarschijnlijke waarde) en een 95% (aaneengesloten) hoogste-densiteit interval om de posterior distributie samen te vatten.
+De modus laat een vergelijking toe met de design-based schatters.
 
 ### Allocatie van steekproefeenheden over strata
 

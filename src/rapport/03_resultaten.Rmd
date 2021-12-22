@@ -693,7 +693,7 @@ De berekeningen voor de raaien op basis van Horvitz-Thompson schatters zijn fout
 
 ## Vergelijking spatial en raai surveys
 
-```{r mrp-raaispatial}
+```{r mrp-raaispatial-model}
 benthos_afdw_zeeschelde_durme_rupel %>%
   filter(tidaal != "subtidaal") %>%
   rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
@@ -726,7 +726,7 @@ benthos_afdw_zeeschelde_durme_rupel %>%
   ) -> mrp_raaispatial
 ```
 
-```{r mrp-raaispatial-2}
+```{r mrp-raaispatial-2-model}
 benthos_afdw_zeeschelde_durme_rupel %>%
   filter(tidaal != "subtidaal") %>%
   rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
@@ -807,11 +807,40 @@ mrp_raaispatial %>%
   mutate(methode = "MRP") -> mrp_raaispatial_salzone
 ```
 
+```{r mrp-raaispatial-ecotoop}
+mrp_raaispatial %>%
+  add_epred_draws(newdata = benthos_afdw_poststrat,
+                  allow_new_levels = TRUE) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(survey, jaar, ecotoop_werkelijk, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(survey, jaar, ecotoop_werkelijk) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(benthos_afdw_poststrat %>%
+               group_by(survey, jaar, ecotoop_werkelijk) %>%
+               summarize(n = sum(n),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("survey", "jaar", "ecotoop_werkelijk")
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raaispatial_ecotoop
+```
+
 ```{r mrp-raaispatial-2-jaar}
 # model zonder survey => poststrata ook survey verwijderen anders dubbeltelling
 benthos_afdw_poststrat_zonder_survey <- benthos_afdw_poststrat %>%
   group_by(SalZone, KRWzone, ecotoop_werkelijk, jaar, stratum_opp_m2) %>%
-  summarise(n = sum(n), .groups = "drop")
+  summarise(n_raai = sum(n[survey == "raai"]),
+            n_spatial = sum(n[survey == "spatial"]),
+            n = sum(n),
+            .groups = "drop")
 
 mrp_raaispatial_2 %>%
   add_epred_draws(newdata = benthos_afdw_poststrat_zonder_survey) %>%
@@ -830,6 +859,8 @@ mrp_raaispatial_2 %>%
   inner_join(benthos_afdw_poststrat_zonder_survey %>%
                group_by(jaar) %>%
                summarize(n = sum(n),
+                         n_raai = sum(n_raai),
+                         n_spatial = sum(n_spatial),
                          totopp_km2 = sum(stratum_opp_m2) / 1e6),
              by = "jaar"
              ) %>%
@@ -854,11 +885,40 @@ mrp_raaispatial_2 %>%
   inner_join(benthos_afdw_poststrat_zonder_survey %>%
                group_by(jaar, SalZone) %>%
                summarize(n = sum(n),
+                         n_raai = sum(n_raai),
+                         n_spatial = sum(n_spatial),
                          totopp_km2 = sum(stratum_opp_m2) / 1e6,
                          .groups = "drop"),
              by = c("jaar", "SalZone")
              ) %>%
   mutate(methode = "MRP") -> mrp_raaispatial2_salzone
+```
+
+```{r mrp-raaispatial-2-ecotoop}
+mrp_raaispatial_2 %>%
+  add_epred_draws(newdata = benthos_afdw_poststrat_zonder_survey) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, ecotoop_werkelijk, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(jaar, ecotoop_werkelijk) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(benthos_afdw_poststrat_zonder_survey %>%
+               group_by(jaar, ecotoop_werkelijk) %>%
+               summarize(n = sum(n),
+                         n_raai = sum(n_raai),
+                         n_spatial = sum(n_spatial),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("jaar", "ecotoop_werkelijk")
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raaispatial2_ecotoop
 ```
 
 ```{r schattingen-raaispatial-jaar}
@@ -870,13 +930,29 @@ bind_rows(mrp_raaispatial_jaar,
   fmt_number(columns = where(is.double), decimals = 1)
 ```
 
-```{r}
+```{r schattingen-raaispatial-salzone}
 bind_rows(mrp_raaispatial_salzone,
           mrp_raaispatial2_salzone) %>%
   select(jaar, SalZone, survey, methode, n, totopp_km2, starts_with("mzb")) %>%
   group_by(jaar, SalZone) %>%
   gt(caption = "(ref:)") %>%
   fmt_number(columns = where(is.double), decimals = 1)
+```
+
+```{r schattingen-raaispatial-ecotoop}
+bind_rows(mrp_raaispatial_ecotoop,
+          mrp_raaispatial2_ecotoop) %>%
+  select(jaar, ecotoop_werkelijk, survey, methode, n, totopp_km2, starts_with("mzb")) %>%
+  group_by(jaar, ecotoop_werkelijk) %>%
+  gt(caption = "(ref:)") %>%
+  fmt_number(columns = where(is.double), decimals = 1)
+```
+
+```{r n-raai-spatial}
+benthos_afdw_poststrat_zonder_survey %>%
+  select(jaar, SalZone, KRWzone, ecotoop_werkelijk, n_raai, n_spatial) %>%
+  group_by(jaar, SalZone) %>%
+  gt()
 ```
 
 ## Varia

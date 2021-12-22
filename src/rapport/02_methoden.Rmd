@@ -149,7 +149,7 @@ De stratificatie volgens fysiotoop reflecteert een indeling volgens een gradiën
 benthos_afdw_spatial %>%
   mutate(staalcode = fct_reorder(staalcode, Z)) %>%
   ggplot() +
-  geom_point(aes(x = Z, y = KRWzone, colour = jaar,
+  geom_point(aes(x = Z, y = staalcode, colour = jaar,
                  shape = ecotoop_werkelijk.benthos),
              position = position_dodge(width = 0.5)) +
   labs(x = "Hoogte (m)") +

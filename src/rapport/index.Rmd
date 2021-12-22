@@ -11,6 +11,8 @@ author:
     orcid: 0000-0001-8595-8426
 style: INBO
 lang: nl
+lot: TRUE
+lof: TRUE
 
 #colofon
 shortauthor: "Carmen, R. & Van Calster, H."

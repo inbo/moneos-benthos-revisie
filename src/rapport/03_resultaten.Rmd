@@ -4,7 +4,7 @@ bibliography: moneos.bib
 
 # Resultaten
 
-## Inschatting tonnage droge massa macrozoöbenthos via gestratificeerde aselecte steekproef
+## Inschatting tonnage droge biomassa macrozoöbenthos via gestratificeerde aselecte steekproef
 
 ```{r svytotal-jaar}
 # data.frame maken met alle survey design variabele en responsvariabelen
@@ -362,7 +362,7 @@ all.equal(
   bd_vergelijk$mzb_gram_per_m2)
 ```
 
-```{r mrp-benthos-afdw-poststrat}
+```{r mrp-benthos-afdw-poststrat, warning=FALSE}
 stratum_n <- benthos_afdw_zeeschelde_durme_rupel %>%
   st_drop_geometry() %>%
   filter(!str_detect(ecotoop_werkelijk.benthos, "subtidaal")) %>%
@@ -442,7 +442,8 @@ mrp_spatial %>%
   inner_join(poststrat_spatial %>%
                group_by(jaar) %>%
                summarize(n = sum(n),
-                         totopp_km2 = sum(stratum_opp_m2) / 1e6)
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6),
+             by = "jaar"
              ) %>%
   mutate(methode = "MRP") -> mrp_spatial_jaar
 ```
@@ -489,7 +490,9 @@ mrp_spatial %>%
   inner_join(poststrat_spatial %>%
                group_by(jaar, SalZone) %>%
                summarize(n = sum(n),
-                         totopp_km2 = sum(stratum_opp_m2) / 1e6)
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("jaar", "SalZone")
              ) %>%
   mutate(methode = "MRP") -> mrp_spatial_salzone
 ```
@@ -500,6 +503,7 @@ mrp_spatial %>%
 bind_rows(svytotal_jaar, hg_replicated_jaar, mrp_spatial_jaar) %>%
   select(jaar, methode, n, totopp_km2, starts_with("mzb")) %>%
   arrange(desc(methode), jaar) %>%
+  group_by(jaar) %>%
   gt(caption = "(ref:schattingen-overzichtstabel)") %>%
   fmt_number(columns = where(is.double), decimals = 1)
 ```
@@ -510,7 +514,7 @@ bind_rows(svytotal_jaar, hg_replicated_jaar, mrp_spatial_jaar) %>%
 bind_rows(svytotal_salzone, hg_replicated_salzone, mrp_spatial_salzone) %>%
   select(jaar, SalZone, methode, n, totopp_km2, starts_with("mzb")) %>%
   arrange(desc(methode), jaar, SalZone) %>%
-  group_by(methode, jaar) %>%
+  group_by(jaar, SalZone) %>%
   gt(caption = "(ref:schattingen-overzichtstabel-salzone)") %>%
   fmt_number(columns = where(is.double), decimals = 1)
 ```
@@ -560,7 +564,8 @@ benthos_raai_design %>%
       x = tot_afdw / 1e6,
       na.rm = TRUE,
       vartype = "ci",
-      level = 0.95)) %>%
+      level = 0.95),
+    .groups = "drop_last") %>%
   mutate(methode = "Horvitz-Thompson") -> svytotal_raai_salzone
 ```
 
@@ -627,7 +632,8 @@ mrp_raai %>%
   inner_join(poststrat_raai %>%
                group_by(jaar) %>%
                summarize(n = sum(n),
-                         totopp_km2 = sum(stratum_opp_m2) / 1e6)
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6),
+             by = "jaar"
              ) %>%
   mutate(methode = "MRP") -> mrp_raai_jaar
 ```
@@ -652,7 +658,8 @@ mrp_raai %>%
   inner_join(poststrat_raai %>%
                group_by(jaar, SalZone) %>%
                summarize(n = sum(n),
-                         totopp_km2 = sum(stratum_opp_m2) / 1e6)
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6),
+             by = c("jaar", "SalZone")
              ) %>%
   mutate(methode = "MRP") -> mrp_raai_salzone
 ```
@@ -663,6 +670,7 @@ mrp_raai %>%
 bind_rows(svytotal_raai_jaar, mrp_raai_jaar) %>%
   select(jaar, methode, n_raaien, n, totopp_km2, starts_with("mzb")) %>%
   arrange(desc(methode), jaar) %>%
+  group_by(jaar) %>%
   gt(caption = "(ref:schattingen-raai-overzichtstabel)") %>%
   fmt_number(columns = where(is.double), decimals = 1)
 ```
@@ -673,7 +681,7 @@ bind_rows(svytotal_raai_jaar, mrp_raai_jaar) %>%
 bind_rows(svytotal_raai_salzone, mrp_raai_salzone) %>%
   select(jaar, SalZone, methode, n_raaien, n, totopp_km2, starts_with("mzb")) %>%
   arrange(desc(methode), jaar, SalZone) %>%
-  group_by(methode, jaar) %>%
+  group_by(jaar, SalZone) %>%
   gt(caption = "(ref:schattingen-raai-overzichtstabel-salzone)") %>%
   fmt_number(columns = where(is.double), decimals = 1)
 ```
@@ -766,7 +774,9 @@ mrp_raaispatial %>%
   inner_join(benthos_afdw_poststrat %>%
                group_by(survey, jaar) %>%
                summarize(n = sum(n),
-                         totopp_km2 = sum(stratum_opp_m2) / 1e6)
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("survey", "jaar")
              ) %>%
   mutate(methode = "MRP") -> mrp_raaispatial_jaar
 ```
@@ -790,15 +800,21 @@ mrp_raaispatial %>%
   inner_join(benthos_afdw_poststrat %>%
                group_by(survey, jaar, SalZone) %>%
                summarize(n = sum(n),
-                         totopp_km2 = sum(stratum_opp_m2) / 1e6)
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("survey", "jaar", "SalZone")
              ) %>%
   mutate(methode = "MRP") -> mrp_raaispatial_salzone
 ```
 
 ```{r mrp-raaispatial-2-jaar}
+# model zonder survey => poststrata ook survey verwijderen anders dubbeltelling
+benthos_afdw_poststrat_zonder_survey <- benthos_afdw_poststrat %>%
+  group_by(SalZone, KRWzone, ecotoop_werkelijk, jaar, stratum_opp_m2) %>%
+  summarise(n = sum(n), .groups = "drop")
+
 mrp_raaispatial_2 %>%
-  add_epred_draws(newdata = benthos_afdw_poststrat,
-                  allow_new_levels = TRUE) %>%
+  add_epred_draws(newdata = benthos_afdw_poststrat_zonder_survey) %>%
   # omzetting naar ton per stratum per jaar
   mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
   # sommering naar ton voor gewenste groepering in elk jaar
@@ -811,18 +827,18 @@ mrp_raaispatial_2 %>%
   rename(mzb_tonnage = .epred,
          mzb_tonnage_low = .lower,
          mzb_tonnage_upp = .upper) %>%
-  inner_join(benthos_afdw_poststrat %>%
+  inner_join(benthos_afdw_poststrat_zonder_survey %>%
                group_by(jaar) %>%
                summarize(n = sum(n),
-                         totopp_km2 = sum(stratum_opp_m2) / 1e6)
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6),
+             by = "jaar"
              ) %>%
   mutate(methode = "MRP") -> mrp_raaispatial2_jaar
 ```
 
 ```{r mrp-raaispatial-2-salzone}
 mrp_raaispatial_2 %>%
-  add_epred_draws(newdata = benthos_afdw_poststrat,
-                  allow_new_levels = TRUE) %>%
+  add_epred_draws(newdata = benthos_afdw_poststrat_zonder_survey) %>%
   # omzetting naar ton per stratum per jaar
   mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
   # sommering naar ton voor gewenste groepering in elk jaar
@@ -835,17 +851,21 @@ mrp_raaispatial_2 %>%
   rename(mzb_tonnage = .epred,
          mzb_tonnage_low = .lower,
          mzb_tonnage_upp = .upper) %>%
-  inner_join(benthos_afdw_poststrat %>%
+  inner_join(benthos_afdw_poststrat_zonder_survey %>%
                group_by(jaar, SalZone) %>%
                summarize(n = sum(n),
-                         totopp_km2 = sum(stratum_opp_m2) / 1e6)
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("jaar", "SalZone")
              ) %>%
   mutate(methode = "MRP") -> mrp_raaispatial2_salzone
 ```
 
-```{r}
+```{r schattingen-raaispatial-jaar}
 bind_rows(mrp_raaispatial_jaar,
           mrp_raaispatial2_jaar) %>%
+  select(jaar, survey, methode, n, totopp_km2, starts_with("mzb")) %>%
+  group_by(jaar) %>%
   gt(caption = "(ref:)") %>%
   fmt_number(columns = where(is.double), decimals = 1)
 ```
@@ -853,6 +873,8 @@ bind_rows(mrp_raaispatial_jaar,
 ```{r}
 bind_rows(mrp_raaispatial_salzone,
           mrp_raaispatial2_salzone) %>%
+  select(jaar, SalZone, survey, methode, n, totopp_km2, starts_with("mzb")) %>%
+  group_by(jaar, SalZone) %>%
   gt(caption = "(ref:)") %>%
   fmt_number(columns = where(is.double), decimals = 1)
 ```

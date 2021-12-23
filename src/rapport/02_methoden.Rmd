@@ -411,6 +411,8 @@ Voor continue waarden \>= 0 kunnen we een zogenaamde hurdle-gamma of hurdle-logn
 Om deze verdelingen te fitten aan de data dient de 'likelihood' gemaximaliseerd te worden om puntschattingen te bekomen van de drie parameters (een parameter voor de kans op nul en twee parameters die het gemiddelde en de variantie van de Gamma of lognormale verdeling beschrijven).
 Klassiek doet men dit met software voor veralgemeende lineaire regressiemodellen.
 Om echter te garanderen dat de puntschattingen rekening houden met de steekproefgewichten (Engels: sampling weights; omgekeerde van de inclusiekansen), zijn er correcties nodig [@lumley2017; @lumley2004].
+Een manier om gecorrigeerde, design-based standaardfouten te schatten is door het hurdle-gamma model vele malen opnieuw te fitten met telkens iets andere gewichten.
+Het `survey` package heeft functies om deze set van gewichten te berekenen - het algoritme dat we hiervoor gebruikt hebben is het Jackknife algoritme voor gestratificeerde steekproeven.
 
 ### Multilevel regressie en poststratificatie
 

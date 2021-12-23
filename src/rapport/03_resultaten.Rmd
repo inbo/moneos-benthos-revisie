@@ -209,6 +209,7 @@ hg_optim <- withReplicates(
             ))$fit$par),
   return.replicates = TRUE
 )
+totopp <- sum(unique(benthos_design$variables$stratum_opp_m2))
 
 hg_optim_estimates <- hg_optim %>%
   as_tibble() %>%
@@ -217,7 +218,8 @@ hg_optim_estimates <- hg_optim %>%
   pivot_wider(id_cols = c(jaar),
               names_from = c(param),
               values_from = c(theta, SE)) %>%
-  mutate(overall_mean = (1 - plogis(theta_hurdle)) * exp(theta_conditional))
+  mutate(overall_mean = (1 - plogis(theta_hurdle)) * exp(theta_conditional),
+         mzb_tonnage = overall_mean / opp_per_staal_m2 * totopp / 1e6)
 
 hg_optim_sigma <- attr(hg_optim$theta, which = "var")
 hg_optim_mean <- hg_optim$theta
@@ -235,9 +237,8 @@ hg_summary <- hg_samples %>%
   pivot_longer(cols = everything()) %>%
   separate(name, c("name", "jaar"), sep = "\\.") %>%
   group_by(jaar) %>%
-  mode_hdci(value)
+  mean_qi(value)
 # convert to tonnes
-totopp <- sum(unique(benthos_design$variables$stratum_opp_m2))
 n_samples <- benthos_design$variables %>%
   count(jaar)
 
@@ -298,7 +299,7 @@ hg_salzone_summary <- hg_salzone_samples %>%
   mutate(
     epred = (1 - plogis(betazi)) * exp(beta)) %>%
   group_by(jaar, SalZone) %>%
-  mode_hdci(epred)
+  mean_qi(epred)
 
 # convert to tonnes
 jointable_salzone <- benthos_design_repl$variables %>%
@@ -497,6 +498,19 @@ mrp_spatial %>%
   mutate(methode = "MRP") -> mrp_spatial_salzone
 ```
 
+De drie methoden verschillen in de geschatte totale biomassa MZB (Tabel \@ref(tab:schattingen-overzichtstabel)), maar deze schattingen liggen wel binnen elk van de drie 95% intervallen.
+Bij de Horvitz-Thompson schatter is het geschatte totaal duidelijk lager.
+Dit geschatte totaal stemt overeen met de manier waarop de biomassa-totalen gerapporteerd worden [zie bv @ryckegem2020].
+Het interval rond de Horvitz-Thompson schatter is per definitie symmetrisch, terwijl de andere methoden asymmetrische intervallen opleveren.
+Dit type van schatters is betrouwbaar op voorwaarde dat de steekproef voldoende groot is en er geen invloedrijke datapunten zijn.
+Wellicht is aan beide voorwaarden onvoldoende voldaan en dit komt nog beter tot uiting bij de subtotalen per saliniteitszone waar het interval soms negatieve waarden omvat (Tabel \@ref(tab:schattingen-overzichtstabel-salzone)).
+De twee andere methoden stemmen beter overeen.
+Beide methoden maken gebruik van een hurdle-gamma assumptie voor de verdeling van de biomassagegevens, maar ze verschillen sterk in de manier waarop rekening wordt gehouden met het steekproefontwerp.
+In het `hg_replicated` geval wordt de onzekerheid op de schatting volledig bepaald door Jackknife-herhalingen.
+In het model zelf zitten dan geen designvariabelen (enkel de factor jaar of jaar en saliniteitszone waar we een schatting voor willen).
+Bij de MRP methode zitten de designvariabelen wel bij in het model (als random effecten).
+De MRP schattingen lijken systematisch iets hoger te liggen dan de schattingen gebaseerd op de Jackknife herhalingen.
+
 (ref:schattingen-overzichtstabel) Schatting van tonnages biomassa MZB volgens verschillende methodes in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar.
 
 ```{r schattingen-overzichtstabel}
@@ -529,8 +543,6 @@ benthos_afdw_zeeschelde_durme_rupel %>%
 ```
 
 ## Inschatting aan de hand van enkel raaigegevens
-
-In eerste stap veronderstellen we foutief dat de raaigegevens komen van een gestratificeerde aselecte steekproef.
 
 ```{r svytotal-raai-jaar}
 # data.frame maken met alle survey design variabele en responsvariabelen
@@ -597,18 +609,6 @@ benthos_afdw_raai %>%
   ) -> mrp_raai
 ```
 
-Poststratificatie schattingen voor raaien:
-
-1.  ofwel poststrata waarin geen raaien verwijderen = veranderen van de doelpopulatie
-
-2.  ofwel poststrata behouden en het model predicties laten doen voor poststrata zonder data
-
-    -   in dat geval zullen de geschatte "gemiddelde" biomassa ongeveer gelijk blijven
-    -   maar interval zal breder zijn
-
-Voor de MRP analyse op basis van enkel de raaigegevens, zaten in de posterior samples extreem hoge waarden voor de geschatte biomassa.
-Om stabiele schattingen te krijgen werden daarom de 0.1% hoogste waarden verwijderd alvorens berekening van de modus en het interval.
-
 ```{r mrp-raai-jaar}
 poststrat_raai <- benthos_afdw_poststrat %>%
   filter(survey == "raai")
@@ -664,6 +664,26 @@ mrp_raai %>%
   mutate(methode = "MRP") -> mrp_raai_salzone
 ```
 
+Indien we de Horvitz-Thompson en MRP methode toepassen op enkel de gegevens van de raaien, bekomen we duidelijk andere cijfers dan die bekomen via de gestratificeerde steekproef (zie tabellen \@ref(tab:schattingen-raai-overzichtstabel) en \@ref(tab:schattingen-raai-overzichtstabel-salzone)).
+Vooral in 2019 ligt de schatting veel hoger vergeleken met de gestratificeerde steekproef.
+
+De berekeningen voor de raaien op basis van Horvitz-Thompson schatters zijn echter fout om minstens twee redenen: (1) de doelpopulatie is verschillend, en (2) we gebruiken design-based inferentie terwijl het geen probabilistische steekproef betreft.
+Wellicht zijn dit sterk vertekende schattingen (overschatting vermits vooral in beste gebieden).
+Bovendien bekomen we bredere betrouwbaarheidsintervallen ondanks een hoger aantal locaties die via raaien bemonsterd worden in het intertidaal (150 versus 100-tal).
+
+Voor de MRP schattingen is het belangrijk om eerst op te merken dat er twee manieren zijn om de poststratificatie schattingen voor raaien te berekenen:
+
+1.  ofwel poststrata waarin geen raaien verwijderen => veranderen van de doelpopulatie
+
+2.  ofwel alle poststrata behouden en het model predicties laten doen voor poststrata zonder data
+
+    -   in dat geval zullen de geschatte "gemiddelde" biomassa ongeveer gelijk blijven
+    -   maar interval zal breder zijn
+
+In de tabellen staan de resultaten voor het tweede geval zodat de MRP methode een cijfer kan geven dat overeenstemt met de doelpopulatie (intertidale deel van Zeeschelde, Durme, Rupel).
+Voor de MRP analyse op basis van enkel de raaigegevens, zaten in de posterior samples extreem hoge waarden voor de geschatte biomassa.
+Om stabiele schattingen te krijgen werden daarom de 0.1% hoogste waarden verwijderd alvorens berekening van de modus en het interval.
+
 (ref:schattingen-raai-overzichtstabel) Schatting van tonnages biomassa MZB volgens verschillende methodes in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar.
 
 ```{r schattingen-raai-overzichtstabel}
@@ -685,11 +705,6 @@ bind_rows(svytotal_raai_salzone, mrp_raai_salzone) %>%
   gt(caption = "(ref:schattingen-raai-overzichtstabel-salzone)") %>%
   fmt_number(columns = where(is.double), decimals = 1)
 ```
-
-Wellicht sterk vertekende schattingen (overschatting vermits vooral in beste gebieden).
-Bovendien bekomen we bredere betrouwbaarheidsintervallen ondanks een hoger aantal locaties die via raaien bemonsterd worden in het intertidaal (150 versus 100-tal).
-
-De berekeningen voor de raaien op basis van Horvitz-Thompson schatters zijn fout om minstens twee redenen: (1) we hielden geen rekening met de raaien, en (2) we gebruiken design-based inferentie terwijl het geen probabilistische steekproef betreft.
 
 ## Vergelijking spatial en raai surveys
 

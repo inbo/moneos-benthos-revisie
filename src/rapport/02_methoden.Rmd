@@ -375,7 +375,13 @@ benthos_afdw_raai %>%
 (ref:leaflet-map) Ligging van de raai-locaties en de locaties van de gestratificeerde steekproef voor het jaar 2019.
 
 ```{r leaflet-map, out.width="100%", fig.cap="(ref:leaflet-map)"}
-benthos_afdw_zeeschelde_durme_rupel %>%
+krw_sf <- ecotoop %>%
+  sf::st_simplify() %>%
+  group_by(KRWzone) %>%
+  summarize()
+
+mapview(krw_sf) +
+  benthos_afdw_zeeschelde_durme_rupel %>%
   filter(jaar == "2019") %>%
   mapview(zcol = c("survey"), burst = TRUE)
 ```

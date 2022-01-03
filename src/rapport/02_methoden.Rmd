@@ -374,7 +374,7 @@ benthos_afdw_raai %>%
 
 (ref:leaflet-map) Ligging van de raai-locaties en de locaties van de gestratificeerde steekproef voor het jaar 2019.
 
-```{r leaflet-map, out.width="100%", fig.cap="(ref:leaflet-map)"}
+```{r leaflet-map, out.width="100%", fig.cap="(ref:leaflet-map)", cache=TRUE}
 krw_sf <- ecotoop %>%
   sf::st_simplify() %>%
   group_by(KRWzone) %>%

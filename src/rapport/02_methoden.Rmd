@@ -119,14 +119,14 @@ benthos_afdw_ecotoop %>%
                     "subtidaal", "intertidaal"),
     SalZone = factor(SalZone)) %>%
   arrange(jaar, KRWzone, ecotoop_werkelijk.benthos, staal) %>%
-  ungroup() -> benthos_afdw_zeeschelde_durme_rupel
+  ungroup() -> benthos_afdw_zs_durme_rupel
 ```
 
 ```{r benthos-afdw-spatial}
 #diameter = 4.5 cm
 opp_per_staal_m2 <- pi * (4.5 / 100) ^ 2 / 4
 
-benthos_afdw_zeeschelde_durme_rupel %>%
+benthos_afdw_zs_durme_rupel %>%
   filter(survey == "spatial",
          tidaal != "subtidaal") %>%
   group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
@@ -235,7 +235,7 @@ In de praktijk zien we dat er een iets hoger aantal locaties bemonsterd worden (
 (ref:spatial-steekproefgrootte) Gerealiseerde steekproefgroottes per stratumcombinatie op basis van enkel de spatial survey gegevens.
 
 ```{r spatial-steekproefgrootte}
-benthos_afdw_zeeschelde_durme_rupel %>%
+benthos_afdw_zs_durme_rupel %>%
   st_drop_geometry() %>%
   filter(survey == "spatial") %>%
   group_by(jaar, tidaal, KRWzone, ecotoop_werkelijk.benthos) %>%
@@ -321,7 +321,7 @@ Het gaat om 35 raaien (transecten) in de intertidale zone (dus niet in het subti
 Dus gemiddeld worden een `r round(170/35)` locaties per raai bemonsterd.
 
 ```{r benthos-afdw-raai}
-benthos_afdw_zeeschelde_durme_rupel %>%
+benthos_afdw_zs_durme_rupel %>%
   filter(survey == "raai",
          tidaal != "subtidaal") %>%
   group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
@@ -381,7 +381,7 @@ krw_sf <- ecotoop %>%
   summarize()
 
 mapview(krw_sf) +
-  benthos_afdw_zeeschelde_durme_rupel %>%
+  benthos_afdw_zs_durme_rupel %>%
   filter(jaar == "2019") %>%
   mapview(zcol = c("survey"), burst = TRUE)
 ```

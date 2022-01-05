@@ -516,6 +516,7 @@ De MRP schattingen lijken systematisch iets hoger te liggen dan de schattingen g
 ```{r schattingen-overzichtstabel}
 bind_rows(svytotal_jaar, hg_replicated_jaar, mrp_spatial_jaar) %>%
   select(jaar, methode, n, totopp_km2, starts_with("mzb")) %>%
+  mutate(n = as.integer(n)) %%
   arrange(desc(methode), jaar) %>%
   group_by(jaar) %>%
   gt(caption = "(ref:schattingen-overzichtstabel)") %>%
@@ -527,6 +528,7 @@ bind_rows(svytotal_jaar, hg_replicated_jaar, mrp_spatial_jaar) %>%
 ```{r schattingen-overzichtstabel-salzone}
 bind_rows(svytotal_salzone, hg_replicated_salzone, mrp_spatial_salzone) %>%
   select(jaar, SalZone, methode, n, totopp_km2, starts_with("mzb")) %>%
+  mutate(n = as.integer(n)) %%
   arrange(desc(methode), jaar, SalZone) %>%
   group_by(jaar, SalZone) %>%
   gt(caption = "(ref:schattingen-overzichtstabel-salzone)") %>%
@@ -691,6 +693,8 @@ Om stabiele schattingen te krijgen werden daarom de 0.1% hoogste waarden verwijd
 ```{r schattingen-raai-overzichtstabel}
 bind_rows(svytotal_raai_jaar, mrp_raai_jaar) %>%
   select(jaar, methode, n_raaien, n, totopp_km2, starts_with("mzb")) %>%
+  mutate(n = as.integer(n),
+         n_raaien = as.integer(n_raaien)) %%
   arrange(desc(methode), jaar) %>%
   group_by(jaar) %>%
   gt(caption = "(ref:schattingen-raai-overzichtstabel)") %>%
@@ -702,6 +706,8 @@ bind_rows(svytotal_raai_jaar, mrp_raai_jaar) %>%
 ```{r schattingen-raai-overzichtstabel-salzone}
 bind_rows(svytotal_raai_salzone, mrp_raai_salzone) %>%
   select(jaar, SalZone, methode, n_raaien, n, totopp_km2, starts_with("mzb")) %>%
+  mutate(n = as.integer(n),
+         n_raaien = as.integer(n_raaien)) %%
   arrange(desc(methode), jaar, SalZone) %>%
   group_by(jaar, SalZone) %>%
   gt(caption = "(ref:schattingen-raai-overzichtstabel-salzone)") %>%

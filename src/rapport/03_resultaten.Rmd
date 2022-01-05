@@ -563,7 +563,8 @@ benthos_raai_design %>%
       x = tot_afdw / 1e6,
       na.rm = TRUE,
       vartype = "ci",
-      level = 0.95)) %>%
+      level = 0.95),
+    .groups = "drop") %>%
   mutate(methode = "Horvitz-Thompson") -> svytotal_raai_jaar
 ```
 
@@ -660,7 +661,8 @@ mrp_raai %>%
   inner_join(poststrat_raai %>%
                group_by(jaar, SalZone) %>%
                summarize(n = sum(n),
-                         totopp_km2 = sum(stratum_opp_m2) / 1e6),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop_last"),
              by = c("jaar", "SalZone")
              ) %>%
   mutate(methode = "MRP") -> mrp_raai_salzone

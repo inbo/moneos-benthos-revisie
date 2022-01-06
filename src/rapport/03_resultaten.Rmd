@@ -523,6 +523,27 @@ bind_rows(svytotal_jaar, hg_replicated_jaar, mrp_spatial_jaar) %>%
   fmt_number(columns = where(is.double), decimals = 1)
 ```
 
+De drie methoden verschillen in de conclusies die getrokken kunnen worden wanneer de betrouwbaarheidsintervallen vergelijken met de doelstelling van 30 ton MZB (Figuur \@ref(fig:plot-jaar)).
+Volgens de MRP methode is er in beide jaren een hoger tonnage dan minimaal vooropgesteld wordt.
+Volgens de hg_replicated methode is dat enkel in 2019 het geval en volgens de Horvitz-Thompson schatter is het in geen van beide jaren het geval.
+
+(ref:plot-jaar) Vergelijking van de geschatte betrouwbaarheidsintervallen volgens de drie methoden met de doelstelling voor biomassa MZB in het volledige systeem.
+
+```{r plot-jaar, fig.cap="(ref:plot-jaar)"}
+bind_rows(svytotal_jaar, hg_replicated_jaar, mrp_spatial_jaar) %>%
+  select(jaar, methode, n, totopp_km2, starts_with("mzb")) %>%
+  ggplot() + 
+  geom_pointrange(aes(
+    x = jaar,
+    y = mzb_tonnage,
+    ymin = mzb_tonnage_low,
+    ymax = mzb_tonnage_upp,
+    colour = methode
+  ),
+  position = position_dodge(width = 0.6)) +
+  geom_hline(aes(yintercept = 30))
+```
+
 (ref:schattingen-overzichtstabel-salzone) Schatting van tonnages biomassa MZB volgens verschillende methodes in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar en saliniteitszone.
 
 ```{r schattingen-overzichtstabel-salzone}
@@ -533,6 +554,29 @@ bind_rows(svytotal_salzone, hg_replicated_salzone, mrp_spatial_salzone) %>%
   group_by(jaar, SalZone) %>%
   gt(caption = "(ref:schattingen-overzichtstabel-salzone)") %>%
   fmt_number(columns = where(is.double), decimals = 1)
+```
+
+Figuur \@ref(fig:plot-salzone) geeft aan dat meestal de betrouwbaarheidsintervallen overlappen met de doelstelling.
+Voor het oligohalien zitten de locatieschattingen meestal onder de doelstelling, voor de andere zones zitten ze erboven.
+
+(ref:plot-salzone) Vergelijking van de geschatte betrouwbaarheidsintervallen volgens de drie methoden met de doelstelling voor biomassa MZB per saliniteitszone.
+
+```{r plot-salzone, fig.cap = "(ref:plot-salzone)"}
+bind_rows(svytotal_salzone, hg_replicated_salzone, mrp_spatial_salzone) %>%
+  select(jaar, SalZone, methode, n, totopp_km2, starts_with("mzb")) %>%
+  mutate(n = as.integer(n)) %>%
+  ggplot() + 
+  geom_pointrange(aes(
+    x = jaar,
+    y = mzb_tonnage,
+    ymin = mzb_tonnage_low,
+    ymax = mzb_tonnage_upp,
+    colour = methode
+  ),
+  position = position_dodge(width = 0.6)) +
+  geom_hline(data = mzb_targets,
+             aes(yintercept = doel)) +
+  facet_grid(~ SalZone)
 ```
 
 ```{r eval=FALSE}

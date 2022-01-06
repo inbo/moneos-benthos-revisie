@@ -101,6 +101,15 @@ Deze totaal doelstelling zal eveneens ook opgesplitst worden naar een minimum pe
 
 -   Zoet Korte Verblijftijd: 2,5 ton
 
+```{r biomassa-doelstellingen}
+mzb_targets <- tibble(
+  SalZone = c("Zoet korte verblijftijd",
+              "Oligohalien",
+              "Zoet lange verblijftijd",
+              "Zone met sterke saliniteitsgradiënt"),
+  doel = c(2.5, 8.3, 5, 14.2))
+```
+
 ```{r zeeschelde-durme-rupel}
 benthos_afdw_ecotoop %>%
   select(jaar, survey, staal, staalcode, tot_afdw, tot_aantal,

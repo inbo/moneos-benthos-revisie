@@ -110,6 +110,7 @@ library(brms)
 library(tidybayes)
 library(glmmTMB)
 library(gt)
+library(terra)
 ```
 
 ```{r renv-restore, eval = FALSE}

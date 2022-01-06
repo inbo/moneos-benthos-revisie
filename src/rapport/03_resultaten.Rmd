@@ -1191,6 +1191,59 @@ benthos_afdw_ps_zonder_survey %>%
   gt(caption = "(ref:n-raai-spatial)")
 ```
 
+## Alternatief meetnetontwerp
+
+```{r steekproef}
+# ook hard substraat weglaten in veronderstelling dat het weinig bijdraagt
+rast <- raster::raster(ecotoop, resolution = c(2, 2))
+strata <- ecotoop %>% 
+    filter(!str_detect(ecotoop_werkelijk, "subtidaal"),
+           !str_detect(ecotoop_werkelijk, "hard substraat"),
+           Naam %in% c("Zeeschelde", "Durme", "Rupel")) %>%
+    st_make_valid() %>%
+    group_by(ecotoop_werkelijk, KRWzone) %>%
+    summarize(.groups = "drop")
+
+raster_ecotoop <- exactextractr::coverage_fraction(
+  x = rast,
+  y = strata,
+  crop = TRUE
+)
+
+strata_df <- strata %>% 
+  st_drop_geometry() %>%
+  mutate(stratum = paste(ecotoop_werkelijk, KRWzone, sep = "_"))
+
+for (i in 1:length(raster_ecotoop)) {
+  raster_ecotoop[[i]] <- rast(raster_ecotoop[[i]])
+  raster_ecotoop[[i]][raster_ecotoop[[i]] == 0] <- NA
+  names(raster_ecotoop[[i]]) <- strata_df$stratum[i]
+}
+```
+
+```{r eval=FALSE}
+for (i in 1:length(raster_ecotoop)) {
+  plot(raster_ecotoop[[i]])
+}
+
+# bereken allocatie van totale steekproefgrootte over volgens de formule
+# (variantie en kosten)
+
+# trekking ruimtelijk gebalanceerd in elk stratum
+# jaarlijkse steekproefgrootte x 2 of x 3
+# grts-achtige trekking zodat punten in volgorde geselecteerd
+
+# bv 1/2 of 2/3 van de punten beschouwen als permanent vaste punten, 
+# overige als jaarlijks random
+
+# of alle punten in de populatie een random volgnummer geven (master sample)
+# jaar 1: set a, b, c; jaar 2: set b, c, d; jaar 3: set c, d, e; etc. 
+# zodat in een willekeurig jaar een derde van de punten gedurende drie jaar
+# wordt opgevolgd
+
+
+```
+
 ## Varia
 
 Er lijkt een piek te zijn in de biomassa bij gemiddelde hoogte in het intertidaal.

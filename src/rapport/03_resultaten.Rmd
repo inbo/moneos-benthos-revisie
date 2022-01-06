@@ -1112,7 +1112,7 @@ bind_rows(mrp_raaispatial_salzone,
   fmt_number(columns = where(is.double), decimals = 1)
 ```
 
-```{r schattingen-raaispatial-ecotoop, eval=FALSE}
+```{r schattingen-rsp-ecotoop, eval=FALSE}
 bind_rows(mrp_raaispatial_ecotoop,
           mrp_raaispatial2_ecotoop) %>%
   select(jaar, ecotoop_werkelijk, survey, methode, n, totopp_km2,

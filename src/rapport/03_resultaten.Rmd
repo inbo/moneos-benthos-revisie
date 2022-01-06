@@ -1062,18 +1062,61 @@ bind_rows(mrp_raaispatial_salzone,
   fmt_number(columns = where(is.double), decimals = 1)
 ```
 
-(ref:schattingen-raaispatial-ecotoop) Schatting van tonnage MZB voor elk jaar in elke saliniteitszone x ecotooptype combinatie met de MRP methode. Twee modellen werden gefit, één waarbij aparte schattingen per type survey bekomen werd en één waarbij het type survey uit het model gelaten werd (= schatting op basis van alle locaties samen ongeacht survey).
+Figuur \@ref(fig:schattingen-raaispatial-ecotoop) zoomt verder in op de verdeling van de biomassa over de ecotopen binnen de saliniteitszones.
+In deze figuur zien we dat de hoogste biomassa zich bevindt in de middelhoge slikzones.
+Hard substraat heeft meestal de laagste biomassa, maar er zijn uitzondering zoals in het oligohalien waar de locatieschatting hoger ligt dan in de hoge slikzone (in 2018 en 2019) en de lage slikzone (in 2019), die een gelijkaardige oppervlakte heeft.
+We zien dat de hoge schatting van 2019 met de raaien in de zone met sterke saliniteitsgradiënt voornamelijk te wijten is aan de zeer hoge schatting in de middelhoge slikzone (het grootste stratum met 2 km²).
+De spatial survey heeft echter voor beide jaren in dat geval een gelijkaardige lagere schatting.
+Bij de combinatie van raai en spatial wegen de raaien zwaar door voor dit geval.
+Omgekeerd, zien we ook situaties waar de spatial survey een beduidend hogere schatting geeft dan de raaien.
+Dit is bijvoorbeeld het geval in de zoete delen met korte verblijftijd, met name voor de middelhoge slikzone, mar ook voor de lage en de hoge slikzone en meer uitgesproken in 2019.
+Bij zoet met lange verblijftijd komen de schattingen voor 2019 goed overeen, maar in 2018 zijn de schattingen voor vooral de lage slikzone met de spatial survey hoger.
+In deze figuur zien we ook duidelijk de grote onzekerheid op het resultaat voor de raaien bij hard substraat omdat we daar weinig of geen data hebben.
 
-```{r schattingen-raaispatial-ecotoop}
-bind_rows(mrp_rsp_salzone_ecotoop,
+(ref:schattingen-raaispatial-ecotoop) Schatting van tonnage MZB voor elk jaar in elke saliniteitszone x ecotooptype combinatie met de MRP methode. Twee modellen werden gefit, één waarbij aparte schattingen per type survey bekomen werd en één waarbij het type survey uit het model gelaten werd (= schatting op basis van alle locaties samen ongeacht survey). De oppervlakte in km² van stratum is weergegeven in de figuur bij survey == "beide".
+
+```{r schattingen-raaispatial-ecotoop, fig.height = 200/25.4, fig.cap = "(ref:schattingen-raaispatial-ecotoop)"}
+plotdata <- bind_rows(mrp_rsp_salzone_ecotoop,
           mrp_rsp2_salzone_ecotoop) %>%
   select(jaar, SalZone,
          ecotoop_werkelijk,
-         survey, methode, n, totopp_km2, starts_with("mzb")) %>%
-  group_by(jaar, SalZone) %>%
-  mutate(n = as.integer(n)) %>%
-  gt(caption = "(ref:schattingen-raaispatial-ecotoop)") %>%
-  fmt_number(columns = where(is.double), decimals = 1)
+         survey,
+         totopp_km2,
+         starts_with("mzb")) %>%
+  mutate(survey = ifelse(is.na(survey), "beide", survey))
+
+textdata <- plotdata %>%
+  filter(survey == "beide") %>%
+  group_by(jaar,
+         survey,
+         SalZone) %>%
+  summarize(y_positie = max(mzb_tonnage_upp),
+            .groups = "drop") %>%
+  right_join(plotdata %>%
+               filter(survey == "beide") %>%
+               mutate(totopp_km2 = round(totopp_km2, 1)),
+             by = c("jaar", "survey", "SalZone"))
+  
+
+plotdata %>%
+  ggplot() + 
+  geom_pointinterval(aes(x = survey,
+                         y = mzb_tonnage,
+                         ymin = mzb_tonnage_low,
+                         ymax = mzb_tonnage_upp,
+                         colour = ecotoop_werkelijk),
+                     position = position_dodge(width = 0.6)) +
+  geom_text(
+    data = textdata, 
+    aes(x = survey,
+        y = y_positie * 1.3,
+        label = totopp_km2,
+        colour = ecotoop_werkelijk
+    ),
+    position = position_dodge(width = 0.6),
+    size = 2
+  ) +
+  facet_grid(SalZone ~ jaar, scales = "free_y")
 ```
 
 (ref:n-raai-spatial) Aantal locaties in de raai en spatial survey in elk van de strata.

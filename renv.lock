@@ -510,6 +510,13 @@
       "Repository": "CRAN",
       "Hash": "ec8ca05cffcc70569eaaad8469d2a3a7"
     },
+    "exactextractr": {
+      "Package": "exactextractr",
+      "Version": "0.7.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "1817928b5003e8a6ac1a60e5e0622193"
+    },
     "fansi": {
       "Package": "fansi",
       "Version": "0.5.0",

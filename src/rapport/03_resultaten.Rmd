@@ -1233,7 +1233,7 @@ benthos_design %>%
              decimals = 1) %>%
   summary_rows(groups = TRUE,
                columns = c(raai, spatial),
-               fns = list(sum = ~sum(.)),
+               fns = list(totaal = ~sum(.)),
                decimals = 1) %>%
   fmt_number(columns = c(n_locaties),
              decimals = 0) %>%
@@ -1269,7 +1269,7 @@ strata_df <- strata %>%
   st_drop_geometry() %>%
   mutate(stratum = paste(ecotoop_werkelijk, KRWzone, sep = "_"))
 
-for (i in seq_len(raster_ecotoop)) {
+for (i in seq_len(length(raster_ecotoop))) {
   raster_ecotoop[[i]] <- rast(raster_ecotoop[[i]])
   raster_ecotoop[[i]][raster_ecotoop[[i]] == 0] <- NA
   names(raster_ecotoop[[i]]) <- strata_df$stratum[i]
@@ -1277,7 +1277,7 @@ for (i in seq_len(raster_ecotoop)) {
 ```
 
 ```{r eval=FALSE}
-for (i in seq_len(raster_ecotoop)) {
+for (i in seq_len(length(raster_ecotoop))) {
   plot(raster_ecotoop[[i]])
 }
 
@@ -1309,7 +1309,8 @@ In principe kan dan de hoogtevariabele (die bij benadering overal gekend is via 
 
 ```{r biomassa-hoogte, fig.cap="(ref:biomassa-hoogte)", message=FALSE}
 benthos_afdw_zs_durme_rupel %>%
-  filter(tidaal == "intertidaal") %>%
+  filter(tidaal == "intertidaal",
+         Z >= 0) %>%
   ggplot(aes(x = Z, y = tot_afdw, colour = jaar)) +
   geom_point() +
   geom_smooth() +

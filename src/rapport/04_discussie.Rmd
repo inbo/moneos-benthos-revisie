@@ -65,7 +65,21 @@ Tot slot hebben we een mogelijkheid verkend die zou kunnen toelaten om enerzijds
 
 Allocatie van de steekproefgrootte...
 
-Transectgebaseerde, ruimtelijk gebalanceerde aselecte trekking [@foster2020]:
+Mogelijke alternatieven:
+
+1.  Een ruimtelijk gebalanceerde trekking in elk stratum
+
+-   jaarlijkse steekproefgrootte x 2 of x 3
+
+-   trekking zodat punten in volgorde geselecteerd (technisch mogelijk met generalized random tessalation sampling (GRTS), balanced acceptance sampling (BAS), local pivotal method (LPM))
+
+    -   bv 1/2 of 2/3 van de punten beschouwen als permanent vaste punten, overige als jaarlijks random
+
+    -   of alle punten in de populatie een random volgnummer geven (master sample)
+
+        -   jaar 1: set a, b, c; jaar 2: set b, c, d; jaar 3: set c, d, e; etc. zodat in een willekeurig jaar een derde van de punten gedurende drie jaar wordt opgevolgd
+
+2.  Transectgebaseerde, ruimtelijk gebalanceerde aselecte trekking [@foster2020]:
 
 -   in dat geval niet werken met stratificatie volgens ecotoop, maar hoogteligging gebruiken om de richting van transecten te bepalen: enkel volgens toenemende hoogte
 -   techniek is echter uitgewerkt voor transecten met vaste lengte, maar de lengte van de raaien en de breedte van de intertidale zone is variabel

@@ -535,7 +535,7 @@ Volgens de hg_replicated methode is dat enkel in 2019 het geval en volgens de Ho
 ```{r plot-jaar, fig.cap="(ref:plot-jaar)"}
 bind_rows(svytotal_jaar, hg_replicated_jaar, mrp_spatial_jaar) %>%
   select(jaar, methode, n, totopp_km2, starts_with("mzb")) %>%
-  ggplot() + 
+  ggplot() +
   geom_pointrange(aes(
     x = jaar,
     y = mzb_tonnage,
@@ -571,7 +571,7 @@ Voor het oligohalien zitten de locatieschattingen meestal onder de doelstelling,
 bind_rows(svytotal_salzone, hg_replicated_salzone, mrp_spatial_salzone) %>%
   select(jaar, SalZone, methode, n, totopp_km2, starts_with("mzb")) %>%
   mutate(n = as.integer(n)) %>%
-  ggplot() + 
+  ggplot() +
   geom_pointrange(aes(
     x = jaar,
     y = mzb_tonnage,
@@ -1160,7 +1160,7 @@ textdata <- plotdata %>%
   
 
 plotdata %>%
-  ggplot() + 
+  ggplot() +
   geom_pointinterval(aes(x = survey,
                          y = mzb_tonnage,
                          ymin = mzb_tonnage_low,
@@ -1168,7 +1168,7 @@ plotdata %>%
                          colour = ecotoop_werkelijk),
                      position = position_dodge(width = 0.6)) +
   geom_text(
-    data = textdata, 
+    data = textdata,
     aes(x = survey,
         y = y_positie * 1.3,
         label = totopp_km2,
@@ -1251,7 +1251,7 @@ benthos_design %>%
 ```{r steekproef}
 # ook hard substraat weglaten in veronderstelling dat het weinig bijdraagt
 rast <- raster::raster(ecotoop, resolution = c(2, 2))
-strata <- ecotoop %>% 
+strata <- ecotoop %>%
     filter(!str_detect(ecotoop_werkelijk, "subtidaal"),
            !str_detect(ecotoop_werkelijk, "hard substraat"),
            Naam %in% c("Zeeschelde", "Durme", "Rupel")) %>%
@@ -1265,11 +1265,11 @@ raster_ecotoop <- exactextractr::coverage_fraction(
   crop = TRUE
 )
 
-strata_df <- strata %>% 
+strata_df <- strata %>%
   st_drop_geometry() %>%
   mutate(stratum = paste(ecotoop_werkelijk, KRWzone, sep = "_"))
 
-for (i in 1:length(raster_ecotoop)) {
+for (i in seq_len(raster_ecotoop)) {
   raster_ecotoop[[i]] <- rast(raster_ecotoop[[i]])
   raster_ecotoop[[i]][raster_ecotoop[[i]] == 0] <- NA
   names(raster_ecotoop[[i]]) <- strata_df$stratum[i]
@@ -1277,7 +1277,7 @@ for (i in 1:length(raster_ecotoop)) {
 ```
 
 ```{r eval=FALSE}
-for (i in 1:length(raster_ecotoop)) {
+for (i in seq_len(raster_ecotoop)) {
   plot(raster_ecotoop[[i]])
 }
 
@@ -1288,11 +1288,11 @@ for (i in 1:length(raster_ecotoop)) {
 # jaarlijkse steekproefgrootte x 2 of x 3
 # grts-achtige trekking zodat punten in volgorde geselecteerd
 
-# bv 1/2 of 2/3 van de punten beschouwen als permanent vaste punten, 
+# bv 1/2 of 2/3 van de punten beschouwen als permanent vaste punten,
 # overige als jaarlijks random
 
 # of alle punten in de populatie een random volgnummer geven (master sample)
-# jaar 1: set a, b, c; jaar 2: set b, c, d; jaar 3: set c, d, e; etc. 
+# jaar 1: set a, b, c; jaar 2: set b, c, d; jaar 3: set c, d, e; etc.
 # zodat in een willekeurig jaar een derde van de punten gedurende drie jaar
 # wordt opgevolgd
 

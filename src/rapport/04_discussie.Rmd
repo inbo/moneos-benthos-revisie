@@ -54,9 +54,19 @@ De biomassabijdrage voor het hard substraat bedraagt, op deze manier berekend, i
 Deze manier van berekenen geeft echter een overschatting (vertekening) van de biomassa MZB in hard substraat (op het hard substraat zelf is de biomassa per definitie 0).
 Indien men kan inschatten wat het oppervlakte-aandeel is van hard substraat waar er effectief nog slik aanwezig is, kan men de bijdrage van hard substraat opnieuw berekenen.
 Als daaruit zou blijken dat deze biomassa-bijdrage heel klein is ten opzichte van het totaal (ook per saliniteitszone), dan is het wellicht beter om dit stratum volledig uit de doelpopulatie te halen en niet meer te samplen.
+Nog een andere manier om tot correcte schatting voor hard substraat te komen is om de random punten met breuksteen *niet* te verleggen.
+Men dient dan enkel te noteren dat het breuksteen is en geen staal van MZB genomen kon worden (de biomassa is dan 0 voor die locatie).
 
 Wat de overige slikzones betreft (laag, middelhoog en hoog), blijft het nodig om in elk van deze strata locaties te bemonsteren opdat een goed gemiddeld beeld kan bekomen worden voor de berekening van de draagkracht van de rivier.
 
 ## Is een alternatief meetnetontwerp een optie?
 
 Tot slot hebben we een mogelijkheid verkend die zou kunnen toelaten om enerzijds een representatief beeld te krijgen van de draagkracht van het systeem en anderzijds ook beter toelaat om vragen te beantwoorden die men beoogt met het systeem van raaien (zoals effecten van sedimenthoogteveranderingen op MZB biomassa en samenstelling).
+
+Allocatie van de steekproefgrootte...
+
+Transectgebaseerde, ruimtelijk gebalanceerde aselecte trekking [@foster2020]:
+
+-   in dat geval niet werken met stratificatie volgens ecotoop, maar hoogteligging gebruiken om de richting van transecten te bepalen: enkel volgens toenemende hoogte
+-   techniek is echter uitgewerkt voor transecten met vaste lengte, maar de lengte van de raaien en de breedte van de intertidale zone is variabel
+-   de inclusiekansen verhogen evenredig met een maat voor het ecologisch potentieel, maar dan hebben we dus opnieuw onafhankelijke gegevens (kaarten, ...) nodig die dit aangeven.

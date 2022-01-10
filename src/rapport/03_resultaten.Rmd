@@ -1193,6 +1193,61 @@ benthos_afdw_ps_zonder_survey %>%
 
 ## Alternatief meetnetontwerp
 
+### Allocatie van totale steekproefgrootte over strata
+
+We gebruiken beide jaren gecombineerd om de varianties te schatten en gebruiken hiervoor enkel de spatial survey.
+Om een variantie of standaarddeviatie goed in te schatten zijn zeer veel data nodig, daarom is het beter om de beide jaren te combineren - alhoewel dit ook jaar tot jaar variatie bevat.
+
+Tabel \@ref(tab:allocatie) geeft het resultaat van de formule voor optimale allocatie van de steekproef over de strata waarbij rekening wordt gehouden met de oppervlakte van elk stratum, de standaarddeviatie en de kosten.
+Er is geen merkbaar verschil tussen raai en spatial survey omdat het beperkte effect van de kosten (raai 0.75 versus spatial 1.25 relatieve kosten) teniet wordt gedaan door de grotere relatieve effecten van de stratumgrootte en -heterogeniteit.
+Volgens deze resultaten zou ruim de helft van de locaties in Zeeschelde IV vallen.
+Deze formule voor allocatie is echter alleen kostenoptimaal voor de schatting van de totale draagkracht van het intertidale systeem.
+Aangezien er ook uitspraken gevraagd worden per saliniteitszone, is een overbemonstering van sommige van deze zones ten opzichte van deze allocatie zeker verantwoord.
+
+(ref:allocatie) Allocatie van de steekproefgrootte. Kolommen spatial en raai tonen het resultaat van de allocatieformule uitgedrukt als een relatief percentage. De kolom n_locaties toont het resultaat als we deze allocatie toepassen op een totale steekproefgrootte van 150, maar een minimum steekproefgrootte per stratum van 3 vereisen.
+
+```{r allocatie}
+kost <- werklast %>%
+  filter(tidaal == "intertidaal") %>%
+  select(campagne, tot_uren_incl_reistijd, aantal_stalen) %>%
+  mutate(relkost_per_staal = tot_uren_incl_reistijd / aantal_stalen) %>%
+  select(campagne, relkost_per_staal)
+  
+
+benthos_design %>%
+  group_by(KRWzone, ecotoop_werkelijk.benthos) %>%
+  summarize(sigma = survey_sd(x = tot_afdw / opp_per_staal_m2),
+            stratum_opp_m2 = mean(stratum_opp_m2)) %>%
+  expand_grid(kost) %>%
+  group_by(campagne) %>%
+  mutate(allocatie = stratum_opp_m2 * sigma / sqrt(relkost_per_staal),
+         allocatie = allocatie / sum(allocatie) * 100) %>%
+  select(campagne, KRWzone,
+         ecotoop = ecotoop_werkelijk.benthos,
+         allocatie) %>%
+  pivot_wider(names_from = campagne, values_from = allocatie) %>%
+  mutate(n_locaties = pmax(3, round(spatial / 100 * 150))) %>%
+  gt(groupname_col = "KRWzone",
+     caption = "(ref:allocatie)") %>%
+  fmt_number(columns = where(is.double),
+             decimals = 1) %>%
+  summary_rows(groups = TRUE,
+               columns = c(raai, spatial),
+               fns = list(sum = ~sum(.)),
+               decimals = 1) %>%
+  fmt_number(columns = c(n_locaties),
+             decimals = 0) %>%
+  summary_rows(groups = TRUE,
+               columns = c(n_locaties),
+               fns = list(totaal = ~sum(.)),
+               decimals = 0) %>%
+  grand_summary_rows(columns = c(spatial, raai, n_locaties),
+                     fns = list(totaal = ~sum(.)),
+                     decimals = 0)
+```
+
+### Steekproeftrekkingstrategieën
+
 ```{r steekproef}
 # ook hard substraat weglaten in veronderstelling dat het weinig bijdraagt
 rast <- raster::raster(ecotoop, resolution = c(2, 2))

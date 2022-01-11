@@ -482,10 +482,15 @@ Deze methode zou vooral interessant zijn voor uitspraken over kleine subdomeinen
 Waar de design-based methodes absoluut een probabilistische steekproef vereisen, is dat bij MRP minder het geval.
 Dat biedt perspectieven om de preferentieel ingezamelde data via de raaien met deze methode te analyseren of combinaties van beide surveys te exploreren.
 
-Voor de MRP analyse veronderstellen we dat de data een hurdle-gamma verdeeld zijn.
+Voor de MRP analyse veronderstellen we dat de data hurdle-gamma verdeeld zijn.
 Als design-variabelen voegen we random intercepten toe voor de ecotopen en KRW zones en hun interactie.
 We gebruiken in deze gevallen de modus (meest voorkomende/waarschijnlijke waarde) en een 95% (aaneengesloten) hoogste-densiteit interval om de posterior distributie samen te vatten.
 De modus laat een vergelijking toe met de design-based schatters.
+
+Voor de raaigegevens is het verleidelijk om ook de identiteit van de afzonderlijke raaien in de analyse te betrekken als een random intercept.
+Dit is echter problematisch.
+Bij een random intercept is er een veronderstelling van uitwisselbaarheid waaraan niet voldaan is bij de raaien aangezien binnen elke raai een gradiënt aanwezig is.
+Deze gradiënt maakt dat een locatie binnen een raai niet uitwisselbaar is met een andere locatie binnen dezelfde raai.
 
 ### Allocatie van steekproefeenheden over strata
 

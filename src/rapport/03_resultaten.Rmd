@@ -1246,6 +1246,41 @@ benthos_design %>%
                      decimals = 0)
 ```
 
+### Afweging meer locaties versus nauwkeuriger bemonsteren
+
+Om de afweging te maken tussen meer locaties bemonsteren versus per locatie een hogere bemonsteringsinspanning te doen, hebben we informatie nodig over de kosten geassocieerd met de selectie van de locaties en met de bemonstering ter plaatse (inclusief naverwerking in het labo).
+Daarnaast hebben we ook informatie nodig die toelaat om de totale variantie op te splitsen in variantie die het gevolg is van het trekken van een steekproef en variantie die het gevolg is van ter plaatse een bemonstering uit te voeren die echter niet foutloos is.
+We hebben echter geen informatie die toelaat om deze opdeling in variantiecomponenten te maken.
+
+Tabel \@ref(tab:kosten-selectie-bemonstering) toont dat voor de raaien de bemonsteringskost `r round((0.8 + 5.2) / (1 + 0.3), 1)` maal hoger is dan de selectiekost.
+Voor de spatial survey is de bemonsteringskost `r round((1.2 + 5.2) / (1.7 + 0.3), 1)` maal hoger dan de selectiekost.
+In deze berekening zitten echter alleen de kostenposten die kunnen uitgedrukt worden in gewerkte uren.
+Zaken zoals materiaalkosten zijn niet inbegrepen en dragen bij aan zowel de bemonsteringskost (labomaterialen, ...) als de selectiekost (verplaatsingskosten).
+Wanneer dit variabele kosten betreft, moeten deze worden toegevoegd om tot een betere inschatting van de verhouding tussen bemonsteringskost en selectiekost te komen.
+Vaste kosten zijn niet van belang voor de optimalisatie van de bemonstering.
+
+(ref:kosten-selectie-bemonstering) Overzicht van bemonsteringskosten en selectiekosten (uitgedrukt in uren per staal).
+
+```{r kosten-selectie-bemonstering}
+kosten %>%
+  filter(!str_detect(kostenpost, "subtidaal")) %>%
+  mutate(type_veldwerk = case_when(
+    taakgroep == "veldwerk_raai" ~ "raai",
+    taakgroep == "veldwerk_spatial" ~ "spatial",
+    TRUE ~ "beide"
+  )) %>%
+  pivot_wider(names_from = type_veldwerk,
+              values_from = uren_per_staal_gelogd) %>%
+  group_by(kostenallocatie) %>%
+  gt(caption = "(ref:kosten-selectie-bemonstering)") %>%
+  fmt_number(columns = where(is.double), decimals = 1) %>%
+  fmt_missing(columns = everything()) %>%
+  summary_rows(groups = TRUE,
+               columns = where(is.double),
+               fns = list(totaal = ~sum(., na.rm = TRUE)),
+               decimals = 1)
+```
+
 ### Steekproeftrekkingstrategieën
 
 ```{r steekproef}

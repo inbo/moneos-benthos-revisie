@@ -318,11 +318,50 @@ werklast %>%
   gt(caption = "(ref:tijdsinschatting)")
 ```
 
-```{=html}
-<!--
-(labowerk wellicht groter dan het veldwerk dat geconcentreerd is in de tijd binnen 2-3 weken).
--->
+```{r kosten}
+kosten <- werklast %>%
+  mutate(
+    aantal_stalen = ifelse(is.na(aantal_stalen),
+                           max(aantal_stalen, na.rm = TRUE),
+                           aantal_stalen),
+    uren_per_staal_reistijd = uren_per_staal_incl_reistijd -
+      uren_per_staal_excl_reistijd,
+    uren_per_staal_gelogd = tot_uren_gelogd / aantal_stalen,
+    uren_per_staal_excl_reistijd = uren_per_staal_excl_reistijd /
+      uren_per_staal_incl_reistijd * uren_per_staal_gelogd,
+    uren_per_staal_reistijd = uren_per_staal_reistijd /
+      uren_per_staal_incl_reistijd * uren_per_staal_gelogd) %>%
+  select(taakgroep, taak, tidaal, campagne, starts_with("uren_per_staal"),
+         -uren_per_staal_incl_reistijd)
+
+kosten_veldwerk <- kosten %>%
+  filter(taakgroep == "veldwerk") %>%
+  select(-uren_per_staal_gelogd, -taak) %>%
+  pivot_longer(cols = starts_with("uren"),
+               names_to = "taak",
+               values_to = "uren_per_staal_gelogd"
+              ) %>%
+  mutate(taak = ifelse(taak == "uren_per_staal_reistijd",
+                             "reistijd",
+                             "staalname")) %>%
+  rename(kostenpost = taak) %>%
+  mutate(kostenallocatie = ifelse(kostenpost == "reistijd",
+                                  "selectiekost",
+                                  "bemonsteringskost"),
+         taakgroep = paste(taakgroep, campagne, sep = "_"),
+         kostenpost = paste(kostenpost, tidaal, sep = "_")) %>%
+  select(-campagne, -tidaal)
+
+kosten_niet_veldwerk <- kosten %>%
+  filter(taakgroep != "veldwerk") %>%
+  select(taakgroep, taak, uren_per_staal_gelogd) %>%
+  rename(kostenpost = taak) %>%
+  mutate(kostenallocatie = c("selectiekost", rep("bemonsteringskost", 5)))
+  
+kosten <- bind_rows(kosten_veldwerk, kosten_niet_veldwerk) %>%
+  relocate(kostenallocatie)
 ```
+
 ## Raaien
 
 Sinds 2018 werden vaste raaien jaarlijks bemonstert (170 punten), bovenop de 228 random stalen voor jaarlijkse rapportage.
@@ -453,6 +492,44 @@ Voor een gestratificeerde steekproef kan volgende evenredigheid gebruikt worden 
 $$n_h \propto \frac{N_h\sigma_h}{\sqrt{cost_h}}$$.
 
 Dit suggereert dat een groter aandeel moet gaan naar grote strata (in oppervlakte), meer variabele strata en minder kostelijke strata.
+
+### Afweging steekproefgrootte en bemonsteringsinspanning per locatie
+
+Een eenvoudig denkmodel is een waarneming te beschrijven als een proces in drie stappen: eerst selecteren we een meetplaats, vervolgens bemonsteren we die en daarna verwerken we het staal.
+Symbolisch:
+
+$$\text{waarneming} \leftarrow \text{selectie} + \text{bemonstering} + \text{staalverwerking}$$
+
+Dit model maakt duidelijk dat de totale waarnemingsfout ($\sigma^2_{TF}$) de som is van de selectiefout ($\sigma^2_{SF}$), de bemonsteringsfout ($\sigma^2_{BF}$) en een labofout ($\sigma^2_{LF}$), waarbij:
+
+$$\begin{align*}
+\sigma^2_{SF} &= \frac{\sigma^2_P}{n}\\
+\sigma^2_{BF} &= \frac{\sigma^2_B}{nS}\\
+\sigma^2_{LF} &= \frac{\sigma^2_L}{nS}
+\end{align*}
+$$
+
+Hierbij hebben we een oneindige populatie verondersteld bij de formule voor de steekproeffout.
+De steekproeffout neemt dus evenredig toe met de variabiliteit in de populatie ($\sigma^2_P$) en omgekeerd evenredig met de steekproefgrootte $n$.
+De bemonsteringsfout is omgekeerd evenredig met de bemonsteringsinspanning $S$ en de steekproefgrootte.
+De term $\sigma^2_B$ stelt de bemonsteringsfout voor bij een eenheid van de bemonsteringsinspanning ($S = 1$ & $n = 1$).
+In het geval van MZB is de bemonsteringsinspanning onder andere bepaald door de bemonsterde oppervlakte per staal.
+De in het labo gemaakte meetfout $\sigma^2_LF$, hangt af van de keuzes die gemaakt worden bij de naverwerking van de stalen en de invloed daarvan op de herhaalbaarheid van een meting $\sigma^2_L$.
+De formules tonen dat het aantal staalnamelocaties $n$ verhogen een gunstig effect heeft op elk van de foutenbronnen.
+
+Voor een optimalisatie van de bemonstering, moeten we op een vergelijkbare manier ook de kosten geassocieerd met selectie, bemonstering en naverwerking van het staal in rekening brengen.
+Wanneer we een vereenvoudigd lineair kostenmodel veronderstellen, dan kunnen we de totale kost $K_T$ berekenen als:
+
+$$K_T = n(K_P + S(K_B + K_L))$$.
+
+Hiervoor hebben we de kost geassocieerd met de selectie van één locatie $K_P$ nodig en met de bemonstering van één locatie $K_B$ en het geassocieerde labowerk $K_L$.
+Er kan aangetoond worden dat een optimale bemonsteringsinspanning $S_o$ en optimale steekproefgrootte $n_o$ bekomen wordt met volgende formules:
+
+$$\begin{align*}
+S_o &= \frac{\sqrt{K_P}}{\sqrt{K_B + K_L}}\frac{\sigma_B + \sigma_L}{\sigma_P} \\
+n_o &= \frac{K_T}{K_P}f_P &\text{met  } f_p = \frac{\sqrt{K_P}\sigma_P}{\sqrt{K_P}\sigma_P + \sqrt{K_B + K_L}(\sigma_B + \sigma_L)}
+\end{align*}
+$$
 
 ### Gebruikte software en packages
 

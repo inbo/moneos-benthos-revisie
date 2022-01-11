@@ -465,6 +465,7 @@ Dit kan gebeuren wanneer de variabiliteit groot is en / of de steekproefgrootte 
 We zullen in de resultaten deze negatieve ondergrenzen tonen, maar in de praktijk mogen deze gelijkgesteld worden aan 0.
 Een manier om te vermijden dat de betrouwbaarheidsintervallen waarden kunnen bevatten die buiten het theoretische bereik van de beschouwde variabele liggen, is door te veronderstellen dat de data aan bepaalde statistische distributie volgen.
 Voor continue waarden \>= 0 kunnen we een zogenaamde hurdle-gamma of hurdle-lognormale verdeling veronderstellen.
+De hurdle is nodig waarden gelijk aan 0, omdat de gamma verdeling of lognormale verdeling enkel voor strikt positieve continue waarden gedefinieerd is.
 Om deze verdelingen te fitten aan de data dient de 'likelihood' gemaximaliseerd te worden om puntschattingen te bekomen van de drie parameters (een parameter voor de kans op nul en twee parameters die het gemiddelde en de variantie van de Gamma of lognormale verdeling beschrijven).
 Klassiek doet men dit met software voor veralgemeende lineaire regressiemodellen.
 Om echter te garanderen dat de puntschattingen rekening houden met de steekproefgewichten (Engels: sampling weights; omgekeerde van de inclusiekansen), zijn er correcties nodig [@lumley2017; @lumley2004].

@@ -449,6 +449,7 @@ Voor de inschatting van de foutenmarge op de biomassa MZB, kunnen we gebruik mak
 Om het totaal in te schatten is het belangrijk dat we de juiste gewichten (inverse van inclusiekansen) gebruiken om de extrapolatie te doen van de totale biomassa geobserveerd in de steekproef naar de totale biomassa in het gehele systeem (de statistische populatie).
 Stratificatie verhoogt de precisie van de schatters op voorwaarde dat de strata homogeen zijn.
 Heterogene strata zullen daarentegen de precisie verlagen.
+Homogene strata zijn strata waarbij de variantie binnen een stratum lager is dan de variantie tussen strata (en omgekeerd voor heterogene strata).
 De design-based schatters voor het totaal en variantie op het totaal van een gestratificeerde steekproef zijn (voor het geval van één stratificatievariabele met $H$ strata):
 
 $$\hat{y}_{hi} = \sum_{h=1}^H\frac{N_h}{n_h}\sum_{i=1}^{n_h}y_{hi}$$ en $$\hat{\sigma}^2_{\hat{y}} = \sum_{h=1}^H\hat{\sigma}^2_{\hat{y_h}} = \sum_{h=1}^H\frac{N^2_h}{n_h}\frac{1}{n_h-1}\sum_{i=1}^{n_h}(y_{hi}-\bar{y_h})^2$$

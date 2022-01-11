@@ -1118,7 +1118,8 @@ bind_rows(mrp_raaispatial_ecotoop,
   select(jaar, ecotoop_werkelijk, survey, methode, n, totopp_km2,
          starts_with("mzb")) %>%
   group_by(jaar, ecotoop_werkelijk) %>%
-  mutate(n = as.integer(n)) %>%
+  mutate(n = as.integer(n),
+         survey = ifelse(is.na(survey), "beide", survey)) %>%
   gt(caption = "(ref:schattingen-raaispatial-ecotoop)") %>%
   fmt_number(columns = where(is.double), decimals = 1)
 ```

@@ -582,7 +582,7 @@ bind_rows(svytotal_salzone, hg_replicated_salzone, mrp_spatial_salzone) %>%
   position = position_dodge(width = 0.6)) +
   geom_hline(data = mzb_targets,
              aes(yintercept = doel)) +
-  facet_grid(~ SalZone)
+  facet_grid(~ SalZone, labeller = label_wrap_gen(width = 20))
 ```
 
 ```{r eval=FALSE}
@@ -855,7 +855,8 @@ benthos_afdw_zs_durme_rupel %>%
                position = position_dodge(width = 0.6),
                fun.data = mean_cl_boot,
                shape = "cross") +
-  facet_grid(jaar ~ KRWzone + SalZone) +
+  facet_grid(jaar ~ KRWzone + SalZone,
+             labeller = label_wrap_gen(width = 20)) +
   scale_y_continuous("MZB gram per m²",
                      trans = "pseudo_log",
                      breaks = c(0, 1, 2, 5, 10, 20, 50, 100, 200))
@@ -1241,7 +1242,8 @@ plotdata %>%
     position = position_dodge(width = 0.6),
     size = 2
   ) +
-  facet_grid(SalZone ~ jaar, scales = "free_y")
+  facet_grid(SalZone ~ jaar, scales = "free_y", 
+             labeller = label_wrap_gen(width = 20))
 ```
 
 (ref:n-raai-spatial) Aantal locaties in de raai en spatial survey in elk van de strata.

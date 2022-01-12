@@ -162,7 +162,8 @@ benthos_afdw_spatial %>%
                  shape = ecotoop_werkelijk.benthos),
              position = position_dodge(width = 0.5)) +
   labs(x = "Hoogte (m)") +
-  facet_grid(vars(SalZone), scales = "free_y")
+  facet_grid(vars(SalZone), scales = "free_y",
+             labeller = label_wrap_gen(width = 20))
 ```
 
 Tabel \@ref(tab:strata-krw) toont het eerste niveau van stratificatie volgens waterlichamen en hun link met de KRW-waterlichamen.
@@ -243,7 +244,7 @@ In de praktijk zien we dat er een iets hoger aantal locaties bemonsterd worden (
 
 (ref:spatial-steekproefgrootte) Gerealiseerde steekproefgroottes per stratumcombinatie op basis van enkel de spatial survey gegevens.
 
-```{r spatial-steekproefgrootte}
+```{r spatial-steekproefgrootte, message = FALSE}
 benthos_afdw_zs_durme_rupel %>%
   st_drop_geometry() %>%
   filter(survey == "spatial") %>%
@@ -417,7 +418,8 @@ benthos_afdw_raai %>%
                  shape = ecotoop_werkelijk.benthos)) +
   geom_line(aes(x = Z, y = staalcode, group = staal)) +
   labs(x = "Hoogte (m)") +
-  facet_grid(vars(SalZone), scales = "free_y")
+  facet_grid(vars(SalZone), scales = "free_y",
+             labeller = label_wrap_gen(width=20))
 ```
 
 ## Ligging van de locaties

@@ -663,6 +663,7 @@ benthos_afdw_raai %>%
 ```
 
 ```{r mrp-raai-clusters-model, eval=FALSE}
+# toevoegen van random effect staalcode en staal geeft zeer brede BI's
 benthos_afdw_raai %>%
   rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
   st_drop_geometry() %>%
@@ -694,6 +695,37 @@ benthos_afdw_raai %>%
   ) -> mrp_raai_clusters
 
 mrp_raai_clusters
+
+# proberen met enkel effect van locatie (staal)
+benthos_afdw_raai %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  st_drop_geometry() %>%
+  brm(bf(
+    tot_afdw ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+    + (1 | staal),
+    hu ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+    + (1 | staal)
+    ),
+  family = hurdle_gamma(),
+  data = .,
+  silent = 2,
+  cores = 4,
+  control = list(adapt_delta = 0.95),
+  backend = "cmdstanr",
+  file = find_root_file("src/rapport/brms_models/mrp_raai_gepaard",
+                        criterion = is_git_root),
+  file_refit = "on_change"
+  ) -> mrp_raai_gepaard
+
+mrp_raai_gepaard
 ```
 
 ```{r mrp-raai-clusters-jaar, eval=FALSE}
@@ -723,6 +755,31 @@ mrp_raai_clusters %>%
              by = "jaar"
              ) %>%
   mutate(methode = "MRP") -> mrp_raai_clusters_jaar
+
+
+mrp_raai_gepaard %>%
+  add_epred_draws(newdata = poststrat_raai,
+                  allow_new_levels = TRUE) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(jaar) %>%
+  filter(.epred < quantile(.epred, 0.999)) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(poststrat_raai %>%
+               group_by(jaar) %>%
+               summarize(n = sum(n),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6),
+             by = "jaar"
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raai_gepaard_jaar
 ```
 
 ```{r mrp-raai-jaar}

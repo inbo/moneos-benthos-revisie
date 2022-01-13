@@ -24,7 +24,7 @@ benthos_design %>%
     na.rm = TRUE,
     vartype = "ci",
     level = 0.95)) %>%
-  mutate(methode = "Horvitz-Thompson") -> svytotal_jaar
+  mutate(methode = "H-T") -> svytotal_jaar
 ```
 
 ```{r svytotal-salzone}
@@ -40,7 +40,7 @@ benthos_design %>%
           na.rm = TRUE,
           vartype = "ci",
           level = 0.95)) %>%
-  mutate(methode = "Horvitz-Thompson") -> svytotal_salzone
+  mutate(methode = "H-T") -> svytotal_salzone
 ```
 
 ```{r svymle, eval=FALSE}
@@ -246,7 +246,7 @@ hg_summary %>%
   mutate(across(where(is.double) & !.width,
          ~ .x / opp_per_staal_m2 * totopp / 1e6),
          totopp_km2 = totopp / 1e6,
-         methode = "hg_replicated") %>%
+         methode = "RW-J") %>%
     inner_join(n_samples, by = "jaar") %>%
   rename(mzb_tonnage = value,
          mzb_tonnage_low = .lower,
@@ -312,7 +312,7 @@ hg_salzone_summary %>%
   inner_join(jointable_salzone, by = c("jaar", "SalZone")) %>%
   mutate(across(where(is.double) & !.width & !totopp,
          ~ .x / opp_per_staal_m2 * totopp / 1e6),
-         methode = "hg_replicated",
+         methode = "RW-J",
          totopp_km2 = totopp / 1e6) %>%
   select(-totopp) %>%
   rename(mzb_tonnage = epred,
@@ -506,7 +506,7 @@ Dit type van schatters is betrouwbaar op voorwaarde dat de steekproef voldoende 
 Wellicht is aan beide voorwaarden onvoldoende voldaan en dit komt nog beter tot uiting bij de subtotalen per saliniteitszone waar het interval soms negatieve waarden omvat (Tabel \@ref(tab:schattingen-overzichtstabel-salzone)).
 De twee andere methoden stemmen beter overeen.
 Beide methoden maken gebruik van een hurdle-gamma assumptie voor de verdeling van de biomassagegevens, maar ze verschillen sterk in de manier waarop rekening wordt gehouden met het steekproefontwerp.
-In het `hg_replicated` geval wordt de onzekerheid op de schatting volledig bepaald door Jackknife-herhalingen.
+In het `RW-J` geval wordt de onzekerheid op de schatting volledig bepaald door Jackknife-herhalingen.
 In het model zelf zitten dan geen designvariabelen (enkel de factor jaar of jaar en saliniteitszone waar we een schatting voor willen).
 Bij de MRP methode zitten de designvariabelen wel bij in het model (als random effecten).
 De MRP schattingen lijken systematisch iets hoger te liggen dan de schattingen gebaseerd op de Jackknife herhalingen.
@@ -528,7 +528,7 @@ bind_rows(svytotal_jaar, hg_replicated_jaar, mrp_spatial_jaar) %>%
 
 De drie methoden verschillen in de conclusies die getrokken kunnen worden wanneer de betrouwbaarheidsintervallen vergelijken met de doelstelling van 30 ton MZB (Figuur \@ref(fig:plot-jaar)).
 Volgens de MRP methode is er in beide jaren een hoger tonnage dan minimaal vooropgesteld wordt.
-Volgens de hg_replicated methode is dat enkel in 2019 het geval en volgens de Horvitz-Thompson schatter is het in geen van beide jaren het geval.
+Volgens de RW-J methode is dat enkel in 2019 het geval en volgens de Horvitz-Thompson schatter is het in geen van beide jaren het geval.
 
 (ref:plot-jaar) Vergelijking van de geschatte betrouwbaarheidsintervallen volgens de drie methoden met de doelstelling voor biomassa MZB in het volledige systeem.
 
@@ -615,7 +615,7 @@ benthos_raai_design %>%
       vartype = "ci",
       level = 0.95),
     .groups = "drop") %>%
-  mutate(methode = "Horvitz-Thompson") -> svytotal_raai_jaar
+  mutate(methode = "H-T") -> svytotal_raai_jaar
 ```
 
 ```{r svytotal-raai-salzone}
@@ -631,7 +631,7 @@ benthos_raai_design %>%
       vartype = "ci",
       level = 0.95),
     .groups = "drop_last") %>%
-  mutate(methode = "Horvitz-Thompson") -> svytotal_raai_salzone
+  mutate(methode = "H-T") -> svytotal_raai_salzone
 ```
 
 ```{r mrp-raai-model}

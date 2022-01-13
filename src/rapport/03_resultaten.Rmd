@@ -729,6 +729,13 @@ mrp_raai_gepaard
 ```
 
 ```{r mrp-raai-clusters-jaar, eval=FALSE}
+# vermoedelijk is onderstaande berekening niet juist.
+# staalcode en staal wordt hier impliciet op NA gezet
+# maar de effecten van staalcode en staal moeten gemarginaliseerd worden
+# en dat vereist integratie over de random effecten
+# kan wellicht met 
+# https://cran.r-project.org/web/packages/brmsmargins/index.html
+
 poststrat_raai <- benthos_afdw_poststrat %>%
   filter(survey == "raai")
 
@@ -755,7 +762,6 @@ mrp_raai_clusters %>%
              by = "jaar"
              ) %>%
   mutate(methode = "MRP") -> mrp_raai_clusters_jaar
-
 
 mrp_raai_gepaard %>%
   add_epred_draws(newdata = poststrat_raai,

@@ -390,7 +390,8 @@ Ze zijn voornamelijk gelegd in de ecologisch interessantste gebieden met een int
 benthos_afdw_raai %>%
   st_drop_geometry() %>%
   group_by(jaar, ecotoop_werkelijk.benthos, KRWzone, SalZone, stratum_n) %>%
-  summarize(n_raaien = n_distinct(staalcode)) %>%
+  summarize(n_raaien = n_distinct(staalcode),
+            .groups = "drop_last") %>%
   rename(n_locaties = stratum_n) %>%
   group_by(jaar) %>%
   gt(caption = "(ref:raai-steekproefgrootte)") %>%

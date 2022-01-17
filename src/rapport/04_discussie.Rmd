@@ -76,7 +76,7 @@ Niettemin kan gewoon op basis van een aantal ecologische overwegingen een operat
 -   voldoende brede zone (exacte breedte te bepalen, mogelijk afhankelijk van Saliniteitszone)
 -   over een voldoende aaneengesloten lengte aanwezig (exacte lengte te bepalen, mogelijk afhankelijk van Saliniteitszone)
 
-Zo'n kaart kan vervolgens ingedeeld worden in strata (lage, gemiddelde, hoge abundanties) en gebruikt worden in de poststratificatiestap samen met de andere stratificatievariabelen.
+Zo'n kaart kan vervolgens ingedeeld worden in strata (lage, gemiddelde, hoge potenties) en gebruikt worden in de poststratificatiestap samen met de andere stratificatievariabelen.
 Indien er onzekerheid geassocieerd is met zulke kaart, dient bovendien deze onzekerheid via foutenpropagatie mee doorgerekend te worden.
 Mogelijk kan dit toelaten om een meer getrouwe afspiegeling te maken van het aandeel biomassa bekomen via de raaien in de doelpopulatie.
 Los daarvan, zullen met enkel de raaien veel poststratificatiecellen leeg zijn of weinig data bevatten.

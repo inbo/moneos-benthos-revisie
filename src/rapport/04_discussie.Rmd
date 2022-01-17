@@ -139,9 +139,9 @@ Voor een ruimtelijk gebalanceerde trekking van locaties in elk stratum, kunnen w
     Elke subset van locaties geordend volgens deze volgorde is opnieuw ruimtelijk goed gespreid.
     Technisch is dit mogelijk met generalized random tessalation sampling (GRTS), balanced acceptance sampling (BAS), of local pivotal method (LPM).
 
--   maak gebruik van de rangnummers om per stratum een deel locaties één of meerdere jaren of permanent op te volgen (het aantal jaren dat dezelfde locaties opgevolgd worden kan mogelijk gemotiveerd worden door de traagheid van het systeem na een verstoring zoals een slibruiming, i.e. hoeveel jaren duurt het na een slibruiming voor er zich terug een stabiel evenwicht instelt in de samenstelling en relatieve abundanties van de MZB gemeenschap):
+-   maak gebruik van de rangnummers om per stratum een deel locaties één of meerdere jaren of permanent op te volgen (het aantal jaren dat dezelfde locaties opgevolgd worden kan mogelijk gemotiveerd worden door de traagheid van het systeem na een verstoring zoals een slibruiming, i.e. hoeveel jaren duurt het na een slibruiming voor er zich terug een stabiel evenwicht instelt in de samenstelling en relatieve abundanties van de MZB gemeenschap) [@breidt1999a; @urquhart1999]:
 
-    -   **voorbeeld 1** jaar 1: set a en b; jaar 2: set a en c; jaar 3: set a en d; etc. zodat set a permanent wordt opgevolgd (bv de helft van $n_jk$) en de andere punten jaarlijks een nieuwe set zijn
+    -   **voorbeeld 1 (supplemented panel design)** jaar 1: set a en b; jaar 2: set a en c; jaar 3: set a en d; etc. zodat set a permanent wordt opgevolgd (bv de helft van $n_jk$) en de andere punten jaarlijks een nieuwe set zijn
 
     -   **voorbeeld 2 (rotating panel design)** jaar 1: set a, b, c; jaar 2: set b, c, d; jaar 3: set c, d, e; etc. met elke set een derde van $n_jk$ locaties, zodat voor analyse voor een derde van de punten data van de afgelopen drie jaar beschikbaar is, voor een derde data van de afgelopen twee jaar en een derde enkel van het huidige jaar.
         Deze strategie leent zich dan misschien best voor een rapportage op basis van een driejaarlijks lopend gemiddelde.

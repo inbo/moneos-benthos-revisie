@@ -12,10 +12,40 @@ Door de random gestratificeerde steekproef zal het betrouwbaarheidsinterval met 
 Op niveau van het volledige systeem komen de breedtes van de betrouwbaarheidsintervallen vrij goed overeen tussen de verschillende methodes.
 Het gaat om een relatieve foutenmarge tussen 34% en 39% (halve breedte van het betrouwbaarheidsinterval gedeeld door de locatieschatter).
 Dit is een aanvaardbare foutenmarge om de vergelijking te maken met de doelstelling van 30 ton.
-De steekproefgrootte vergroten zal pas een substantieel effect hebben bij een heel sterke toename van de steekproefgrootte (x 4 geeft een halvering van de foutenmarge).
+Er is een omgekeerd evenredig verband tussen de vierkantswortel van de steekproefgrootte ($n$) en de foutenmarge (foutenmarge $\propto \frac{1}{\sqrt{n}}$).
+Dat wil zeggen dat de een vergroting van de steekproefgrootte pas een substantieel effect zal hebben bij een heel sterke toename van de steekproefgrootte (x 4 geeft een halvering van de foutenmarge, zie Figuur \@ref(fig:foutenmargeVsN)).
 Om de onzekerheid te verkleinen kan men daarom beter over andere opties nadenken.
 Eén van deze opties is bijvoorbeeld om de kans op nulwaarnemingen (geen MZB) te verkleinen door de hoeveelheid staal per locatie te vergroten - eventueel via een mengstaal.
 Een andere optie is om de besluitvorming niet te baseren op één jaar gegevens, maar te werken met een lopend gemiddelde van de afgelopen twee of drie jaar.
+
+(ref:foutenmargeVsN) Foutenmarge als functie van de steekproefgrootte. De rode punten geven de huidige steekproefgrootte en foutenmarge weer. De rode lijnen illustreren de omgekeerd evenredige relatie tussen de foutenmarge en de vierkantswortel van de steekproefgrootte; de foutenmarge halveert wanneer de steekgroef 4 keer groter is.
+
+```{r foutenmargeVsN, fig.cap = "(ref:foutenmargeVsN)"}
+library( tidyverse)
+n2018 <- 50:1000
+foutenmarge2018 <- 34*1/(sqrt(n2018/112))
+n2019 <- 50:1000
+foutenmarge2019 <- 39*1/(sqrt(n2019/113))
+df <- rbind(cbind(n2018, foutenmarge2018, rep(2018, length(n2018))),
+            cbind(n2019, foutenmarge2019, rep(2019, length(n2019)))) %>% 
+  as.data.frame() %>%
+  mutate(V3 = as.factor(V3))
+colnames(df) <- c('n', 'foutenmarge', 'jaar')
+ggplot() + geom_line(data = df, aes(x = n, y = foutenmarge, color = jaar)) + 
+  geom_point(aes(x=c(112, 113), y=c(34,39)), color = 'red') + 
+  geom_segment(aes(x = 112, xend = 112*4, y = 34, yend = 34), 
+               arrow = arrow(length = unit(0.5, "cm")), 
+               color = "red", lty = 'dashed') +
+  geom_segment(aes(x = 112*4, xend = 112*4, y = 34, yend = 34/2), 
+               arrow = arrow(length = unit(0.5, "cm")), 
+               color = "red", lty = 'dashed') +
+  geom_text(aes(x = 250, y = 36,  label = "*4"), color = "red") + 
+  geom_text(aes(x = 117*4, y = 25,  label = "/ 2"), color = "red") + 
+  theme_bw() + 
+  xlab('Aantal stalen (n)') +
+  ylab('Foutenmarge (%)') +
+  xlim(0,1001) + ylim(0,60)
+```
 
 Indien we per saliniteitszone naar de betrouwbaarheidsintervallen kijken, zien we uiteraard een minder gunstig beeld (want kleinere steekproefgrootte).
 In dat geval vinden we relatieve foutenmarges tussen 46% en 157%.

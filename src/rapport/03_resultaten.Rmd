@@ -1322,7 +1322,7 @@ benthos_afdw_ps_zonder_survey %>%
 
 ## Alternatief meetnetontwerp
 
-### Allocatie van totale steekproefgrootte over strata
+### Allocatie van totale steekproefgrootte over strata {#allocatie-strata}
 
 We gebruiken elk jaar apart om de varianties te schatten en gebruiken hiervoor enkel de spatial survey.
 Om een variantie of standaarddeviatie goed in te schatten zijn zeer veel data nodig, er is dan ook een grote onzekerheid op deze varianties die we hier echter niet in rekening brengen.
@@ -1373,7 +1373,7 @@ benthos_design %>%
                      decimals = 0)
 ```
 
-### Afweging meer locaties versus nauwkeuriger bemonsteren
+### Afweging meer locaties versus nauwkeuriger bemonsteren {#bemonsteringsinspanning}
 
 Om de afweging te maken tussen meer locaties bemonsteren versus per locatie een hogere bemonsteringsinspanning te doen, hebben we informatie nodig over de kosten geassocieerd met de selectie van de locaties, de bemonstering ter plaatse en de naverwerking in het labo.
 Daarnaast hebben we ook informatie nodig die toelaat om de totale variantie op te splitsen in variantie die het gevolg is van het trekken van een steekproef en variantie die het gevolg is van ter plaatse een bemonstering uit te voeren en de naverwerking in het labo.

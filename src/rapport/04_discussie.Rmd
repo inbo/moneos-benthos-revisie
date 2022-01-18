@@ -21,7 +21,6 @@ Een andere optie is om de besluitvorming niet te baseren op één jaar gegevens,
 (ref:foutenmargeVsN) Foutenmarge als functie van de steekproefgrootte. De rode punten geven de huidige steekproefgrootte en foutenmarge weer. De rode lijnen illustreren de omgekeerd evenredige relatie tussen de foutenmarge en de vierkantswortel van de steekproefgrootte; de foutenmarge halveert wanneer de steekgroef 4 keer groter is.
 
 ```{r foutenmargeVsN, fig.cap = "(ref:foutenmargeVsN)"}
-library( tidyverse)
 n2018 <- 50:1000
 foutenmarge2018 <- 34*1/(sqrt(n2018/112))
 n2019 <- 50:1000
@@ -114,3 +113,20 @@ Mogelijke alternatieven:
 -   in dat geval niet werken met stratificatie volgens ecotoop, maar hoogteligging gebruiken om de richting van transecten te bepalen: enkel volgens toenemende hoogte
 -   techniek is echter uitgewerkt voor transecten met vaste lengte, maar de lengte van de raaien en de breedte van de intertidale zone is variabel
 -   de inclusiekansen verhogen evenredig met een maat voor het ecologisch potentieel, maar dan hebben we dus opnieuw onafhankelijke gegevens (kaarten, ...) nodig die dit aangeven.
+
+## Implementatie nieuw steekproefontwerp
+
+De implementatie van een nieuw steekproefontwerp vraagt niet alleen een inspanning van de veldwerkers en de data-gebruikers, het kan ook de vergelijkbaarheid van de nieuwe data met de oude in het gedrang brengen.
+Indien trends over de tijd geanalyseerd worden, is het belangrijk om voorzichtig om te springen met data die niet volgens hetzelfde protocol verzameld werd.
+
+Indien men, zoals eerder gesuggereerd, zou overwegen om het hard substraat minder of niet meer te bemonsteren, is het belangrijk om te weten wat de echte bijdrage van deze zone is aan de biomassa MZB.
+Het is aangeraden om binnen hard substraat minstens één jaar het protocol stikter toe te passen en een random punt met breuksteen niet te verleggen naar een plaats nabij waar er toch wat slik ligt.
+In de jaren nadien bekomt men de biomassa MZB in hard substraat door de oppervlakte hard substraat te vermenigvuldigen met de geschatte biomassa MZB per oppervlaktemaat (bekomen uit een striktere toepassing van de staalnames in hard substraat).
+
+Indien er drastische wijzigingen aan de staalnames en/of de methoden in het labo worden doorgevoerd, plant men best een overgangsjaar waar de oude en nieuwe methode naast elkaar gebruikt worden.
+Hiermee kan het effect van de nieuwwe methoden ingeschat worden en kan historische data gecorrigeerd worden om vergelijkbaar te zijn met toekomstige data.
+Voorbeelden van zulke drastische wijzigingen zijn het gebruik van mengstalen, een verandering van het volume van de stalen, of het zeven van de stalen op de staalnamelocatie.
+
+De huidige berekening van de totale biomassa MZB komt overeen met het gemiddelde uit de Horvitz-Thompson type schatters.
+Deze methode heeft, praktisch gezien, dan ook een streepje voor op de andere schatters aangezien de historische data vergeleken kan worden met nieuwe berekeningen (inclusief schatting van de variantie).
+Indien één van de andere schatters verkozen zou worden boven de Horvitz-Thompson schatter, is het aangeraden om, indien mogelijk, de schatters toe te passen op historische data om consistentie in tijdsreeksen te vrijwaren.

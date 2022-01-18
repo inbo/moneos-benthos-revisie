@@ -13,7 +13,7 @@ Op niveau van het volledige systeem komen de breedtes van de betrouwbaarheidsint
 Het gaat om een relatieve foutenmarge tussen 34% en 39% (halve breedte van het betrouwbaarheidsinterval gedeeld door de locatieschatter).
 Dit is een aanvaardbare foutenmarge om de vergelijking te maken met de doelstelling van 30 ton.
 Er is een omgekeerd evenredig verband tussen de vierkantswortel van de steekproefgrootte ($n$) en de foutenmarge (foutenmarge $\propto \frac{1}{\sqrt{n}}$).
-Dat wil zeggen dat de een vergroting van de steekproefgrootte pas een substantieel effect zal hebben bij een heel sterke toename van de steekproefgrootte (x 4 geeft een halvering van de foutenmarge, zie Figuur \@ref(fig:foutenmargeVsN)).
+Dat wil zeggen dat een vergroting van de steekproefgrootte pas een substantieel effect zal hebben bij een heel sterke toename van de steekproefgrootte (x 4 geeft een halvering van de foutenmarge, zie Figuur \@ref(fig:foutenmargeVsN)).
 Om de onzekerheid te verkleinen kan men daarom beter over andere opties nadenken.
 Eén van deze opties is bijvoorbeeld om de kans op nulwaarnemingen (geen MZB) te verkleinen door de hoeveelheid staal per locatie te vergroten - eventueel via een mengstaal.
 Een andere optie is om de besluitvorming niet te baseren op één jaar gegevens, maar te werken met een lopend gemiddelde van de afgelopen twee of drie jaar.
@@ -22,28 +22,28 @@ Een andere optie is om de besluitvorming niet te baseren op één jaar gegevens,
 
 ```{r foutenmargeVsN, fig.cap = "(ref:foutenmargeVsN)"}
 n2018 <- 50:1000
-foutenmarge2018 <- 34*1/(sqrt(n2018/112))
+foutenmarge2018 <- 34 * 1 / (sqrt(n2018 / 112))
 n2019 <- 50:1000
-foutenmarge2019 <- 39*1/(sqrt(n2019/113))
+foutenmarge2019 <- 39 * 1 / (sqrt(n2019 / 113))
 df <- rbind(cbind(n2018, foutenmarge2018, rep(2018, length(n2018))),
             cbind(n2019, foutenmarge2019, rep(2019, length(n2019)))) %>% 
   as.data.frame() %>%
   mutate(V3 = as.factor(V3))
 colnames(df) <- c('n', 'foutenmarge', 'jaar')
 ggplot() + geom_line(data = df, aes(x = n, y = foutenmarge, color = jaar)) + 
-  geom_point(aes(x=c(112, 113), y=c(34,39)), color = 'red') + 
-  geom_segment(aes(x = 112, xend = 112*4, y = 34, yend = 34), 
+  geom_point(aes(x = c(112, 113), y = c(34,39)), color = "red") + 
+  geom_segment(aes(x = 112, xend = 112 * 4, y = 34, yend = 34), 
                arrow = arrow(length = unit(0.5, "cm")), 
-               color = "red", lty = 'dashed') +
-  geom_segment(aes(x = 112*4, xend = 112*4, y = 34, yend = 34/2), 
+               color = "red", lty = "dashed") +
+  geom_segment(aes(x = 112 * 4, xend = 112 * 4, y = 34, yend = 34 / 2), 
                arrow = arrow(length = unit(0.5, "cm")), 
-               color = "red", lty = 'dashed') +
-  geom_text(aes(x = 250, y = 36,  label = "*4"), color = "red") + 
-  geom_text(aes(x = 117*4, y = 25,  label = "/ 2"), color = "red") + 
+               color = "red", lty = "dashed") +
+  geom_text(aes(x = 250, y = 36,  label = "* 4"), color = "red") + 
+  geom_text(aes(x = 117 * 4, y = 25,  label = "/ 2"), color = "red") + 
   theme_bw() + 
   xlab('Aantal stalen (n)') +
   ylab('Foutenmarge (%)') +
-  xlim(0,1001) + ylim(0,60)
+  xlim(0, 1001) + ylim(0, 60)
 ```
 
 Indien we per saliniteitszone naar de betrouwbaarheidsintervallen kijken, zien we uiteraard een minder gunstig beeld (want kleinere steekproefgrootte).
@@ -120,8 +120,8 @@ De implementatie van een nieuw steekproefontwerp vraagt niet alleen een inspanni
 Indien trends over de tijd geanalyseerd worden, is het belangrijk om voorzichtig om te springen met data die niet volgens hetzelfde protocol verzameld werd.
 
 Indien men, zoals eerder gesuggereerd, zou overwegen om het hard substraat minder of niet meer te bemonsteren, is het belangrijk om te weten wat de echte bijdrage van deze zone is aan de biomassa MZB.
-Het is aangeraden om binnen hard substraat minstens één jaar het protocol stikter toe te passen en een random punt met breuksteen niet te verleggen naar een plaats nabij waar er toch wat slik ligt.
-In de jaren nadien bekomt men de biomassa MZB in hard substraat door de oppervlakte hard substraat te vermenigvuldigen met de geschatte biomassa MZB per oppervlaktemaat (bekomen uit een striktere toepassing van de staalnames in hard substraat).
+Het is aangeraden om binnen hard substraat minstens één jaar het protocol strikter toe te passen en een random punt met breuksteen niet te verleggen naar een plaats nabij waar er toch wat slik ligt.
+In de jaren nadien bekomt men de biomassa MZB in hard substraat door de oppervlakte hard substraat te vermenigvuldigen met de geschatte biomassa MZB per oppervlaktemaat (bekomen uit een striktere toepassing van de staalnames in hard substraat). De oppervlakte hard substraat kan jaar na jaar veranderen maar men zou dezelfde schatting van biomassa MZB per oppervlaktemaat blijven hanteren. Indien de biomassa MZB van hard substraat verwaarloosbaar wordt geacht, kan men ook beslissen om het hard substraat volledig buiten beschouwing te laten.
 
 Indien er drastische wijzigingen aan de staalnames en/of de methoden in het labo worden doorgevoerd, plant men best een overgangsjaar waar de oude en nieuwe methode naast elkaar gebruikt worden.
 Hiermee kan het effect van de nieuwwe methoden ingeschat worden en kan historische data gecorrigeerd worden om vergelijkbaar te zijn met toekomstige data.

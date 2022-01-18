@@ -217,10 +217,10 @@ Tabel \@ref(tab:strata-fysiotopen) toont de indeling volgens fysiotopen (tweede 
 
 ```{r strata-fysiotopen}
 strata_fysiotopen <- data.frame(
-      getijdenzone = c("intertidaal hoog",
+      getijdenzone = c("intertidaal",
                        "intertidaal", "intertidaal", "subtidaal", "subtidaal",
                        "subtidaal"),
-         Fysiotoop = c("intertidaal",
+         Fysiotoop = c("hoog intertidaal",
                        "midden intertidaal", "laag intertidaal",
                        "ondiep subtidaal",
                        "matig diep subtidaal", "diep subtidaal"),
@@ -241,6 +241,8 @@ Voor de kleinste arealen, Dijle en Zenne, komt men toe met respectievelijk 3 en 
 Dit komt neer op 150 locaties die jaarlijks bemonsterd worden en 115 locaties driejaarlijks.
 Dit is het theoretisch vooropgestelde aantal locaties volgens @speybroeck2014.
 In de praktijk zien we dat er een iets hoger aantal locaties bemonsterd worden (Tabel \@ref(tab:spatial-steekproefgrootte)).
+Dit komt doordat het MZB (biomassa/densiteit) in tijarmen sterk afwijkt van in de Zeeschelde zelf.
+Dat wordt apart bemonsterd en gaat mogelijk leiden tot definitie van apart type fysiotoop.
 
 (ref:spatial-steekproefgrootte) Gerealiseerde steekproefgroottes per stratumcombinatie op basis van enkel de spatial survey gegevens.
 
@@ -261,7 +263,8 @@ benthos_afdw_zs_durme_rupel %>%
 Merk op dat de subtidale locaties niet nodig zijn voor de berekening waarbij een vergelijking nodig is met de streefwaarde van 30 ton biomassa.
 Het gaat om iets minder dan de helft van het aantal locaties de spatial surveys (tabel \@ref(tab:spatial-steekproefgrootte)).
 
-Alle stalen worden genomen in de tweede en derde week van september.
+Alle stalen worden genomen tussen de eerste week van september en de eerste week van oktober.
+In principe kan, als alles goed gaat, de staalname op 2-3 weken tijd uitgevoerd worden.
 Er zijn geen replica's binnen eenzelfde locatie.
 
 ### Bemonsteringsprotocol
@@ -275,7 +278,7 @@ De bemonsterde oppervlakte en volume (bij 15 cm diepte) per locatie bedraagt dus
 
 ### Procedure berekening van analysevariabelen
 
-De stalen worden gefixeerd (dood de aanwezige organismen) en pas daarna nat gezeefd over maaswijdtes van 0,5 en 1 mm.
+De stalen worden gefixeerd (doodt de aanwezige organismen) en pas daarna nat gezeefd over maaswijdtes van 0,5 en 1 mm.
 Op de fractie \< 0,5 mm heeft men dus geen zicht, maar dit leidt slechts tot een beperkte onderschatting van de biomassa van 7,7% (+/- 2,7% standaardfout) volgens @speybroeck2014.
 
 Alle individuen worden gedetermineerd tot op het laagste taxonomische niveau, behalve de oligochaeten die als één taxon worden beschouwd (om de drie jaar is er wel een apart staal waarop oligochaeten worden gedetermineerd).
@@ -365,9 +368,9 @@ kosten <- bind_rows(kosten_veldwerk, kosten_niet_veldwerk) %>%
 
 ## Raaien
 
-Sinds 2018 werden vaste raaien jaarlijks bemonstert (170 punten), bovenop de 228 random stalen voor jaarlijkse rapportage.
+Sinds 2018 werden vaste raaien jaarlijks bemonsterd (170 punten), bovenop de 228 random stalen voor jaarlijkse rapportage.
 Het gaat om 35 raaien (transecten) in de intertidale zone (dus niet in het subtidaal).
-Dus gemiddeld worden een `r round(170/35)` locaties per raai bemonsterd.
+Dus gemiddeld worden er `r round(170/35)` locaties per raai bemonsterd.
 
 ```{r benthos-afdw-raai}
 benthos_afdw_zs_durme_rupel %>%
@@ -383,6 +386,8 @@ benthos_afdw_zs_durme_rupel %>%
 
 De ligging van de raaien is gekozen in functie van het ecologisch belang en dekking van het systeem.
 Ze zijn voornamelijk gelegd in de ecologisch interessantste gebieden met een intakte slibplaat (veel delen van de Schelde zijn verstevigd met breuksteen, bv ongeveer volledig westerschelde IV, wat een veel minder geschikt substraat is voor MZB).
+Raaien zijn gebruikt om beter ecologische relaties te kunnen onderzoeken.
+Ze zijn een betere basis voor onderzoek dan random punten die niet herbezocht worden.
 
 (ref:raai-steekproefgrootte) Gerealiseerde steekproefgroottes per stratumcombinatie op basis van enkel de raaigegevens.
 

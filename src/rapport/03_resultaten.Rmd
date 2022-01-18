@@ -846,6 +846,33 @@ mrp_raai %>%
 
 Indien we de Horvitz-Thompson en MRP methode toepassen op enkel de gegevens van de raaien, bekomen we duidelijk andere cijfers dan die bekomen via de gestratificeerde steekproef (zie tabellen \@ref(tab:schattingen-raai-overzichtstabel) en \@ref(tab:schattingen-raai-overzichtstabel-salzone)).
 Vooral in 2019 ligt de schatting veel hoger vergeleken met de gestratificeerde steekproef.
+De punten langs de raaien zijn vrij gelijk verdeeld over de hoogtegradiënt.
+Bij de spatial survey hangt dit af van toevalligheden veroorzaakt door de jaarlijkse randomisatie.
+Mogelijk zou dit kunnen verklaren waarom in 2019 in de spatial survey er een lagere biomassa bekomen wordt indien in 2019 toevallig ook de punten lager langs de hoogtegradiënt liggen.
+Er is immers een toename van de biomassa met de hoogte (vooral langs de hoogtegradiënt in de lage en middelhoge intertidale zone is dit te zien; zie ook sectie \@ref(biomassa-hoogte-relatie)) [@braeckel2020].
+Als we figuur \@ref(fig:hoogteligging-survey) bekijken, blijkt dit beperkt het geval te zijn in het Oligohalien en de zone met sterke saliniteitsgradiënt.
+In de zone zoet met lange verblijftijd zien we echter het omgekeerde.
+Het lijkt dus eerder onwaarschijnlijk dat alleen verschillen in hoogte tussen de jaren het grote verschil in biomassa tussen raai en survey in 2019 verklaren.
+
+(ref:hoogteligging-survey) Boxplots van de hoogteligging van de bemonsterde locaties in beide jaren en voor beide survey-types.
+
+```{r hoogteligging-survey, fig.cap = "(ref:hoogteligging-survey)"}
+datahs <- benthos_afdw_zs_durme_rupel %>%
+  st_drop_geometry() %>%
+  filter(
+    tidaal == "intertidaal",
+    Z >= 0)
+
+datahs %>%
+  ggplot() + 
+  geom_boxplot(aes(x = survey, y = Z, fill = jaar),
+               alpha = 0.3) +
+  geom_point(aes(x = survey, y = Z, colour = jaar),
+              alpha = 0.3,
+              position = position_dodge(width = 0.75)) +
+  labs(y = "Hoogteligging boven laagwater 30 in m") +
+  facet_wrap(~SalZone)
+```
 
 De berekeningen voor de raaien op basis van Horvitz-Thompson schatters zijn echter fout om minstens twee redenen: (1) de doelpopulatie is verschillend, en (2) we gebruiken design-based inferentie terwijl het geen probabilistische steekproef betreft.
 Wellicht zijn dit sterk vertekende schattingen (overschatting vermits vooral in beste gebieden).
@@ -1476,7 +1503,7 @@ for (i in seq_len(length(raster_ecotoop))) {
 
 ```
 
-## Varia
+## Biomassa - hoogte {#biomassa-hoogte-relatie}
 
 Er lijkt een piek te zijn in de biomassa bij gemiddelde hoogte in het intertidaal.
 Dit is zowel in de spatial survey als de raai-survey te zien (Figuur \@ref(fig:biomassa-hoogte)).

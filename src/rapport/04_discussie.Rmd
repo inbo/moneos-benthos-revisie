@@ -12,7 +12,42 @@ Door de random gestratificeerde steekproef zal het betrouwbaarheidsinterval met 
 Op niveau van het volledige systeem komen de breedtes van de betrouwbaarheidsintervallen vrij goed overeen tussen de verschillende methodes.
 Het gaat om een relatieve foutenmarge tussen 34% en 39% (halve breedte van het betrouwbaarheidsinterval gedeeld door de locatieschatter).
 Dit is een aanvaardbare foutenmarge om de vergelijking te maken met de doelstelling van 30 ton.
+
+Er is een omgekeerd evenredig verband tussen de vierkantswortel van de steekproefgrootte ($n$) en de foutenmarge (foutenmarge $\propto \frac{1}{\sqrt{n}}$).
+Dat wil zeggen dat een vergroting van de steekproefgrootte pas een substantieel effect zal hebben bij een heel sterke toename van de steekproefgrootte (x 4 geeft een halvering van de foutenmarge, zie Figuur \@ref(fig:foutenmargeVsN)).
+Om de onzekerheid te verkleinen kan men daarom beter over andere opties nadenken.
+Eén van deze opties is bijvoorbeeld om de kans op nulwaarnemingen (geen MZB) te verkleinen door de hoeveelheid staal per locatie te vergroten - eventueel via een mengstaal.
+Een andere optie is om de besluitvorming niet te baseren op één jaar gegevens, maar te werken met een lopend gemiddelde van de afgelopen twee of drie jaar.
 De steekproefgrootte vergroten zal pas een substantieel effect hebben bij een heel sterke toename van de steekproefgrootte (x 4 geeft een halvering van de foutenmarge).
+
+
+(ref:foutenmargeVsN) Foutenmarge als functie van de steekproefgrootte. De rode punten geven de huidige steekproefgrootte en foutenmarge weer. De rode lijnen illustreren de omgekeerd evenredige relatie tussen de foutenmarge en de vierkantswortel van de steekproefgrootte; de foutenmarge halveert wanneer de steekgroef 4 keer groter is.
+
+```{r foutenmargeVsN, fig.cap = "(ref:foutenmargeVsN)"}
+n2018 <- 50:1000
+foutenmarge2018 <- 34 * 1 / (sqrt(n2018 / 112))
+n2019 <- 50:1000
+foutenmarge2019 <- 39 * 1 / (sqrt(n2019 / 113))
+df <- rbind(cbind(n2018, foutenmarge2018, rep(2018, length(n2018))),
+            cbind(n2019, foutenmarge2019, rep(2019, length(n2019)))) %>% 
+  as.data.frame() %>%
+  mutate(V3 = as.factor(V3))
+colnames(df) <- c('n', 'foutenmarge', 'jaar')
+ggplot() + geom_line(data = df, aes(x = n, y = foutenmarge, color = jaar)) + 
+  geom_point(aes(x = c(112, 113), y = c(34,39)), color = "red") + 
+  geom_segment(aes(x = 112, xend = 112 * 4, y = 34, yend = 34), 
+               arrow = arrow(length = unit(0.5, "cm")), 
+               color = "red", lty = "dashed") +
+  geom_segment(aes(x = 112 * 4, xend = 112 * 4, y = 34, yend = 34 / 2), 
+               arrow = arrow(length = unit(0.5, "cm")), 
+               color = "red", lty = "dashed") +
+  geom_text(aes(x = 250, y = 36,  label = "* 4"), color = "red") + 
+  geom_text(aes(x = 117 * 4, y = 25,  label = "/ 2"), color = "red") + 
+  theme_bw() + 
+  xlab('Aantal stalen (n)') +
+  ylab('Foutenmarge (%)') +
+  xlim(0, 1001) + ylim(0, 60)
+```
 
 Indien we per saliniteitszone naar de betrouwbaarheidsintervallen kijken, zien we uiteraard een minder gunstig beeld (want kleinere steekproefgrootte).
 In dat geval vinden we relatieve foutenmarges tussen 46% en 157%.
@@ -163,5 +198,25 @@ We kunnen dan als volgt de trekking uitvoeren:
 -   Een geschikte raailengte bepalen en tussenafstand tussen locaties binnen een raai (indien dit afhankelijk is van KRW zone, kan de hele procedure apart worden uitgevoerd per KRW zone).
 
 -   De (variabele) inclusiekansen berekenen op basis van een verrasterde kaart(en) met de informatie die de inclusiekansen beïnvloedt (KRW zone, ecologische potentie).
-
+-   in dat geval niet werken met stratificatie volgens ecotoop, maar hoogteligging gebruiken om de richting van transecten te bepalen: enkel volgens toenemende hoogte
+-   techniek is echter uitgewerkt voor transecten met vaste lengte, maar de lengte van de raaien en de breedte van de intertidale zone is variabel
+-   de inclusiekansen verhogen evenredig met een maat voor het ecologisch potentieel, maar dan hebben we dus opnieuw onafhankelijke gegevens (kaarten, ...) nodig die dit aangeven.
 -   De trekking van raaien uitvoeren (deze methode leent zich meer tot permanente opvolging van dezelfde set van raaien/locaties, alhoewel gelijkaardige schema's zoals hierboven geschetst hier ook mogelijk zijn)
+
+## Implementatie nieuw steekproefontwerp
+
+De implementatie van een nieuw steekproefontwerp vraagt niet alleen een inspanning van de veldwerkers en de data-gebruikers, het kan ook de vergelijkbaarheid van de nieuwe data met de oude in het gedrang brengen.
+Indien trends over de tijd geanalyseerd worden, is het belangrijk om voorzichtig om te springen met data die niet volgens hetzelfde protocol verzameld werd.
+
+Indien men, zoals eerder gesuggereerd, zou overwegen om het hard substraat minder of niet meer te bemonsteren, is het belangrijk om te weten wat de echte bijdrage van deze zone is aan de biomassa MZB.
+Het is aangeraden om binnen hard substraat minstens één jaar het protocol strikter toe te passen en een random punt met breuksteen niet te verleggen naar een plaats nabij waar er toch wat slik ligt.
+In de jaren nadien bekomt men de biomassa MZB in hard substraat door de oppervlakte hard substraat te vermenigvuldigen met de geschatte biomassa MZB per oppervlaktemaat (bekomen uit een striktere toepassing van de staalnames in hard substraat). De oppervlakte hard substraat kan jaar na jaar veranderen maar men zou dezelfde schatting van biomassa MZB per oppervlaktemaat blijven hanteren. Indien de biomassa MZB van hard substraat verwaarloosbaar wordt geacht, kan men ook beslissen om het hard substraat volledig buiten beschouwing te laten.
+
+Indien er drastische wijzigingen aan de staalnames en/of de methoden in het labo worden doorgevoerd, plant men best een overgangsjaar waar de oude en nieuwe methode naast elkaar gebruikt worden.
+Hiermee kan het effect van de nieuwwe methoden ingeschat worden en kan historische data gecorrigeerd worden om vergelijkbaar te zijn met toekomstige data.
+Voorbeelden van zulke drastische wijzigingen zijn het gebruik van mengstalen, een verandering van het volume van de stalen, of het zeven van de stalen op de staalnamelocatie.
+
+De huidige berekening van de totale biomassa MZB komt overeen met het gemiddelde uit de Horvitz-Thompson type schatters.
+Deze methode heeft, praktisch gezien, dan ook een streepje voor op de andere schatters aangezien de historische data vergeleken kan worden met nieuwe berekeningen (inclusief schatting van de variantie).
+Indien één van de andere schatters verkozen zou worden boven de Horvitz-Thompson schatter, is het aangeraden om, indien mogelijk, de schatters toe te passen op historische data om consistentie in tijdsreeksen te vrijwaren.
+

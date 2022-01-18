@@ -24,7 +24,7 @@ benthos_design %>%
     na.rm = TRUE,
     vartype = "ci",
     level = 0.95)) %>%
-  mutate(methode = "Horvitz-Thompson") -> svytotal_jaar
+  mutate(methode = "H-T") -> svytotal_jaar
 ```
 
 ```{r svytotal-salzone}
@@ -40,7 +40,7 @@ benthos_design %>%
           na.rm = TRUE,
           vartype = "ci",
           level = 0.95)) %>%
-  mutate(methode = "Horvitz-Thompson") -> svytotal_salzone
+  mutate(methode = "H-T") -> svytotal_salzone
 ```
 
 ```{r svymle, eval=FALSE}
@@ -246,7 +246,7 @@ hg_summary %>%
   mutate(across(where(is.double) & !.width,
          ~ .x / opp_per_staal_m2 * totopp / 1e6),
          totopp_km2 = totopp / 1e6,
-         methode = "hg_replicated") %>%
+         methode = "RW-J") %>%
     inner_join(n_samples, by = "jaar") %>%
   rename(mzb_tonnage = value,
          mzb_tonnage_low = .lower,
@@ -312,7 +312,7 @@ hg_salzone_summary %>%
   inner_join(jointable_salzone, by = c("jaar", "SalZone")) %>%
   mutate(across(where(is.double) & !.width & !totopp,
          ~ .x / opp_per_staal_m2 * totopp / 1e6),
-         methode = "hg_replicated",
+         methode = "RW-J",
          totopp_km2 = totopp / 1e6) %>%
   select(-totopp) %>%
   rename(mzb_tonnage = epred,
@@ -506,7 +506,7 @@ Dit type van schatters is betrouwbaar op voorwaarde dat de steekproef voldoende 
 Wellicht is aan beide voorwaarden onvoldoende voldaan en dit komt nog beter tot uiting bij de subtotalen per saliniteitszone waar het interval soms negatieve waarden omvat (Tabel \@ref(tab:schattingen-overzichtstabel-salzone)).
 De twee andere methoden stemmen beter overeen.
 Beide methoden maken gebruik van een hurdle-gamma assumptie voor de verdeling van de biomassagegevens, maar ze verschillen sterk in de manier waarop rekening wordt gehouden met het steekproefontwerp.
-In het `hg_replicated` geval wordt de onzekerheid op de schatting volledig bepaald door Jackknife-herhalingen.
+In het `RW-J` geval wordt de onzekerheid op de schatting volledig bepaald door Jackknife-herhalingen.
 In het model zelf zitten dan geen designvariabelen (enkel de factor jaar of jaar en saliniteitszone waar we een schatting voor willen).
 Bij de MRP methode zitten de designvariabelen wel bij in het model (als random effecten).
 De MRP schattingen lijken systematisch iets hoger te liggen dan de schattingen gebaseerd op de Jackknife herhalingen.
@@ -528,7 +528,7 @@ bind_rows(svytotal_jaar, hg_replicated_jaar, mrp_spatial_jaar) %>%
 
 De drie methoden verschillen in de conclusies die getrokken kunnen worden wanneer de betrouwbaarheidsintervallen vergelijken met de doelstelling van 30 ton MZB (Figuur \@ref(fig:plot-jaar)).
 Volgens de MRP methode is er in beide jaren een hoger tonnage dan minimaal vooropgesteld wordt.
-Volgens de hg_replicated methode is dat enkel in 2019 het geval en volgens de Horvitz-Thompson schatter is het in geen van beide jaren het geval.
+Volgens de RW-J methode is dat enkel in 2019 het geval en volgens de Horvitz-Thompson schatter is het in geen van beide jaren het geval.
 
 (ref:plot-jaar) Vergelijking van de geschatte betrouwbaarheidsintervallen volgens de drie methoden met de doelstelling voor biomassa MZB in het volledige systeem.
 
@@ -615,7 +615,7 @@ benthos_raai_design %>%
       vartype = "ci",
       level = 0.95),
     .groups = "drop") %>%
-  mutate(methode = "Horvitz-Thompson") -> svytotal_raai_jaar
+  mutate(methode = "H-T") -> svytotal_raai_jaar
 ```
 
 ```{r svytotal-raai-salzone}
@@ -631,7 +631,7 @@ benthos_raai_design %>%
       vartype = "ci",
       level = 0.95),
     .groups = "drop_last") %>%
-  mutate(methode = "Horvitz-Thompson") -> svytotal_raai_salzone
+  mutate(methode = "H-T") -> svytotal_raai_salzone
 ```
 
 ```{r mrp-raai-model}
@@ -663,6 +663,7 @@ benthos_afdw_raai %>%
 ```
 
 ```{r mrp-raai-clusters-model, eval=FALSE}
+# toevoegen van random effect staalcode en staal geeft zeer brede BI's
 benthos_afdw_raai %>%
   rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
   st_drop_geometry() %>%
@@ -694,9 +695,47 @@ benthos_afdw_raai %>%
   ) -> mrp_raai_clusters
 
 mrp_raai_clusters
+
+# proberen met enkel effect van locatie (staal)
+benthos_afdw_raai %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  st_drop_geometry() %>%
+  brm(bf(
+    tot_afdw ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+    + (1 | staal),
+    hu ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+    + (1 | staal)
+    ),
+  family = hurdle_gamma(),
+  data = .,
+  silent = 2,
+  cores = 4,
+  control = list(adapt_delta = 0.95),
+  backend = "cmdstanr",
+  file = find_root_file("src/rapport/brms_models/mrp_raai_gepaard",
+                        criterion = is_git_root),
+  file_refit = "on_change"
+  ) -> mrp_raai_gepaard
+
+mrp_raai_gepaard
 ```
 
 ```{r mrp-raai-clusters-jaar, eval=FALSE}
+# vermoedelijk is onderstaande berekening niet juist.
+# staalcode en staal wordt hier impliciet op NA gezet
+# maar de effecten van staalcode en staal moeten gemarginaliseerd worden
+# en dat vereist integratie over de random effecten
+# kan wellicht met 
+# https://cran.r-project.org/web/packages/brmsmargins/index.html
+
 poststrat_raai <- benthos_afdw_poststrat %>%
   filter(survey == "raai")
 
@@ -723,6 +762,30 @@ mrp_raai_clusters %>%
              by = "jaar"
              ) %>%
   mutate(methode = "MRP") -> mrp_raai_clusters_jaar
+
+mrp_raai_gepaard %>%
+  add_epred_draws(newdata = poststrat_raai,
+                  allow_new_levels = TRUE) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(jaar) %>%
+  filter(.epred < quantile(.epred, 0.999)) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(poststrat_raai %>%
+               group_by(jaar) %>%
+               summarize(n = sum(n),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6),
+             by = "jaar"
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raai_gepaard_jaar
 ```
 
 ```{r mrp-raai-jaar}
@@ -1259,18 +1322,22 @@ benthos_afdw_ps_zonder_survey %>%
 
 ## Alternatief meetnetontwerp
 
-### Allocatie van totale steekproefgrootte over strata
+### Allocatie van totale steekproefgrootte over strata {#allocatie-strata}
 
-We gebruiken beide jaren gecombineerd om de varianties te schatten en gebruiken hiervoor enkel de spatial survey.
-Om een variantie of standaarddeviatie goed in te schatten zijn zeer veel data nodig, daarom is het beter om de beide jaren te combineren - alhoewel dit ook jaar tot jaar variatie bevat.
+We gebruiken elk jaar apart om de varianties te schatten en gebruiken hiervoor enkel de spatial survey.
+Om een variantie of standaarddeviatie goed in te schatten zijn zeer veel data nodig, er is dan ook een grote onzekerheid op deze varianties die we hier echter niet in rekening brengen.
 
 Tabel \@ref(tab:allocatie) geeft het resultaat van de formule voor optimale allocatie van de steekproef over de strata waarbij rekening wordt gehouden met de oppervlakte van elk stratum, de standaarddeviatie en de kosten.
 Er is geen merkbaar verschil tussen raai en spatial survey omdat het beperkte effect van de kosten (raai 0.75 versus spatial 1.25 relatieve kosten) teniet wordt gedaan door de grotere relatieve effecten van de stratumgrootte en -heterogeniteit.
-Volgens deze resultaten zou ruim de helft van de locaties in Zeeschelde IV vallen.
-Deze formule voor allocatie is echter alleen kostenoptimaal voor de schatting van de totale draagkracht van het intertidale systeem.
+Volgens deze resultaten zien we vrij stabiele allocatiepercentages in Zeeschelde I, II en III.
+Er zijn echter grote verschillen tussen Getijdedurme en Zeeschelde IV. In 2018 zouden we 30% alloceren naar Getijdedurme en 40% naar Zeeschelde IV, terwijl in 2019 dit respectievelijk 10% en 60% is.
+Ook binnen de KRW zones waar er globaal een gelijkaardige allocatie is, kunnen er voor individuele ecotopen toch behoorlijke verschillen zijn (bv. Zeeschelde I, lage slikzone).
+Deze grote verschillen kunnen zowel te maken hebben met de grote onzekerheid die zit op de berekening van de ruimtelijke (stratum) varianties als met grote verschillen in jaar-tot-jaar stratum-varianties (o.a. door de dynamiek veroorzaakt door baggerwerken).
+Dit toont aan dat het moeilijk is om de formule in de praktijk te gebruiken omdat we op voorhand nooit zeker zullen zijn van de stratum-varianties in een bepaald jaar.
+Bovendien is de formule alleen kostenoptimaal voor de schatting van de totale draagkracht van het intertidale systeem.
 Aangezien er ook uitspraken gevraagd worden per saliniteitszone, is een overbemonstering van sommige van deze zones ten opzichte van deze allocatie zeker verantwoord.
 
-(ref:allocatie) Allocatie van de steekproefgrootte. Kolommen spatial en raai tonen het resultaat van de allocatieformule uitgedrukt als een relatief percentage. De kolom n_locaties toont het resultaat als we deze allocatie toepassen op een totale steekproefgrootte van 150, maar een minimum steekproefgrootte per stratum van 3 vereisen.
+(ref:allocatie) Allocatie van de steekproefgrootte. Kolommen spatial en raai tonen het resultaat van de allocatieformule uitgedrukt als een relatief percentage in een bepaald jaar.
 
 ```{r allocatie}
 kost <- werklast %>%
@@ -1281,69 +1348,78 @@ kost <- werklast %>%
   
 
 benthos_design %>%
-  group_by(KRWzone, ecotoop_werkelijk.benthos) %>%
+  group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
   summarize(sigma = survey_sd(x = tot_afdw / opp_per_staal_m2),
             stratum_opp_m2 = mean(stratum_opp_m2)) %>%
   expand_grid(kost) %>%
-  group_by(campagne) %>%
+  group_by(jaar, campagne) %>%
   mutate(allocatie = stratum_opp_m2 * sigma / sqrt(relkost_per_staal),
          allocatie = allocatie / sum(allocatie) * 100) %>%
-  select(campagne, KRWzone,
+  select(jaar, campagne, KRWzone,
          ecotoop = ecotoop_werkelijk.benthos,
          allocatie) %>%
-  pivot_wider(names_from = campagne, values_from = allocatie) %>%
-  mutate(n_locaties = pmax(3, round(spatial / 100 * 150))) %>%
+  pivot_wider(names_from = c(jaar, campagne),
+              values_from = c(allocatie)) %>%
   gt(groupname_col = "KRWzone",
      caption = "(ref:allocatie)") %>%
   fmt_number(columns = where(is.double),
              decimals = 1) %>%
   summary_rows(groups = TRUE,
-               columns = c(raai, spatial),
-               fns = list(totaal = ~sum(.)),
+               columns = contains(c("raai", "spatial")),
+               fns = list(Totaal = ~sum(.)),
                decimals = 1) %>%
-  fmt_number(columns = c(n_locaties),
-             decimals = 0) %>%
-  summary_rows(groups = TRUE,
-               columns = c(n_locaties),
-               fns = list(totaal = ~sum(.)),
-               decimals = 0) %>%
-  grand_summary_rows(columns = c(spatial, raai, n_locaties),
-                     fns = list(totaal = ~sum(.)),
+  grand_summary_rows(columns = contains(c("raai", "spatial")),
+                     fns = list(Eindtotaal = ~sum(.)),
                      decimals = 0)
 ```
 
-### Afweging meer locaties versus nauwkeuriger bemonsteren
+### Afweging meer locaties versus nauwkeuriger bemonsteren {#bemonsteringsinspanning}
 
-Om de afweging te maken tussen meer locaties bemonsteren versus per locatie een hogere bemonsteringsinspanning te doen, hebben we informatie nodig over de kosten geassocieerd met de selectie van de locaties en met de bemonstering ter plaatse (inclusief naverwerking in het labo).
-Daarnaast hebben we ook informatie nodig die toelaat om de totale variantie op te splitsen in variantie die het gevolg is van het trekken van een steekproef en variantie die het gevolg is van ter plaatse een bemonstering uit te voeren die echter niet foutloos is.
+Om de afweging te maken tussen meer locaties bemonsteren versus per locatie een hogere bemonsteringsinspanning te doen, hebben we informatie nodig over de kosten geassocieerd met de selectie van de locaties, de bemonstering ter plaatse en de naverwerking in het labo.
+Daarnaast hebben we ook informatie nodig die toelaat om de totale variantie op te splitsen in variantie die het gevolg is van het trekken van een steekproef en variantie die het gevolg is van ter plaatse een bemonstering uit te voeren en de naverwerking in het labo.
 We hebben echter geen informatie die toelaat om deze opdeling in variantiecomponenten te maken.
 
-Tabel \@ref(tab:kosten-selectie-bemonstering) toont dat voor de raaien de bemonsteringskost `r round((0.8 + 5.2) / (1 + 0.3), 1)` maal hoger is dan de selectiekost.
-Voor de spatial survey is de bemonsteringskost `r round((1.2 + 5.2) / (1.7 + 0.3), 1)` maal hoger dan de selectiekost.
+Tabel \@ref(tab:kosten-selectie-bemonstering) toont dat voor de raaien de bemonsteringskost `r round(0.8 / 7.2 * 100)`% bedraagt, de selectiekost `r round(1.2 / 7.2 * 100)`% bedraagt en de labokost `r round(5.2 / 7.2 * 100)`% bedraagt.
+Voor de spatial survey is dit respectievelijk `r round(1.2 / 8.4 * 100)`%, `r round(2.0 / 8.4 * 100)`% en `r round(5.2 / 8.4 * 100)`%.
 In deze berekening zitten echter alleen de kostenposten die kunnen uitgedrukt worden in gewerkte uren.
-Zaken zoals materiaalkosten zijn niet inbegrepen en dragen bij aan zowel de bemonsteringskost (labomaterialen, ...) als de selectiekost (verplaatsingskosten).
+Zaken zoals materiaalkosten zijn niet inbegrepen en dragen bij aan zowel de bemonsteringskost (staalnamemateriaal, bewaarmiddel, ...), labokosten (labomaterialen, ...) als de selectiekost (verplaatsingskosten, GPS, ...).
 Wanneer dit variabele kosten betreft, moeten deze worden toegevoegd om tot een betere inschatting van de verhouding tussen bemonsteringskost en selectiekost te komen.
 Vaste kosten zijn niet van belang voor de optimalisatie van de bemonstering.
 
-(ref:kosten-selectie-bemonstering) Overzicht van bemonsteringskosten en selectiekosten (uitgedrukt in uren per staal).
+(ref:kosten-selectie-bemonstering) Overzicht van bemonsteringskosten, labokosten en selectiekosten (uitgedrukt in uren per staal; dus exclusief verbruikskosten).
 
 ```{r kosten-selectie-bemonstering}
+a <- kosten %>%
+  filter(!str_detect(kostenpost, "subtidaal"),
+         taakgroep %in% c("voorbereiding", "labowerk"))
+
+a <- a %>%
+  mutate(survey = "raai") %>%
+  bind_rows(a %>% 
+              mutate(survey = "spatial"))
+
+
 kosten %>%
-  filter(!str_detect(kostenpost, "subtidaal")) %>%
-  mutate(type_veldwerk = case_when(
-    taakgroep == "veldwerk_raai" ~ "raai",
-    taakgroep == "veldwerk_spatial" ~ "spatial",
-    TRUE ~ "beide"
-  )) %>%
-  pivot_wider(names_from = type_veldwerk,
+  filter(!str_detect(kostenpost, "subtidaal"),
+         !(taakgroep %in% c("voorbereiding", "labowerk"))) %>%
+  mutate(survey = ifelse(taakgroep == "veldwerk_raai",
+                                "raai", "spatial"),
+         taakgroep = ifelse(str_detect(taakgroep, "veldwerk"),
+                            "veldwerk", taakgroep)) %>%
+  bind_rows(a) %>%
+  pivot_wider(names_from = survey,
               values_from = uren_per_staal_gelogd) %>%
+  mutate(kostenallocatie = ifelse(taakgroep == "labowerk",
+                                  "labokosten",
+                                  kostenallocatie)) %>%
+  select(-taakgroep) %>%
   group_by(kostenallocatie) %>%
   gt(caption = "(ref:kosten-selectie-bemonstering)") %>%
   fmt_number(columns = where(is.double), decimals = 1) %>%
   fmt_missing(columns = everything()) %>%
   summary_rows(groups = TRUE,
                columns = where(is.double),
-               fns = list(totaal = ~sum(., na.rm = TRUE)),
+               fns = list(Totaal = ~sum(., na.rm = TRUE)),
                decimals = 1)
 ```
 

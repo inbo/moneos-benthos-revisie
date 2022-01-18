@@ -230,6 +230,13 @@
       "Repository": "CRAN",
       "Hash": "0a8b771b1b255fc55f271ae49e671afc"
     },
+    "bayestestR": {
+      "Package": "bayestestR",
+      "Version": "0.11.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "a1ac15e988cbeea3524f1f371ad13964"
+    },
     "bit": {
       "Package": "bit",
       "Version": "4.0.4",
@@ -439,6 +446,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "36b67b5adf57b292923f5659f5f0c853"
+    },
+    "datawizard": {
+      "Package": "datawizard",
+      "Version": "0.2.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "51cddcd82ae4a7eb7795d073d325df5f"
     },
     "dbplyr": {
       "Package": "dbplyr",
@@ -796,6 +810,13 @@
       "Repository": "CRAN",
       "Hash": "1deaf1de3eac7e1d3377954b3a283652"
     },
+    "insight": {
+      "Package": "insight",
+      "Version": "0.15.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "c114a97acd6ee93c14b22512fa1ed3c5"
+    },
     "isoband": {
       "Package": "isoband",
       "Version": "0.2.5",
@@ -1070,6 +1091,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "b7a8772f77a852ec8fe678644fd5ba6e"
+    },
+    "performance": {
+      "Package": "performance",
+      "Version": "0.8.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "e83826fc69fe190eb5ef62012259541a"
     },
     "pillar": {
       "Package": "pillar",

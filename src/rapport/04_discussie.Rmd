@@ -12,11 +12,14 @@ Door de random gestratificeerde steekproef zal het betrouwbaarheidsinterval met 
 Op niveau van het volledige systeem komen de breedtes van de betrouwbaarheidsintervallen vrij goed overeen tussen de verschillende methodes.
 Het gaat om een relatieve foutenmarge tussen 34% en 39% (halve breedte van het betrouwbaarheidsinterval gedeeld door de locatieschatter).
 Dit is een aanvaardbare foutenmarge om de vergelijking te maken met de doelstelling van 30 ton.
+
 Er is een omgekeerd evenredig verband tussen de vierkantswortel van de steekproefgrootte ($n$) en de foutenmarge (foutenmarge $\propto \frac{1}{\sqrt{n}}$).
 Dat wil zeggen dat een vergroting van de steekproefgrootte pas een substantieel effect zal hebben bij een heel sterke toename van de steekproefgrootte (x 4 geeft een halvering van de foutenmarge, zie Figuur \@ref(fig:foutenmargeVsN)).
 Om de onzekerheid te verkleinen kan men daarom beter over andere opties nadenken.
 Eén van deze opties is bijvoorbeeld om de kans op nulwaarnemingen (geen MZB) te verkleinen door de hoeveelheid staal per locatie te vergroten - eventueel via een mengstaal.
 Een andere optie is om de besluitvorming niet te baseren op één jaar gegevens, maar te werken met een lopend gemiddelde van de afgelopen twee of drie jaar.
+De steekproefgrootte vergroten zal pas een substantieel effect hebben bij een heel sterke toename van de steekproefgrootte (x 4 geeft een halvering van de foutenmarge).
+
 
 (ref:foutenmargeVsN) Foutenmarge als functie van de steekproefgrootte. De rode punten geven de huidige steekproefgrootte en foutenmarge weer. De rode lijnen illustreren de omgekeerd evenredige relatie tussen de foutenmarge en de vierkantswortel van de steekproefgrootte; de foutenmarge halveert wanneer de steekgroef 4 keer groter is.
 
@@ -49,6 +52,45 @@ ggplot() + geom_line(data = df, aes(x = n, y = foutenmarge, color = jaar)) +
 Indien we per saliniteitszone naar de betrouwbaarheidsintervallen kijken, zien we uiteraard een minder gunstig beeld (want kleinere steekproefgrootte).
 In dat geval vinden we relatieve foutenmarges tussen 46% en 157%.
 
+Naast vergroten van de steekproefgrootte, zijn er ook andere opties om de precisie te vergroten.
+We bespreken eerst de allocatie van de steekproefgrootte over de strata, daarna wijzigen van de bemonsteringsinspanning en tot slot mogelijkheden in verband met de analyse van de data.
+
+Een eerste optie die we bekeken hebben was nagaan of er een betere allocatie van de steekproef over de verschillende strata mogelijk was (Sectie \@ref(allocatie-strata)).
+Hieruit bleek dat het verschil in veldwerkinspanning tussen de raaien en de spatial survey niet groot is ten opzichte van de effecten van variabiliteit en oppervlakte van elk stratum.
+Hierdoor was de allocatie voor aantal locaties over de verschillende strata dezelfde voor raaien en spatial.
+Belangrijker is echter dat er vrij grote verschillen in optimale allocatie tussen de jaren aan het licht kwamen die te maken hadden met zowel onzekerheid over de stratum-varianties als jaar-tot-jaar veranderingen in de stratum-varianties door dynamiek van onder andere slibruimingen.
+Het feit dat deze optimale allocaties van jaar tot jaar kunnen verschillen en dat we op voorhand niet weten hoe de dynamiek zal veranderen, maakt dat we niet 100% kunnen vertrouwen op deze "optimale" allocatie en ze in de praktijk niet bruikbaar is.
+We besluiten dan ook dat de huidige manier van alloceren best aangehouden wordt.
+
+Een tweede mogelijkheid is wijzigingen maken aan de verdeling van de inspanning tussen selectie, bemonstering en naverwerking van de stalen in het labo (Sectie \@ref(bemonsteringsinspanning)).
+We hebben echter maar gedeeltelijk zicht op de benodigde informatie (kosten en varianties) om hier volledig onderbouwde uitspraken over te doen.
+De kosten (weliswaar onvolledig) gaven aan dat de bemonsteringskost de kleinste fractie is van de kosten (10% à 15%), gevolgd door de selectiekost (15% à 25%).
+Het resterende en grootste deel zijn de labokosten waarbij de triage van de soorten het grootste aandeel inneemt (iets meer dan 50%).
+De triage en determinatie zijn strikt genomen niet noodzakelijk voor de biomassabepaling, maar wel voor andere doeleinden.
+Als we triage en determinatie buiten beschouwing laten, is de verdeling evenwichtiger (voor de spatial survey ruwweg 25% bemonstering, 45% selectie, 30% labowerk).
+In plaats van meer locaties te bemonsteren, is het misschien beter om meer inspanning ter plaatse te doen.
+Indien er een grotere bodemoppervlakte per locatie wordt bemonsterd, krijg je een soort smoother-effect: de schatter op die locatie is preciezer.
+Afhankelijk hoe je locatie definieert, zal dit $\sigma_P$ verkleinen ofwel $\sigma_B$ (het zijn een soort van communicerende vaten).
+Momenteel is locatie gedefinieerd als een oppervlakte van `r round(opp_per_staal_m2 * 1e4)` cm² met geassocieerde $\sigma_B = 0$ (we hebben de volledige oppervlakte van de locatie bemonsterd en er is dus geen variabiliteit over indien we oppervlakte bemonsterd beschouwen als de voornaamste bron van bemonsteringsinspanning).
+Stel dat we nog steeds één bodemstaal nemen maar een bodemboor gebruiken met dubbel zo grote diameter.
+De locatie wordt dan geherdefinieerd als een vier keer grotere oppervlakte van `r 4 * round(opp_per_staal_m2 * 1e4)` cm² en dit zal $\sigma_P$ verkleinen.
+Stel nu echter dat we een locatie expliciet definiëren als 1 m x 1 m.
+In dat geval leggen we $\sigma_P > 0$ vast.
+De beste inschatting van biomassa op deze locatie zullen we krijgen indien we de volledige oppervlakte afgraven, zeven, drogen en het asvrij drooggewicht bepalen ($\sigma_B = 0$).
+Dit vergt echter een te grote inspanning.
+Aan het andere uiteinde van het spectrum zit de huidige manier van werken waarbij één bodemstaal genomen wordt met oppervlakte `r round(opp_per_staal_m2 * 1e4)` cm².
+Dit zal een benadering geven van de biomassa binnen de locatie van 1 m x 1 m.
+Hoe goed deze benadering is zal er van afhangen hoe homogeen de biomassa lokaal verdeeld is ($\sigma_{B, S=1} > 0$).
+Een betere benadering kunnen we altijd bekomen door meerdere kleine bodemstalen te nemen binnen deze locatie ($S > 1$) en ze te poolen (een mengstaal maken; de substalen apart houden zou de kosten sterk opdrijven) ($\sigma_{B, S=1} > \sigma_{B, S>1} > 0$).
+Gegeven een definitie van locatie, kunnen we dus met twee variabelen spelen om een zo goed mogelijke kostenbatenbalans te krijgen voor de bemonsteringsinspanning per locatie: het aantal substalen en de oppervlakte per (sub)staal.
+Deze mogelijkheid kan haalbaar zijn indien de stalen op een andere manier verwerkt worden.
+Momenteel wordt het volledige bodemstaal bewaard door toevoeging van bewaarmiddel.
+Een alternatieve methode is om de stalen ter plaatse te zeven met Scheldewater in plaats van achteraf in het labo (mond. med. Frank Van de Meutter).
+
+Ook zonder aanpassingen aan het steekproefontwerp zijn er mogelijkheden om met deze relatief brede foutenmarges om te gaan.
+Indien bijvoorbeeld de besluitvorming niet op één jaar gegevens gebaseerd wordt, maar op basis van een lopend gemiddelde van de afgelopen twee of drie jaar.
+Daardoor kan er gerapporteerd worden op basis van meer gegevens en zal de foutenvlag kleiner zijn.
+
 ## Gebruik van raaien om totale MZB biomassa te schatten
 
 Kan een betrouwbare schatting van de totale MZB biomassa bekomen worden op basis van de raaien of (een deel van) de raaien aangevuld met random gestratificeerde steekproef?
@@ -61,8 +103,15 @@ De poststratificatie die we nu toepassen is enkel gebaseerd op de originele stra
 Dit betekent dat met enkel de raaien we veel kans hebben op een overschatting van de werkelijke biomassa in het systeem, omdat de raaien gelegen zijn in de best ontwikkelde zones terwijl we de steekproefschattingen aandikken met de volledige stratum-oppervlaktes (ongeacht of deze goed of slecht ontwikkeld zijn) om tot totalen te komen voor de volledige doelpopulatie.
 Aangezien er geen duidelijke ruimtelijke afbakening is van wat de ecologisch beste gebieden zijn, kunnen we deze ontbrekende informatie niet gebruiken om tot betere poststratificatie correcties te komen van de raaien.
 Wat er nodig is, is dus een gekende of gemodelleerde kaart of databron die een duidelijke relatie vertoont met "ecologisch beste gebieden".
-Dit kan bijvoorbeeld een geïnterpoleerde kaart zijn van abundanties van waadvogels die foerageren op het MZB.
-Zo'n kaart kan vervolgens ingedeeld worden in strata (lage, gemiddelde, hoge abundanties) en gebruikt worden in de poststratificatiestap samen met de andere stratificatievariabelen.
+Dit is echter een beetje een *Catch-22* probleem, want het zijn net de MZB gegevens die men dacht te gebruiken om te bepalen welke gebieden ecologisch best ontwikkeld zijn.
+Niettemin kan gewoon op basis van een aantal ecologische overwegingen een operationele definitie bepaald worden die via een GIS-analyse kan afgebakend worden (pers. med. Frank van De Meutter):
+
+-   ononderbroken intertidale zone (niet onderbroken door hard substraat)
+-   geen extreem steile gradiënt van laag naar hoge slikzone
+-   voldoende brede zone (exacte breedte te bepalen, mogelijk afhankelijk van Saliniteitszone)
+-   over een voldoende aaneengesloten lengte aanwezig (exacte lengte te bepalen, mogelijk afhankelijk van Saliniteitszone)
+
+Zo'n kaart kan vervolgens ingedeeld worden in strata (lage, gemiddelde, hoge potenties) en gebruikt worden in de poststratificatiestap samen met de andere stratificatievariabelen.
 Indien er onzekerheid geassocieerd is met zulke kaart, dient bovendien deze onzekerheid via foutenpropagatie mee doorgerekend te worden.
 Mogelijk kan dit toelaten om een meer getrouwe afspiegeling te maken van het aandeel biomassa bekomen via de raaien in de doelpopulatie.
 Los daarvan, zullen met enkel de raaien veel poststratificatiecellen leeg zijn of weinig data bevatten.
@@ -88,31 +137,71 @@ Men dient dan enkel te noteren dat het breuksteen is en geen staal van MZB genom
 
 Wat de overige slikzones betreft (laag, middelhoog en hoog), blijft het nodig om in elk van deze strata locaties te bemonsteren opdat een goed gemiddeld beeld kan bekomen worden voor de berekening van de draagkracht van de rivier.
 
-## Is een alternatief meetnetontwerp een optie?
+## Is een alternatieve steekproeftrekking een optie?
 
-Tot slot hebben we een mogelijkheid verkend die zou kunnen toelaten om enerzijds een representatief beeld te krijgen van de draagkracht van het systeem en anderzijds ook beter toelaat om vragen te beantwoorden die men beoogt met het systeem van raaien (zoals effecten van sedimenthoogteveranderingen op MZB biomassa en samenstelling).
+Tot slot bespreken we nog enkele mogelijkheden om de steekproeftrekking aan te passen op zo'n manier dat we enerzijds een representatief beeld kunnen krijgen van de draagkracht van het systeem en anderzijds toelaten om vragen te beantwoorden die men beoogt met het systeem van raaien (zoals effecten van sedimenthoogteveranderingen op MZB biomassa en samenstelling).
 
-Allocatie van de steekproefgrootte...
+```{r delta-z-afdw, eval=FALSE}
+benthos_raai_design %>%
+  group_by(ecotoop_werkelijk.benthos, SalZone, staal, staalcode) %>%
+  summarise(
+    delta_tot_afdw =
+      last(tot_afdw, order_by = jaar) - first(tot_afdw, order_by = jaar),
+    delta_z = 
+      last(Z, order_by = jaar) - first(Z, order_by = jaar)
+  ) %>%
+  ggplot() + 
+  geom_point(aes(x = delta_z, y = delta_tot_afdw)) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  facet_grid(ecotoop_werkelijk.benthos ~ SalZone)
+```
 
-Mogelijke alternatieven:
+We bespreken twee alternatieven: een eerste waarbij afzonderlijke locaties getrokken worden en een tweede waarbij locaties langsheen raaien getrokken worden.
+In beide gevallen gaan we uit van $n_j$ locaties die in een bepaald jaar $j$ opgevolgd worden, waarbij $n_j$ van dezelfde grootte-orde is als het huidig aantal locaties dat in het intertidaal van Zeeschelde, Rupel en Getijdedurme jaarlijks wordt opgevolgd in één van beide survey-types (dus ongeveer een 150 locaties).
 
-1.  Een ruimtelijk gebalanceerde trekking in elk stratum
+Voor een ruimtelijk gebalanceerde trekking van locaties in elk stratum, kunnen we als volgt werken:
 
--   jaarlijkse steekproefgrootte x 2 of x 3
+-   leg het steekproefkader vast (hard substraat eventueel weglaten)
 
--   trekking zodat punten in volgorde geselecteerd (technisch mogelijk met generalized random tessalation sampling (GRTS), balanced acceptance sampling (BAS), local pivotal method (LPM))
+-   definieer de strata op basis van KRW zone en ecotooptype, eventueel aangevuld met stratificatie volgens ecologische potentie (in termen van MZB).
+    Eventueel kan een hoger aandeel locaties toegewezen worden aan strata met hoger ecologisch potentieel.
+    Eventueel kan ecotooptype niet gebruikt worden als stratificatievariabele op voorwaarde dat dan hoogte naast ligging (x en y coördinaat) meegenomen wordt als één van de variabelen waarover een goede spreiding van de locaties bekomen moet worden.
 
-    -   bv 1/2 of 2/3 van de punten beschouwen als permanent vaste punten, overige als jaarlijks random
+-   bepaal de steekproefgrootte per stratum $n_jk$
 
-    -   of alle punten in de populatie een random volgnummer geven (master sample)
+-   trek een overmaat aan locaties ($n_{excess} >> n_{j}$) uit het gehele steekproefkader met behulp van een algoritme dat zorgt voor een ruimtelijk goede spreiding van de locaties en waarbij een volgorde wordt toegekend aan de locaties (rangnummers).
+    Elke subset van locaties geordend volgens deze volgorde is opnieuw ruimtelijk goed gespreid.
+    Technisch is dit mogelijk met generalized random tessalation sampling (GRTS), balanced acceptance sampling (BAS), of local pivotal method (LPM).
 
-        -   jaar 1: set a, b, c; jaar 2: set b, c, d; jaar 3: set c, d, e; etc. zodat in een willekeurig jaar een derde van de punten gedurende drie jaar wordt opgevolgd
+-   maak gebruik van de rangnummers om per stratum een deel locaties één of meerdere jaren of permanent op te volgen (het aantal jaren dat dezelfde locaties opgevolgd worden kan mogelijk gemotiveerd worden door de traagheid van het systeem na een verstoring zoals een slibruiming, i.e. hoeveel jaren duurt het na een slibruiming voor er zich terug een stabiel evenwicht instelt in de samenstelling en relatieve abundanties van de MZB gemeenschap) [@breidt1999a; @urquhart1999]:
 
-2.  Transectgebaseerde, ruimtelijk gebalanceerde aselecte trekking [@foster2020]:
+    -   **voorbeeld 1 (supplemented panel design)** jaar 1: set a en b; jaar 2: set a en c; jaar 3: set a en d; etc. zodat set a permanent wordt opgevolgd (bv de helft van $n_jk$) en de andere punten jaarlijks een nieuwe set zijn
 
+    -   **voorbeeld 2 (rotating panel design)** jaar 1: set a, b, c; jaar 2: set b, c, d; jaar 3: set c, d, e; etc. met elke set een derde van $n_jk$ locaties, zodat voor analyse voor een derde van de punten data van de afgelopen drie jaar beschikbaar is, voor een derde data van de afgelopen twee jaar en een derde enkel van het huidige jaar.
+        Deze strategie leent zich dan misschien best voor een rapportage op basis van een driejaarlijks lopend gemiddelde.
+
+Een alternatief opzet waarbij gewerkt wordt met enkel locaties langsheen raaien is ook mogelijk.
+Een strikt verschil met de huidige raai-aanpak, is dan wel dat deze raaien aselect getrokken zijn.
+Gelijkaardig aan bovenstaande aanpak, is een raai-gebaseerde, ruimtelijk gebalanceerde aselecte trekking ook mogelijk [zie @foster2020].
+De techniek die @foster2020 beschrijft veronderstelt echter raaien met een vaste lengte en locaties langsheen deze raaien op vaste afstanden van elkaar.
+Het is niet duidelijk in hoeverre de methode toelaat om deze veronderstelling los te laten.
+Bovendien werkt de aanpak niet met stratificatie, maar met variabele inclusiekansen.
+De twee zijn echter aan elkaar gelinkt: je kan een kaart met een bepaalde stratificatie en allocatie van aantal locaties per stratum omzetten naar een kaart met variabele inclusiekansen.
+Deze inclusiekansen worden berekend op niveau van een verrasterde kaart, dus voor elke rastercel (= mogelijke locatie om te bemonsteren) is er een inclusiekans.
+De methode gaat vervolgens op basis van informatie over de lengte en toegelaten richting van de raaien en een correctie voor randeffecten, geaggregeerde inclusiekansen berekenen voor de raaien zelf.
+We kunnen dan als volgt de trekking uitvoeren:
+
+-   Hoogteligging gebruiken om de richting van transecten te bepalen: enkel volgens toenemende hoogte (dit is dus een randvoorwaarde die je oplegt).
+    Door deze randvoorwaarde is het niet meer nodig om ecotoop te beschouwen bij de berekening van inclusiekansen.
+
+-   Een geschikte raailengte bepalen en tussenafstand tussen locaties binnen een raai (indien dit afhankelijk is van KRW zone, kan de hele procedure apart worden uitgevoerd per KRW zone).
+
+-   De (variabele) inclusiekansen berekenen op basis van een verrasterde kaart(en) met de informatie die de inclusiekansen beïnvloedt (KRW zone, ecologische potentie).
 -   in dat geval niet werken met stratificatie volgens ecotoop, maar hoogteligging gebruiken om de richting van transecten te bepalen: enkel volgens toenemende hoogte
 -   techniek is echter uitgewerkt voor transecten met vaste lengte, maar de lengte van de raaien en de breedte van de intertidale zone is variabel
 -   de inclusiekansen verhogen evenredig met een maat voor het ecologisch potentieel, maar dan hebben we dus opnieuw onafhankelijke gegevens (kaarten, ...) nodig die dit aangeven.
+-   De trekking van raaien uitvoeren (deze methode leent zich meer tot permanente opvolging van dezelfde set van raaien/locaties, alhoewel gelijkaardige schema's zoals hierboven geschetst hier ook mogelijk zijn)
 
 ## Implementatie nieuw steekproefontwerp
 
@@ -130,3 +219,4 @@ Voorbeelden van zulke drastische wijzigingen zijn het gebruik van mengstalen, ee
 De huidige berekening van de totale biomassa MZB komt overeen met het gemiddelde uit de Horvitz-Thompson type schatters.
 Deze methode heeft, praktisch gezien, dan ook een streepje voor op de andere schatters aangezien de historische data vergeleken kan worden met nieuwe berekeningen (inclusief schatting van de variantie).
 Indien één van de andere schatters verkozen zou worden boven de Horvitz-Thompson schatter, is het aangeraden om, indien mogelijk, de schatters toe te passen op historische data om consistentie in tijdsreeksen te vrijwaren.
+

@@ -390,7 +390,8 @@ Ze zijn voornamelijk gelegd in de ecologisch interessantste gebieden met een int
 benthos_afdw_raai %>%
   st_drop_geometry() %>%
   group_by(jaar, ecotoop_werkelijk.benthos, KRWzone, SalZone, stratum_n) %>%
-  summarize(n_raaien = n_distinct(staalcode)) %>%
+  summarize(n_raaien = n_distinct(staalcode),
+            .groups = "drop_last") %>%
   rename(n_locaties = stratum_n) %>%
   group_by(jaar) %>%
   gt(caption = "(ref:raai-steekproefgrootte)") %>%
@@ -457,6 +458,8 @@ De design-based schatters voor het totaal en variantie op het totaal van een ges
 $$\hat{y}_{hi} = \sum_{h=1}^H\frac{N_h}{n_h}\sum_{i=1}^{n_h}y_{hi}$$ en $$\hat{\sigma}^2_{\hat{y}} = \sum_{h=1}^H\hat{\sigma}^2_{\hat{y_h}} = \sum_{h=1}^H\frac{N^2_h}{n_h}\frac{1}{n_h-1}\sum_{i=1}^{n_h}(y_{hi}-\bar{y_h})^2$$
 
 waarbij $N_h$ de populatiegrootte van stratum $h$ is, $n_h$ de steekproefgrootte van stratum $h$ en $y_{hi}$ is de waarde van de responsvariabele op locatie $i$ in stratum $h$.
+Deze formules zijn de zogenaamde Horvitz-Thompson schatters voor een gestratificeerde steekproef [@horvitz1952].
+We zullen in de resultaten hiernaar verwijzen als 'H-T'.
 
 Op basis van deze formules kunnen vervolgens betrouwbaarheidsintervallen berekend worden.
 Hierbij maken we gebruik van de normale distributie omdat de distributie van de schattingen, die je zou bekomen als je telkens opnieuw een steekproef zou trekken, normaal verdeeld is volgens de centrale limietstelling.
@@ -465,18 +468,20 @@ Hier wordt aan voldaan voor een aselecte gestratificeerde steekproef op voorwaar
 Merk op dat bij deze methode het mogelijk is dat het betrouwbaarheidsinterval negatieve waarden bevat terwijl biomassa uiteraard nooit negatief kan zijn.
 Dit kan gebeuren wanneer de variabiliteit groot is en / of de steekproefgrootte klein.
 We zullen in de resultaten deze negatieve ondergrenzen tonen, maar in de praktijk mogen deze gelijkgesteld worden aan 0.
-Een manier om te vermijden dat de betrouwbaarheidsintervallen waarden kunnen bevatten die buiten het theoretische bereik van de beschouwde variabele liggen, is door te veronderstellen dat de data aan bepaalde statistische distributie volgen.
+We berekenen daarom ook een tweede design-based methode waarbij we vermijden dat de betrouwbaarheidsintervallen waarden kunnen bevatten die buiten het theoretische bereik van de beschouwde variabele liggen.
+Hiervoor veronderstellen we dat de data een bepaalde statistische distributie volgt.
 Voor continue waarden \>= 0 kunnen we een zogenaamde hurdle-gamma of hurdle-lognormale verdeling veronderstellen.
-De hurdle is nodig waarden gelijk aan 0, omdat de gamma verdeling of lognormale verdeling enkel voor strikt positieve continue waarden gedefinieerd is.
+De hurdle is nodig voor waarden gelijk aan 0, omdat de gamma verdeling of lognormale verdeling enkel voor strikt positieve continue waarden gedefinieerd is.
 Om deze verdelingen te fitten aan de data dient de 'likelihood' gemaximaliseerd te worden om puntschattingen te bekomen van de drie parameters (een parameter voor de kans op nul en twee parameters die het gemiddelde en de variantie van de Gamma of lognormale verdeling beschrijven).
 Klassiek doet men dit met software voor veralgemeende lineaire regressiemodellen.
 Om echter te garanderen dat de puntschattingen rekening houden met de steekproefgewichten (Engels: sampling weights; omgekeerde van de inclusiekansen), zijn er correcties nodig [@lumley2017; @lumley2004].
-Een manier om gecorrigeerde, design-based standaardfouten te schatten is door het hurdle-gamma model vele malen opnieuw te fitten met telkens iets andere gewichten.
+Een manier om gecorrigeerde, design-based standaardfouten te schatten is door het hurdle-gamma model vele malen opnieuw te fitten met telkens iets andere gewichten (replicated weights).
 Het `survey` package heeft functies om deze set van gewichten te berekenen - het algoritme dat we hiervoor gebruikt hebben is het Jackknife algoritme voor gestratificeerde steekproeven.
+We zullen in de resultaten daarom verwijzen naar deze methode als 'RW-J' (replicated weights - Jacknife methode).
 
 ### Multilevel regressie en poststratificatie
 
-Een alternatieve analysemethode waarmee uitspraken kunnen gedaan worden over de statistische doelpopulatie op basis van een aselecte steekproef is multilevel regressie gevolgd door poststratificatie (MRP)[@gelman2007; @gelman2007a; @si2020].
+Een alternatieve analysemethode waarmee uitspraken kunnen gedaan worden over de statistische doelpopulatie op basis van een aselecte steekproef is Multilevel Regressie gevolgd door Poststratificatie (in de resultaten verwijzen we hiernaar als 'MRP')[@gelman2007; @gelman2007a; @si2020].
 
 Bij deze aanpak, wordt eerst een multilevel regressie uitgevoerd waarbij de belangrijkste designvariabelen (strata, clustering, ...) als effecten aan het model worden toegevoegd.
 Er wordt dus niet gewerkt met steekproefgewichten.
@@ -491,7 +496,8 @@ Als design-variabelen voegen we random intercepten toe voor de ecotopen en KRW z
 We gebruiken in deze gevallen de modus (meest voorkomende/waarschijnlijke waarde) en een 95% (aaneengesloten) hoogste-densiteit interval om de posterior distributie samen te vatten.
 De modus laat een vergelijking toe met de design-based schatters.
 
-Voor de raaigegevens is het verleidelijk om ook de identiteit van de afzonderlijke raaien en de individuele locaties (genest in raaien) in de analyse te betrekken als een random intercepten.
+Voor de raaigegevens is het verleidelijk om ook de identiteit van de afzonderlijke raaien en de individuele locaties (genest in raaien) in de analyse te betrekken als random intercepten.
+Door dit te doen kan er rekening gehouden worden met de gepaardheid van de individuele locaties en met het geclusterd zijn van de locaties binnen een bepaalde raai.
 Wanneer we dit deden waren de schattingen echter erg onrealistisch en bekwamen we zeer brede betrouwbaarheidsintervallen.
 Wellicht is het model met deze extra parameters te complex en worden sommige parameters zeer onnauwkeurig ingeschat.
 

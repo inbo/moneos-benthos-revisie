@@ -532,10 +532,26 @@ $$
 
 Hierbij hebben we een oneindige populatie verondersteld bij de formule voor de steekproeffout.
 De steekproeffout neemt dus evenredig toe met de variabiliteit in de populatie ($\sigma^2_P$) en omgekeerd evenredig met de steekproefgrootte $n$.
+
+De variabiliteit in de populatie is een intrinsiek gegeven: het kan niet verkleind of vergroot worden éénmaal we het kenmerk dat we willen meten hebben vastgelegd.
+In ons geval is dit de biomassa MZB, $Y_i$ op een bepaalde locatie $i$.
+De definitie van wat we als locatie beschouwen is hierbij van belang.
+Het kenmerk zal van plaats tot plaats een andere waarde $Y_i$ hebben en deze intrinsieke (ruimtelijke) variabiliteit kunnen we berekenen via de formule voor een variantie:
+
+$$
+\frac{1}{N}\sum_{i=1}^N(Y_i - \mu)^2 \quad \textrm{met} \quad \mu = \frac{1}{N}\sum_{i=1}^NY_i
+$$
+
+De werkelijke biomassawaarde op een locatie $Y_i$ zal echter afwijken van wat we uiteindelijk meten: $Z_i$, maar het gemiddelde van de $Z_i$ op basis van $n$ aselect getrokken locaties kan nog wel beschouwd worden als een schatter voor $\mu$ (het werkelijke populatiegemiddelde).
+Bemerk dat we in bovenstaande formule alle elementen $N$ uit de populatie beschouwen.
+De formule geldt dus voor discreet telbare populaties.
+Voor een ruimtelijke continue populatie impliceert dit dat we de ruimte op één of andere manier moeten discretiseren en daar is een definitie voor nodig van wat we beschouwen als een locatie.
+Dit is een extra element dat $\sigma_P$ zal vastleggen.
+
 De bemonsteringsfout is omgekeerd evenredig met de bemonsteringsinspanning $S$ en de steekproefgrootte.
-De term $\sigma^2_B$ stelt de bemonsteringsfout voor bij een eenheid van de bemonsteringsinspanning ($S = 1$ & $n = 1$).
+De term $\sigma^2_B$ stelt de bemonsteringsfout voor bij een eenheid van de bemonsteringsinspanning ($S = 1$) op één locatie uit de $n$ mogelijke locaties van de steekproef.
 In het geval van MZB is de bemonsteringsinspanning onder andere bepaald door de bemonsterde oppervlakte per staal.
-De in het labo gemaakte meetfout $\sigma^2_LF$, hangt af van de keuzes die gemaakt worden bij de naverwerking van de stalen en de invloed daarvan op de herhaalbaarheid van een meting $\sigma^2_L$.
+De in het labo gemaakte meetfout $\sigma^2_{LF}$, hangt af van de keuzes die gemaakt worden bij de naverwerking van de stalen en de invloed daarvan op de herhaalbaarheid van een meting $\sigma^2_L$.
 De formules tonen dat het aantal staalnamelocaties $n$ verhogen een gunstig effect heeft op elk van de foutenbronnen.
 
 Voor een optimalisatie van de bemonstering, moeten we op een vergelijkbare manier ook de kosten geassocieerd met selectie, bemonstering en naverwerking van het staal in rekening brengen.

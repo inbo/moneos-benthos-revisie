@@ -62,15 +62,13 @@
     },
     "INBOmd": {
       "Package": "INBOmd",
-      "Version": "0.5.1",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "INBOmd",
-      "RemoteUsername": "inbo",
+      "Version": "0.5.2",
+      "Source": "Repository",
+      "Repository": "https://inbo.r-universe.dev",
+      "RemoteUrl": "https://github.com/inbo/inbomd",
       "RemoteRef": "HEAD",
-      "RemoteSha": "1ec1bd489781507a3841311731e32eb2b223ae92",
-      "Hash": "ac12cb638f35d8309bc3e0fba0bab660"
+      "RemoteSha": "45ed2faf51d282290175b72d38c194f09cffb7ca",
+      "Hash": "9c2646ccf809ab35cddcfbaf93918800"
     },
     "INBOtheme": {
       "Package": "INBOtheme",

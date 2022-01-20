@@ -1,21 +1,21 @@
 ---
 title: "Revisie van het MONEOS macrozoöbenthos meetnet"
 author: 
-  - firstname: Raïsa
-    name: Carmen
-    email: raisa.carmen@inbo.be
-    orcid: 0000-0003-1025-8702
   - firstname: Hans
     name: "Van Calster"
     email: hans.vancalster@inbo.be
     orcid: 0000-0001-8595-8426
+  - firstname: Raïsa
+    name: Carmen
+    email: raisa.carmen@inbo.be
+    orcid: 0000-0003-1025-8702
 style: INBO
 lang: nl
 lot: TRUE
 lof: TRUE
 
 #colofon
-shortauthor: "Carmen, R. & Van Calster, H."
+shortauthor: "Van Calster, H. & Carmen, R."
 corresponding: hans.vancalster@inbo.be
 reviewer:
   - firstname: Frank
@@ -32,6 +32,7 @@ cover_description:
 doi:
 reportnr:
 depotnr:
+embargo:
 
 bibliography: [moneos.bib]
 link-citations: TRUE
@@ -42,6 +43,7 @@ github-repo: inbo/moneos-benthos-revisie
 
 output:
   INBOmd::gitbook: default
+  INBOmd::report: default
 ---
 
 # Voorwoord {.unnumbered}

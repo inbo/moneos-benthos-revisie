@@ -188,7 +188,7 @@ benthos_design %>%
 # er zit zeker nog iets fout
 ```
 
-```{r replicate-weights}
+```{r replicate-weights, cache=TRUE}
 # using replicate weights on a hurdle-gamma regression
 benthos_design_repl <- as.svrepdesign(benthos_design)
 
@@ -253,7 +253,7 @@ hg_summary %>%
          mzb_tonnage_upp = .upper) -> hg_replicated_jaar
 ```
 
-```{r replicate-weights-salzone, warning=FALSE, message=FALSE}
+```{r replicate-weights-salzone, warning=FALSE, message=FALSE, cache=TRUE}
 hg_salzone <- withReplicates(
   design = benthos_design_repl,
   quote(glmmTMB(tot_afdw  ~ 0 + jaar:SalZone,
@@ -1452,7 +1452,7 @@ kosten %>%
 
 ### Steekproeftrekkingstrategieën
 
-```{r steekproef}
+```{r steekproef, cache=TRUE}
 # ook hard substraat weglaten in veronderstelling dat het weinig bijdraagt
 rast <- raster::raster(ecotoop, resolution = c(2, 2))
 strata <- ecotoop %>%

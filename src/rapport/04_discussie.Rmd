@@ -20,7 +20,6 @@ Eén van deze opties is bijvoorbeeld om de kans op nulwaarnemingen (geen MZB) te
 Een andere optie is om de besluitvorming niet te baseren op één jaar gegevens, maar te werken met een lopend gemiddelde van de afgelopen twee of drie jaar.
 De steekproefgrootte vergroten zal pas een substantieel effect hebben bij een heel sterke toename van de steekproefgrootte (x 4 geeft een halvering van de foutenmarge).
 
-
 (ref:foutenmargeVsN) Foutenmarge als functie van de steekproefgrootte. De rode punten geven de huidige steekproefgrootte en foutenmarge weer. De rode lijnen illustreren de omgekeerd evenredige relatie tussen de foutenmarge en de vierkantswortel van de steekproefgrootte; de foutenmarge halveert wanneer de steekgroef 4 keer groter is.
 
 ```{r foutenmargeVsN, fig.cap = "(ref:foutenmargeVsN)"}
@@ -70,7 +69,93 @@ De triage en determinatie zijn strikt genomen niet noodzakelijk voor de biomassa
 Als we triage en determinatie buiten beschouwing laten, is de verdeling evenwichtiger (voor de spatial survey ruwweg 25% bemonstering, 45% selectie, 30% labowerk).
 In plaats van meer locaties te bemonsteren, is het misschien beter om meer inspanning ter plaatse te doen.
 Indien er een grotere bodemoppervlakte per locatie wordt bemonsterd, krijg je een soort smoother-effect: de schatter op die locatie is preciezer.
-Afhankelijk hoe je locatie definieert, zal dit $\sigma_P$ verkleinen ofwel $\sigma_B$ (het zijn een soort van communicerende vaten).
+Afhankelijk hoe je locatie definieert, zal dit $\sigma_P$ (de intrinsieke ruimtelijke variabiliteit) verkleinen ofwel $\sigma_B$ (de variabiliteit bij één eenheid van bemonsteringsinspanning op een bepaalde locatie).
+Het zijn een soort van communicerende vaten (zie Figuur \@ref(fig:maup)).
+
+(ref:maup) Illustratie van effect van definitie van locatie op variantiecomponenten. De figuur links is een simulatie van een gebied waarbinnen een vleksgewijze verspreiding van MZB is (in feite voor te stellen als een zich in alle richtingen oneindig uitgestrekt gebied met gelijkaardig ruimtelijk patroon: vergelijk rode zone met ruimer gebied errond). De simulatie gaat uit van 30% bedekking van MZB (en dus biomassa als we veronderstellen dat de biomassa homogeen verdeeld is waar het voorkomt). De figuur rechts geeft de hiermee overeenkomende variantiecomponenten in functie van hoe groot we een locatie definiëren: populatievariantie (popvar), lokale variantie (locvar) en de som van beide (totvar). Bij de berekening is uitgegaan van een vierkant proefvlak als locatie.
+
+```{r maup, out.width="100%", cache=TRUE, fig.cap="(ref:maup)"}
+bedekking <- 0.3
+landschap <- genereer_landschap(bedekking_vector = bedekking, 
+                                verspreiding = "geclusterd",
+                                opp_ha = 122,
+                                mask = TRUE)
+# 122 ha om voldoende extra buffer rond centraal deel van 50 ha te hebben
+# om randeffecten te vermijden
+# met mask = TRUE krijgen we een binair rasterlandschap
+landschap <- landschap$geclusterd[[1]]
+
+# de functie focal laat toe om via een moving window w berekeningen te doen op
+# raster x
+# hier berekenen we het gemiddelde (via weighted sum) van de 1/0 data, 
+# dus dit is de proportie van een MZB in het window 
+# = de gemiddelde werkelijke biomassa (zonder meetfout)
+# (veronderstel biomassa in bodem overal homogeen waar MZB voorkomt)
+# het resultaat is een raster met de berekende waarde in elke focal cel
+# (centrum van window)
+# daarna berekenen we de standaarddeviatie op deze biomassa (dit is de
+# intrinsieke ruimtelijke populatievariantie)
+# voor de locale variantie bereken we het gemiddelde van de 
+# gekwadrateerde afwijkingen tov de locale gemiddelden
+maup <- function(X, nrow = 3, ncol = nrow) {
+  r1 <- raster::raster(as.matrix(X))
+  local_mean <- raster::focal(
+    x = r1, 
+    w = matrix(data = 1 / nrow^2, nrow = nrow, ncol = ncol),
+    fun = sum)
+  
+  local_var <- raster::focal(
+    x = (r1 - local_mean) ^ 2, 
+    w = matrix(data = 1 / nrow^2, nrow = nrow, ncol = ncol),
+    fun = sum)
+  
+  result <- data.frame(nrow = nrow,
+                       popvar = var(local_mean@data@values, na.rm = TRUE),
+                       locvar = mean(local_var@data@values, na.rm = TRUE))
+  return(result)
+}
+
+varianties_df <- data.frame(
+  odd_nrows = c(1, 3, 5, 7, 9, 11, 33, 51, 71, 99, 121, 149, 199)) %>%
+  group_by(odd_nrows) %>%
+  summarise(maup(X = landschap, nrow = odd_nrows)) %>%
+  mutate(totvar = popvar + locvar) %>%
+  pivot_longer(cols = c(popvar, locvar, totvar),
+               names_to = "variantiecomponent",
+               values_to = "waarde")
+
+
+p1 <- as.data.frame(landschap) %>%
+  ggplot(aes(x = x, y = y)) +
+  geom_raster() + 
+  coord_fixed() +
+  geom_polygon(
+    data = data.frame(
+      x = c(0, 0, 707, 707, 0) + 200,
+      y = c(0, 707, 707, 0, 0) + 200
+      ),
+    colour = "red",
+    alpha = 0)
+
+p2 <- varianties_df %>%
+  mutate(proefvlakgrootte = odd_nrows * odd_nrows) %>%
+  ggplot(aes(x = proefvlakgrootte / 1000,
+             y = waarde)) +
+  geom_line(aes(colour = variantiecomponent)) + 
+  geom_text(
+    data = data.frame(label = "limietgeval = 0.3 * (1 - 0.3) = 0.21",
+                      proefvlakgrootte = 0,
+                      waarde = 0.3 * (1 - 0.3)),
+    aes(label = label),
+    nudge_x = 15) +
+  scale_x_continuous("oppervlakte van locatie") + 
+  scale_y_continuous("variantie") +
+  theme(aspect.ratio = 1,
+        legend.position = c(0.5, 0.5))
+
+gridExtra::grid.arrange(p1, p2, nrow = 1)
+```
+
 Momenteel is locatie gedefinieerd als een oppervlakte van `r round(opp_per_staal_m2 * 1e4)` cm² met geassocieerde $\sigma_B = 0$ (we hebben de volledige oppervlakte van de locatie bemonsterd en er is dus geen variabiliteit over indien we oppervlakte bemonsterd beschouwen als de voornaamste bron van bemonsteringsinspanning).
 Stel dat we nog steeds één bodemstaal nemen maar een bodemboor gebruiken met dubbel zo grote diameter.
 De locatie wordt dan geherdefinieerd als een vier keer grotere oppervlakte van `r 4 * round(opp_per_staal_m2 * 1e4)` cm² en dit zal $\sigma_P$ verkleinen.
@@ -198,9 +283,13 @@ We kunnen dan als volgt de trekking uitvoeren:
 -   Een geschikte raailengte bepalen en tussenafstand tussen locaties binnen een raai (indien dit afhankelijk is van KRW zone, kan de hele procedure apart worden uitgevoerd per KRW zone).
 
 -   De (variabele) inclusiekansen berekenen op basis van een verrasterde kaart(en) met de informatie die de inclusiekansen beïnvloedt (KRW zone, ecologische potentie).
+
 -   in dat geval niet werken met stratificatie volgens ecotoop, maar hoogteligging gebruiken om de richting van transecten te bepalen: enkel volgens toenemende hoogte
+
 -   techniek is echter uitgewerkt voor transecten met vaste lengte, maar de lengte van de raaien en de breedte van de intertidale zone is variabel
+
 -   de inclusiekansen verhogen evenredig met een maat voor het ecologisch potentieel, maar dan hebben we dus opnieuw onafhankelijke gegevens (kaarten, ...) nodig die dit aangeven.
+
 -   De trekking van raaien uitvoeren (deze methode leent zich meer tot permanente opvolging van dezelfde set van raaien/locaties, alhoewel gelijkaardige schema's zoals hierboven geschetst hier ook mogelijk zijn)
 
 ## Implementatie nieuw steekproefontwerp
@@ -210,7 +299,9 @@ Indien trends over de tijd geanalyseerd worden, is het belangrijk om voorzichtig
 
 Indien men, zoals eerder gesuggereerd, zou overwegen om het hard substraat minder of niet meer te bemonsteren, is het belangrijk om te weten wat de echte bijdrage van deze zone is aan de biomassa MZB.
 Het is aangeraden om binnen hard substraat minstens één jaar het protocol strikter toe te passen en een random punt met breuksteen niet te verleggen naar een plaats nabij waar er toch wat slik ligt.
-In de jaren nadien bekomt men de biomassa MZB in hard substraat door de oppervlakte hard substraat te vermenigvuldigen met de geschatte biomassa MZB per oppervlaktemaat (bekomen uit een striktere toepassing van de staalnames in hard substraat). De oppervlakte hard substraat kan jaar na jaar veranderen maar men zou dezelfde schatting van biomassa MZB per oppervlaktemaat blijven hanteren. Indien de biomassa MZB van hard substraat verwaarloosbaar wordt geacht, kan men ook beslissen om het hard substraat volledig buiten beschouwing te laten.
+In de jaren nadien bekomt men de biomassa MZB in hard substraat door de oppervlakte hard substraat te vermenigvuldigen met de geschatte biomassa MZB per oppervlaktemaat (bekomen uit een striktere toepassing van de staalnames in hard substraat).
+De oppervlakte hard substraat kan jaar na jaar veranderen maar men zou dezelfde schatting van biomassa MZB per oppervlaktemaat blijven hanteren.
+Indien de biomassa MZB van hard substraat verwaarloosbaar wordt geacht, kan men ook beslissen om het hard substraat volledig buiten beschouwing te laten.
 
 Indien er drastische wijzigingen aan de staalnames en/of de methoden in het labo worden doorgevoerd, plant men best een overgangsjaar waar de oude en nieuwe methode naast elkaar gebruikt worden.
 Hiermee kan het effect van de nieuwwe methoden ingeschat worden en kan historische data gecorrigeerd worden om vergelijkbaar te zijn met toekomstige data.
@@ -219,4 +310,3 @@ Voorbeelden van zulke drastische wijzigingen zijn het gebruik van mengstalen, ee
 De huidige berekening van de totale biomassa MZB komt overeen met het gemiddelde uit de Horvitz-Thompson type schatters.
 Deze methode heeft, praktisch gezien, dan ook een streepje voor op de andere schatters aangezien de historische data vergeleken kan worden met nieuwe berekeningen (inclusief schatting van de variantie).
 Indien één van de andere schatters verkozen zou worden boven de Horvitz-Thompson schatter, is het aangeraden om, indien mogelijk, de schatters toe te passen op historische data om consistentie in tijdsreeksen te vrijwaren.
-

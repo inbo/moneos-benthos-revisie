@@ -62,13 +62,15 @@
     },
     "INBOmd": {
       "Package": "INBOmd",
-      "Version": "0.5.2",
-      "Source": "Repository",
-      "Repository": "https://inbo.r-universe.dev",
-      "RemoteUrl": "https://github.com/inbo/inbomd",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "45ed2faf51d282290175b72d38c194f09cffb7ca",
-      "Hash": "9c2646ccf809ab35cddcfbaf93918800"
+      "Version": "0.5.1",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "inbo",
+      "RemoteRepo": "INBOmd",
+      "RemoteRef": "v0.5.1",
+      "RemoteSha": "1ec1bd489781507a3841311731e32eb2b223ae92",
+      "Hash": "4aa172cb2274eb7cebe5b6a024b6dc8a"
     },
     "INBOtheme": {
       "Package": "INBOtheme",
@@ -459,6 +461,13 @@
       "Repository": "CRAN",
       "Hash": "1f37fa4ab2f5f7eded42f78b9a887182"
     },
+    "deldir": {
+      "Package": "deldir",
+      "Version": "1.0-6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "65a3d4e2a1619bb85ae0fb64628da972"
+    },
     "desc": {
       "Package": "desc",
       "Version": "1.4.0",
@@ -688,6 +697,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "5ccb956a6d09b4ca448094582f8c7571"
+    },
+    "goftest": {
+      "Package": "goftest",
+      "Version": "1.2-3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "dbe0201f91eeb15918dd3fbf01ee689a"
     },
     "googledrive": {
       "Package": "googledrive",
@@ -1132,6 +1148,13 @@
       "Repository": "CRAN",
       "Hash": "03b7076c234cb3331288919983326c55"
     },
+    "polyclip": {
+      "Package": "polyclip",
+      "Version": "1.10-0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "cb167f328b3ada4ec5cf67a7df4c900a"
+    },
     "posterior": {
       "Package": "posterior",
       "Version": "1.1.0",
@@ -1296,6 +1319,13 @@
       "Repository": "CRAN",
       "Hash": "320017b52d05a943981272b295750388"
     },
+    "rpart": {
+      "Package": "rpart",
+      "Version": "4.1-15",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "9787c1fcb680e655d062e7611cadf78e"
+    },
     "rprojroot": {
       "Package": "rprojroot",
       "Version": "2.0.2",
@@ -1436,6 +1466,55 @@
       "Repository": "CRAN",
       "Hash": "ce8613f4e8c84ef4da9eba65b874ebe9"
     },
+    "spatstat": {
+      "Package": "spatstat",
+      "Version": "2.3-0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "85d9cebb7c11985d162071330beadae9"
+    },
+    "spatstat.core": {
+      "Package": "spatstat.core",
+      "Version": "2.3-2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "c2fc9d97993b688cc4204aee5dc46c9b"
+    },
+    "spatstat.data": {
+      "Package": "spatstat.data",
+      "Version": "2.1-2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "e29a536a055f13b1734480a07c7307a8"
+    },
+    "spatstat.geom": {
+      "Package": "spatstat.geom",
+      "Version": "2.3-1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "52806b79940194a38843aafead234722"
+    },
+    "spatstat.linnet": {
+      "Package": "spatstat.linnet",
+      "Version": "2.3-1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "dc2528564659b2e051ffa5b365f787ab"
+    },
+    "spatstat.sparse": {
+      "Package": "spatstat.sparse",
+      "Version": "2.1-0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "66728f844c20c0a3a17f1f7ca62dcae6"
+    },
+    "spatstat.utils": {
+      "Package": "spatstat.utils",
+      "Version": "2.3-0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "814e4fc977efc125d8bc51ca7b49f866"
+    },
     "srvyr": {
       "Package": "srvyr",
       "Version": "1.1.0",
@@ -1498,6 +1577,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "5be9fcf8ef6763e8cb13ab009e273a1d"
+    },
+    "tensor": {
+      "Package": "tensor",
+      "Version": "1.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "25cfab6cf405c15bccf7e69ec39df090"
     },
     "tensorA": {
       "Package": "tensorA",

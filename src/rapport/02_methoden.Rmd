@@ -525,7 +525,7 @@ Dit model maakt duidelijk dat de totale waarnemingsfout ($\sigma^2_{TF}$) de som
 
 $$\begin{align*}
 \sigma^2_{SF} &= \frac{\sigma^2_P}{n}\\
-\sigma^2_{BF} &= \frac{\sigma^2_B}{nS}\\
+\sigma^2_{BF} &= \frac{\sigma^2_B}{nS}(1-f_B)\\
 \sigma^2_{LF} &= \frac{\sigma^2_L}{nS}
 \end{align*}
 $$

@@ -141,3 +141,66 @@ genereer_landschap <- function(
               random = ranp,
               regular = regp))
 }
+
+
+
+# de functie focal laat toe om via een moving window w berekeningen te doen op
+# raster x
+# hier berekenen we het gemiddelde (via weighted sum) van de 1/0 data, 
+# dus dit is de proportie van een MZB in het window 
+# = de gemiddelde werkelijke biomassa (zonder meetfout)
+# (veronderstel biomassa in bodem overal homogeen waar MZB voorkomt)
+# het resultaat is een raster met de berekende waarde in elke focal cel
+# (centrum van window)
+# daarna berekenen we de standaarddeviatie op deze biomassa (dit is de
+# intrinsieke ruimtelijke populatievariantie)
+# voor de locale variantie bereken we het gemiddelde van de 
+# gekwadrateerde afwijkingen tov de locale gemiddelden
+twostage <- function(
+  spatial_distribution, #spatstat owin object
+  m = 1L, #aantal subsamples (meetplaatsen binnen locatie) (aantal pixels)
+  nrow = 3L, #locatie is nrow x ncol pixels
+  ncol = nrow) {
+  
+  spdistr <- raster::raster(as.matrix(spatial_distribution))
+  
+  local_pop_mean <- raster::focal(
+    x = spdistr, 
+    w = matrix(data = 1 / (nrow * ncol), nrow = nrow, ncol = ncol),
+    fun = sum)
+  
+  # systematic subsamples inside a plot
+  pos1 <- floor(nrow * ncol / m / 2) + 1
+  if (m > 1) {
+    positions <- c(pos1, pos1 + cumsum(rep(pos1, m - 1)))
+  } else {
+    positions <- pos1
+  } 
+  
+  samplevec <- rep(0, nrow * ncol)
+  samplevec[positions] <- 1
+  stopifnot(all.equal(sum(samplevec), m))
+  
+  local_sample_mean <- raster::focal(
+    x = spdistr, 
+    w = matrix(data = samplevec,
+               nrow = nrow, ncol = ncol) / m,
+    fun = sum)
+  
+  local_var <- raster::focal(
+    x = (local_sample_mean - local_pop_mean) ^ 2, 
+    w = matrix(data = 1 / (nrow * ncol), nrow = nrow, ncol = ncol),
+    fun = sum)
+  
+  # eindige (locale) populatie correctiefactor toepassen
+  local_var <- local_var * (1 - m / (nrow * ncol))
+  
+  popvar <- var(local_pop_mean@data@values, na.rm = TRUE)
+  locvar <- mean(local_var@data@values, na.rm = TRUE)
+  
+  result <- data.frame(nrow = nrow,
+                       m = m,
+                       tussenvar = popvar,
+                       binnenvar = locvar)
+  return(result)
+}

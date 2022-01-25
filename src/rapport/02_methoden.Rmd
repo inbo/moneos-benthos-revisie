@@ -525,8 +525,8 @@ Dit model maakt duidelijk dat de totale waarnemingsfout ($\sigma^2_{TF}$) de som
 
 $$\begin{align*}
 \sigma^2_{SF} &= \frac{\sigma^2_P}{n}\\
-\sigma^2_{BF} &= \frac{\sigma^2_B}{nS}(1-f_B)\\
-\sigma^2_{LF} &= \frac{\sigma^2_L}{nS}
+\sigma^2_{BF} &= \frac{\sigma^2_B}{n}\\
+\sigma^2_{LF} &= \frac{\sigma^2_L}{n}
 \end{align*}
 $$
 
@@ -548,25 +548,38 @@ De formule geldt dus voor discreet telbare populaties.
 Voor een ruimtelijke continue populatie impliceert dit dat we de ruimte op één of andere manier moeten discretiseren en daar is een definitie voor nodig van wat we beschouwen als een locatie.
 Dit is een extra element dat $\sigma_P$ zal vastleggen.
 
-De bemonsteringsfout is omgekeerd evenredig met de bemonsteringsinspanning $S$ en de steekproefgrootte.
-De term $\sigma^2_B$ stelt de bemonsteringsfout voor bij een eenheid van de bemonsteringsinspanning ($S = 1$) op één locatie uit de $n$ mogelijke locaties van de steekproef.
-In het geval van MZB is de bemonsteringsinspanning onder andere bepaald door de bemonsterde oppervlakte per staal.
+Het feit dat we $Z_i$ observeren voor een locatie in plaats van de werkelijke waarde $Y_i$ voor die locatie wordt veroorzaakt door fouten die niets te maken hebben met het steekproefproces zelf.
+Het verschil is het gevolg van fouten die we maken op het terrein en in het labo en geeft aanleiding tot de bemonsteringsfout en de labofout.
+Een mogelijke fout op het terrein is bijvoorbeeld het gevolg van verschillen in bemonsterd bodemvolume ten opzichte van vooropgesteld bodemvolume.
+Een ander voorbeeld is onzekerheid op de plaatsbepaling van een locatie of het gericht verplaatsen van random geselecteerde locaties (introduceert non-sampling bias).
+De term $\sigma^2_B$ stelt de bemonsteringsfout voor bij herhaalde metingen (staalnames) op één locatie uit de $n$ mogelijke locaties van de steekproef.
+Hoe groot $\sigma^2_B$ is hangt af de precisie waarmee de plaats bepaald wordt en de stalen genomen worden.
 De in het labo gemaakte meetfout $\sigma^2_{LF}$, hangt af van de keuzes die gemaakt worden bij de naverwerking van de stalen en de invloed daarvan op de herhaalbaarheid van een meting $\sigma^2_L$.
 De formules tonen dat het aantal staalnamelocaties $n$ verhogen een gunstig effect heeft op elk van de foutenbronnen.
+Deze decompositie van variantiebronnen kan vergeleken worden met de kosten geassocieerd met selectie, bemonstering en naverwerking van het staal door een vereenvoudigd lineair kostenmodel te veronderstellen waarmee de totale kost $K_T$ kan berekend worden:
 
-Voor een optimalisatie van de bemonstering, moeten we op een vergelijkbare manier ook de kosten geassocieerd met selectie, bemonstering en naverwerking van het staal in rekening brengen.
-Wanneer we een vereenvoudigd lineair kostenmodel veronderstellen, dan kunnen we de totale kost $K_T$ berekenen als:
+$$K_T = n(K_P + K_B + K_L)$$.
 
-$$K_T = n(K_P + S(K_B + K_L))$$.
+In het huidige steekproefontwerp wordt op een puntlocatie (x, y coördinaat) een staal met gutsboor genomen van een bepaalde diameter.
+Soms kan het kostenefficiënt zijn om in twee stappen te werken: een locatie van een bepaalde oppervlakte selecteren (bv 1 m²) en vervolgens binnen deze locatie meerdere substalen te nemen die samen een schatting geven voor de volledige locatie.
+Op deze manier ontbinden we de steekproeffout in twee componenten: een variantiecomponent die de afwijking beschrijft van de geschatte locatiespecifieke totalen of gemiddelden ten opzichte van het globaal gemiddelde en een component die de gemiddelde afwijkingen binnen een locatie ten opzichte van locatie-specifieke totalen of gemiddelden beschrijft.
+Dit is een tweetrapssteekproef (two-stage sample) (subscript 1 = locatieniveau, subscript 2 = niveau substaal binnen locatie) [@cochran1977]:
 
-Hiervoor hebben we de kost geassocieerd met de selectie van één locatie $K_P$ nodig en met de bemonstering van één locatie $K_B$ en het geassocieerde labowerk $K_L$.
-Er kan aangetoond worden dat een optimale bemonsteringsinspanning $S_o$ en optimale steekproefgrootte $n_o$ bekomen wordt met volgende formules:
+$$\mathbf{Var}(\hat{Y})=\mathbf{Var_1}[\mathbf{E_2}(\hat{Y})]+\mathbf{E_1}[\mathbf{Var_2}(\hat{Y})]$$
 
-$$\begin{align*}
-S_o &= \frac{\sqrt{K_P}}{\sqrt{K_B + K_L}}\frac{\sigma_B + \sigma_L}{\sigma_P} \\
-n_o &= \frac{K_T}{K_P}f_P &\text{met  } f_p = \frac{\sqrt{K_P}\sigma_P}{\sqrt{K_P}\sigma_P + \sqrt{K_B + K_L}(\sigma_B + \sigma_L)}
-\end{align*}
-$$
+Een pilootstudie kan uitgevoerd worden om deze componenten in te schatten.
+Voor een deel zijn zulke gegevens al beschikbaar uit een MZB exclosure experiment.
+Eenmaal een kostenoptimale balans gevonden is tussen aantal locaties ($n$ uit $N$) en aantal substalen binnen een locatie ($m$ uit $M$) uit een pilootstudie, hoeven daarna de individuele substalen niet meer apart geanalyseerd te worden.
+Ze kunnen vanaf dan worden samengenomen in een mengstaal per locatie.
+
+@cochran1977 toont aan dat, wanneer we uitgaan van volgend kostenmodel:
+
+$$K_T = nK_1 + nmK_2$$ een optimaal aantal subsamples bekomen wordt indien:
+
+$$m_{opt} = \frac{S_2}{\sqrt{S^2_1 - S^2_2/M}}\frac{\sqrt{K_1}}{\sqrt{K_2}}$$
+
+De hiermee overeenkomende waarde voor een optimaal aantal locaties $n_{opt}$ kan vervolgens gevonden worden door ofwel de kostenvergelijking op te lossen, ofwel de variantievergelijking.
+Welke van de twee wordt gekozen is afhankelijk of men uitgaat van een totaal budget of van een vooropgestelde precisie die men wil halen.
 
 ### Gebruikte software en packages
 

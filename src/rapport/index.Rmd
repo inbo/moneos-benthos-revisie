@@ -113,6 +113,7 @@ library(tidybayes)
 library(glmmTMB)
 library(gt)
 library(terra)
+library(spatstat)
 ```
 
 ```{r renv-restore, eval = FALSE}

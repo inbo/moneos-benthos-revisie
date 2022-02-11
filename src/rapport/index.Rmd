@@ -64,6 +64,11 @@ Verplicht wanneer relevant.
 Insert a translation of the summary here.
 \eenglish
 
+```{r renv-restore, eval = FALSE}
+renv::restore()
+cmdstanr::install_cmdstan(version = "v2.28.0")
+```
+
 ```{r setup, include = FALSE}
 library(knitr)
 opts_chunk$set(
@@ -114,11 +119,6 @@ library(glmmTMB)
 library(gt)
 library(terra)
 library(spatstat)
-```
-
-```{r renv-restore, eval = FALSE}
-renv::restore()
-cmdstanr::install_cmdstan(version = "v2.28.0")
 ```
 
 ```{r packages, eval=FALSE}

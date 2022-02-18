@@ -70,7 +70,7 @@ Als we triage en determinatie buiten beschouwing laten, is de verdeling evenwich
 
 In plaats van meer locaties te bemonsteren, is het misschien beter om meer inspanning ter plaatse te doen.
 Indien er een grotere bodemoppervlakte per locatie wordt bemonsterd (door bijvoorbeeld een mengstaal te nemen), krijg je een soort smoother-effect: de schatter op die locatie is preciezer.
-Afhankelijk hoe groot je een locatie neemt $M$ en hoeveel subsamples $m$ je neemt per locatie, zal de steekproeffout wijzigen afhankelijk van de varianties tussen en binnen locaties (zie Figuur \@ref(fig:twostage)).
+Afhankelijk hoe groot je een locatie neemt $M$ en hoeveel subsamples $m$ je neemt per locatie, zal de steekproeffout wijzigen afhankelijk van de varianties tussen en binnen locaties (zie Figuur \@ref(fig:twostage) en \@ref(fig:sample-variances)).
 De schatter van variantie op het totaal kan als volgt berekend worden (geval self-weighting design, i.e. constante sample fracties en bovendien ook constante M en m):
 
 $$\hat{\sigma}^2_{\hat{y}} = \frac{N^2}{n}(1-f_1)\hat{s}^2_{1y} + \frac{N^2}{n}\frac{\bar{M}^2}{\bar{m}}(1-f_2)\bar{\hat{s}^2_{2y}}$$
@@ -88,7 +88,7 @@ f_2 &= \frac{m}{M}\\
 \bar{y} &= \frac{1}{n}\frac{1}{m}\sum_{i=1}^n\sum_{j=1}^my_{ij}
 \end{align*}$$
 
-(ref:twostage) Illustratie van effect van grootte van locatie en aantal substalen op variantiecomponenten. De figuur links is een simulatie van een gebied waarbinnen een vleksgewijze verspreiding van MZB is (in feite voor te stellen als een zich in alle richtingen oneindig uitgestrekt gebied met gelijkaardig ruimtelijk patroon: vergelijk rode zone met ruimer gebied errond). De simulatie gaat uit van 30% bedekking van MZB (en dus biomassa als we veronderstellen dat de biomassa homogeen verdeeld is waar het voorkomt). De zwarte vierkanten in de linkerbenedenhoek zijn de verschillende groottes van proefvlakken (locaties) die we doorgerekend hebben. De figuur rechts geeft de hiermee overeenkomende variantiecomponenten: variantie tussen locaties (tussenvar), lokale variantie binnen lokaties (binnenvar) en de som van beide (totvar).
+(ref:twostage) Illustratie van effect van grootte van locatie en aantal substalen op variantiecomponenten. De figuur is een simulatie van een gebied waarbinnen een vleksgewijze verspreiding van MZB is (in feite voor te stellen als een zich in alle richtingen oneindig uitgestrekt gebied met gelijkaardig ruimtelijk patroon: vergelijk rode zone met ruimer gebied errond). De simulatie gaat uit van 30% bedekking van MZB (en dus biomassa als we veronderstellen dat de biomassa homogeen verdeeld is waar het voorkomt). De zwarte vierkanten in de linkerbenedenhoek zijn de verschillende groottes van proefvlakken (locaties) die we doorgerekend hebben.
 
 ```{r landschap}
 bedekking <- 0.3
@@ -153,21 +153,22 @@ p1 <- as.data.frame(landschap) %>%
 p1
 ```
 
+(ref:sample-variances) De figuur geeft de variantiecomponenten en de som van beide in functie van de oppervlakte van een locatie (het aantal subunits in deze locatie wordt uitgedrukt door M in termen van de oppervlakte van één bodemstaal m) en dit voor verschillende aantallen locaties (n) en aantal bodemstalen binnen een locatie (m). Zowel m als M zijn dus te begrijpen als aantallen of als oppervlaktes.
+
 ```{r sample-variances}
 varianties_df %>%
-  mutate(proefvlakgrootte = odd_nrows * odd_nrows) %>%
   expand_grid(n = c(25, 100)) %>%
   pivot_wider(names_from = variantiecomponent, values_from = waarde) %>%
   mutate(
     varcomp1_mean = 1 / n * var_1y_pop,
     varcomp2_mean = 1 / (n * m) * mean_var_2y_pop, 
     var_mean_sample =  varcomp1_mean + varcomp2_mean) %>%
-  ggplot(aes(x = proefvlakgrootte / 1000)) +
-  geom_line(aes(y = varcomp1_mean)) + 
-  geom_line(aes(y = varcomp2_mean)) + 
-  geom_line(aes(y = var_mean_sample)) + 
+  pivot_longer(cols = c(varcomp1_mean, varcomp2_mean, var_mean_sample),
+               values_to = "waarde", names_to = "component") %>%
+  ggplot(aes(x = M, y = waarde)) +
+  geom_line(aes(colour = component)) + 
   geom_rug(sides = "b") +
-  scale_x_continuous("oppervlakte van locatie") + 
+  scale_x_log10("oppervlakte van locatie (opp. eenheid is oppervlakte van één bodemstaal)") + 
   scale_y_continuous("variantie") +
   facet_grid(n~m, labeller = label_both, scales = "free_y") +
   theme(aspect.ratio = 1,

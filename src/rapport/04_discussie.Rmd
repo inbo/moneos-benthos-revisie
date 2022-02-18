@@ -67,9 +67,26 @@ De kosten (weliswaar onvolledig) gaven aan dat de bemonsteringskost de kleinste 
 Het resterende en grootste deel zijn de labokosten waarbij de triage van de soorten het grootste aandeel inneemt (iets meer dan 50%).
 De triage en determinatie zijn strikt genomen niet noodzakelijk voor de biomassabepaling, maar wel voor andere doeleinden.
 Als we triage en determinatie buiten beschouwing laten, is de verdeling evenwichtiger (voor de spatial survey ruwweg 25% bemonstering, 45% selectie, 30% labowerk).
+
 In plaats van meer locaties te bemonsteren, is het misschien beter om meer inspanning ter plaatse te doen.
 Indien er een grotere bodemoppervlakte per locatie wordt bemonsterd (door bijvoorbeeld een mengstaal te nemen), krijg je een soort smoother-effect: de schatter op die locatie is preciezer.
-Afhankelijk hoe groot je een locatie neemt en hoeveel subsamples $m$ je neemt per locatie, zal de steekproeffout wijzigen afhankelijk van de varianties tussen en binnen locaties (zie Figuur \@ref(fig:twostage)).
+Afhankelijk hoe groot je een locatie neemt $M$ en hoeveel subsamples $m$ je neemt per locatie, zal de steekproeffout wijzigen afhankelijk van de varianties tussen en binnen locaties (zie Figuur \@ref(fig:twostage)).
+De schatter van variantie op het totaal kan als volgt berekend worden (geval self-weighting design, i.e. constante sample fracties en bovendien ook constante M en m):
+
+$$\hat{\sigma}^2_{\hat{y}} = \frac{N^2}{n}(1-f_1)\hat{s}^2_{1y} + \frac{N^2}{n}\frac{\bar{M}^2}{\bar{m}}(1-f_2)\bar{\hat{s}^2_{2y}}$$
+
+Voor de variantie op het gemiddelde moeten we de linkse term delen door $N^2$ en de rechtse term delen door $N^2M^2$.
+De formule laat zien dat de totale variantie uiteenvalt in een som van variantie tussen de locaties (linkse term) en gemiddelde variantie binnen de locaties (rechtse term).
+Hierbij is:
+
+$$\begin{align*}
+\hat{s}^2_{1y} &= \frac{1}{n-1}\sum_{i=1}^n(\bar{y}_i-\bar{y})^2\\
+\bar{\hat{s}^2_{2y}} &= \frac{1}{n}\sum_{i=1}^n\sum_{j=1}^m\frac{1}{m-1}(y_{ij}-\bar{y}_i)^2\\
+f_1 &= \frac{n}{N}\\
+f_2 &= \frac{m}{M}\\
+\bar{y}_i &= \frac{1}{m}\sum_{j=1}^my_{ij}\\
+\bar{y} &= \frac{1}{n}\frac{1}{m}\sum_{i=1}^n\sum_{j=1}^my_{ij}
+\end{align*}$$
 
 (ref:twostage) Illustratie van effect van grootte van locatie en aantal substalen op variantiecomponenten. De figuur links is een simulatie van een gebied waarbinnen een vleksgewijze verspreiding van MZB is (in feite voor te stellen als een zich in alle richtingen oneindig uitgestrekt gebied met gelijkaardig ruimtelijk patroon: vergelijk rode zone met ruimer gebied errond). De simulatie gaat uit van 30% bedekking van MZB (en dus biomassa als we veronderstellen dat de biomassa homogeen verdeeld is waar het voorkomt). De zwarte vierkanten in de linkerbenedenhoek zijn de verschillende groottes van proefvlakken (locaties) die we doorgerekend hebben. De figuur rechts geeft de hiermee overeenkomende variantiecomponenten: variantie tussen locaties (tussenvar), lokale variantie binnen lokaties (binnenvar) en de som van beide (totvar).
 
@@ -85,7 +102,7 @@ landschap <- genereer_landschap(bedekking_vector = bedekking,
 landschap <- landschap$geclusterd[[1]]
 ```
 
-```{r twostage-calculations, cache=TRUE}
+```{r twostage-calculations, cache=TRUE, autodep=TRUE}
 varianties_df <- expand_grid(
   odd_nrows = c(1, 3, 5, 7, 9, 11, 33, 51, 71, 99, 121, 149),
   m = c(1, 2, 4, 8)) %>%
@@ -94,11 +111,9 @@ varianties_df <- expand_grid(
   summarise(
     twostage(spatial_distribution = landschap, m = m, nrow = odd_nrows),
     .groups = "drop") %>%
-  mutate(totvar = tussenvar + binnenvar) %>%
-  pivot_longer(cols = c(tussenvar, binnenvar, totvar),
+  pivot_longer(cols = c(var_1y_pop, mean_var_2y_pop, som_var_pop),
                names_to = "variantiecomponent",
                values_to = "waarde")
-
 ```
 
 ```{r twostage, out.width="100%", fig.cap="(ref:twostage)"}
@@ -135,20 +150,28 @@ p1 <- as.data.frame(landschap) %>%
     colour = "black",
     alpha = 0.1)
 
+p1
+```
 
-p2 <- varianties_df %>%
+```{r sample-variances}
+varianties_df %>%
   mutate(proefvlakgrootte = odd_nrows * odd_nrows) %>%
-  ggplot(aes(x = proefvlakgrootte / 1000,
-             y = waarde)) +
-  geom_line(aes(colour = variantiecomponent)) + 
+  expand_grid(n = c(25, 100)) %>%
+  pivot_wider(names_from = variantiecomponent, values_from = waarde) %>%
+  mutate(
+    varcomp1_mean = 1 / n * var_1y_pop,
+    varcomp2_mean = 1 / (n * m) * mean_var_2y_pop, 
+    var_mean_sample =  varcomp1_mean + varcomp2_mean) %>%
+  ggplot(aes(x = proefvlakgrootte / 1000)) +
+  geom_line(aes(y = varcomp1_mean)) + 
+  geom_line(aes(y = varcomp2_mean)) + 
+  geom_line(aes(y = var_mean_sample)) + 
   geom_rug(sides = "b") +
   scale_x_continuous("oppervlakte van locatie") + 
   scale_y_continuous("variantie") +
-  facet_wrap(~m, labeller = label_both) +
+  facet_grid(n~m, labeller = label_both, scales = "free_y") +
   theme(aspect.ratio = 1,
         legend.position = "bottom")
-
-gridExtra::grid.arrange(p1, p2, nrow = 1)
 ```
 
 Momenteel is locatie gedefinieerd als een oppervlakte $M$ van `r round(opp_per_staal_m2 * 1e4)` cm² waarvan we de volledige oppervlakte bemonsteren met één staal ($m = M = 1$ in termen van oppervlakte van één staal).

@@ -162,45 +162,51 @@ twostage <- function(
   nrow = 3L, #locatie is nrow x ncol pixels
   ncol = nrow) {
   
-  spdistr <- raster::raster(as.matrix(spatial_distribution))
+  y_ij <- raster::raster(as.matrix(spatial_distribution))
   
-  local_pop_mean <- raster::focal(
-    x = spdistr, 
+  # berekening van \hat{Y}_I voor elke rastercel
+  yhat_i_pop <- raster::focal(
+    x = y_ij, 
     w = matrix(data = 1 / (nrow * ncol), nrow = nrow, ncol = ncol),
     fun = sum)
   
-  # systematic subsamples inside a plot
-  pos1 <- floor(nrow * ncol / m / 2) + 1
-  if (m > 1) {
-    positions <- c(pos1, pos1 + cumsum(rep(pos1, m - 1)))
-  } else {
-    positions <- pos1
-  } 
-  
-  samplevec <- rep(0, nrow * ncol)
-  samplevec[positions] <- 1
-  stopifnot(all.equal(sum(samplevec), m))
-  
-  local_sample_mean <- raster::focal(
-    x = spdistr, 
-    w = matrix(data = samplevec,
-               nrow = nrow, ncol = ncol) / m,
-    fun = sum)
-  
-  local_var <- raster::focal(
-    x = (local_sample_mean - local_pop_mean) ^ 2, 
+  # # systematic subsamples inside a plot
+  # pos1 <- floor(nrow * ncol / m / 2) + 1
+  # if (m > 1) {
+  #   positions <- c(pos1, pos1 + cumsum(rep(pos1, m - 1)))
+  # } else {
+  #   positions <- pos1
+  # }
+  # 
+  # samplevec <- rep(0, nrow * ncol)
+  # samplevec[positions] <- 1
+  # stopifnot(all.equal(sum(samplevec), m))
+  # 
+  # # berekening van \hat{y}_i
+  # yhat_i_sample <- raster::focal(
+  #   x = y_ij, 
+  #   w = matrix(data = samplevec,
+  #              nrow = nrow, ncol = ncol) / m,
+  #   fun = sum)
+  # 
+  # berekening van \S^2_{2Y}
+  var_2y_pop <- raster::focal(
+    x = (y_ij - yhat_i_pop) ^ 2, 
     w = matrix(data = 1 / (nrow * ncol), nrow = nrow, ncol = ncol),
     fun = sum)
   
-  # eindige (locale) populatie correctiefactor toepassen
-  local_var <- local_var * (1 - m / (nrow * ncol))
+  # eindige (lokale) populatie correctiefactor toepassen
+  var_2y_pop <- var_2y_pop * (1 - m / (nrow * ncol))
   
-  popvar <- var(local_pop_mean@data@values, na.rm = TRUE)
-  locvar <- mean(local_var@data@values, na.rm = TRUE)
+  var_1y_pop <- var(yhat_i_pop@data@values, na.rm = TRUE)
+  mean_var_2y_pop <- mean(var_2y_pop@data@values, na.rm = TRUE)
   
   result <- data.frame(nrow = nrow,
+                       M = nrow * ncol,
                        m = m,
-                       tussenvar = popvar,
-                       binnenvar = locvar)
+                       var_1y_pop = var_1y_pop,
+                       mean_var_2y_pop = mean_var_2y_pop,
+                       som_var_pop = var_1y_pop + mean_var_2y_pop
+                       )
   return(result)
 }

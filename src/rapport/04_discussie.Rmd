@@ -54,6 +54,8 @@ In dat geval vinden we relatieve foutenmarges tussen 46% en 157%.
 Naast vergroten van de steekproefgrootte, zijn er ook andere opties om de precisie te vergroten.
 We bespreken eerst de allocatie van de steekproefgrootte over de strata, daarna wijzigen van de bemonsteringsinspanning en tot slot mogelijkheden in verband met de analyse van de data.
 
+### Allocatie van steekproefgrootte over de strata
+
 Een eerste optie die we bekeken hebben was nagaan of er een betere allocatie van de steekproef over de verschillende strata mogelijk was (Sectie \@ref(allocatie-strata)).
 Hieruit bleek dat het verschil in veldwerkinspanning tussen de raaien en de spatial survey niet groot is ten opzichte van de effecten van variabiliteit en oppervlakte van elk stratum.
 Hierdoor was de allocatie voor aantal locaties over de verschillende strata dezelfde voor raaien en spatial.
@@ -61,12 +63,20 @@ Belangrijker is echter dat er vrij grote verschillen in optimale allocatie tusse
 Het feit dat deze optimale allocaties van jaar tot jaar kunnen verschillen en dat we op voorhand niet weten hoe de dynamiek zal veranderen, maakt dat we niet 100% kunnen vertrouwen op deze "optimale" allocatie en ze in de praktijk niet bruikbaar is.
 We besluiten dan ook dat de huidige manier van alloceren best aangehouden wordt.
 
+### Selectie, bemonstering en naverwerking
+
 Een tweede mogelijkheid is wijzigingen maken aan de verdeling van de inspanning tussen selectie, bemonstering en naverwerking van de stalen in het labo (Sectie \@ref(bemonsteringsinspanning)).
 We hebben echter maar gedeeltelijk zicht op de benodigde informatie (kosten en varianties) om hier volledig onderbouwde uitspraken over te doen.
 De kosten (weliswaar onvolledig) gaven aan dat de bemonsteringskost de kleinste fractie is van de kosten (10% à 15%), gevolgd door de selectiekost (15% à 25%).
 Het resterende en grootste deel zijn de labokosten waarbij de triage van de soorten het grootste aandeel inneemt (iets meer dan 50%).
 De triage en determinatie zijn strikt genomen niet noodzakelijk voor de biomassabepaling, maar wel voor andere doeleinden.
 Als we triage en determinatie buiten beschouwing laten, is de verdeling evenwichtiger (voor de spatial survey ruwweg 25% bemonstering, 45% selectie, 30% labowerk).
+
+Een groter aantal stalen verwerken kan misschien haalbaar zijn indien de stalen op een andere manier verwerkt worden.
+Momenteel wordt het volledige bodemstaal bewaard door toevoeging van bewaarmiddel.
+Een alternatieve methode is om de stalen ter plaatse te zeven met Scheldewater in plaats van achteraf in het labo (mond. med. Frank Van de Meutter).
+
+### Gebruik maken van een mengstaal?
 
 In plaats van meer locaties te bemonsteren, is het misschien beter om meer inspanning ter plaatse te doen.
 In wat volgt veronderstellen we dat dezelfde diameter van bodemboor wordt gebruikt bij het nemen van meerdere bodemstalen op eenzelfde locatie.
@@ -209,9 +219,7 @@ De kosten hiervan dienen goed bijgehouden te worden op zo'n manier dat ze kunnen
 Vermits hoogteligging belangrijke verschuivingen in MZB kan veroorzaken is het nodig om de locaties een vorm te geven waarbij er geen (belangrijke) gradïent in hoogte is binnen de locatie.
 Voor de $10m²$ locatie zal dit wellicht beteken dat dit een langgerekte zone is van $1m \times 10m$ die met de lange zijde parallel aan de rivieras gelegen is.
 
-Een groter aantal substalen verwerken kan misschien haalbaar zijn indien de stalen op een andere manier verwerkt worden.
-Momenteel wordt het volledige bodemstaal bewaard door toevoeging van bewaarmiddel.
-Een alternatieve methode is om de stalen ter plaatse te zeven met Scheldewater in plaats van achteraf in het labo (mond. med. Frank Van de Meutter).
+### Rapportage aanpassen?
 
 Ook zonder aanpassingen aan het steekproefontwerp zijn er mogelijkheden om met deze relatief brede foutenmarges om te gaan.
 Indien bijvoorbeeld de besluitvorming niet op één jaar gegevens gebaseerd wordt, maar op basis van een lopend gemiddelde van de afgelopen twee of drie jaar.

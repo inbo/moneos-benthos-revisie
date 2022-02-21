@@ -69,11 +69,20 @@ De triage en determinatie zijn strikt genomen niet noodzakelijk voor de biomassa
 Als we triage en determinatie buiten beschouwing laten, is de verdeling evenwichtiger (voor de spatial survey ruwweg 25% bemonstering, 45% selectie, 30% labowerk).
 
 In plaats van meer locaties te bemonsteren, is het misschien beter om meer inspanning ter plaatse te doen.
+In wat volgt veronderstellen we dat dezelfde diameter van bodemboor wordt gebruikt bij het nemen van meerdere bodemstalen op eenzelfde locatie.
+Verhogen van het aantal bodemstalen zal dus de totale bemonsterde bodemoppervlakte op een locatie evenredig verhogen.
+Om dit idee te verkennen gebruiken we formules voor een tweestapssteekproef.
+We zullen echter aantonen dat de bodemstalen per locatie niet individueel hoeven geanalyseerd te worden maar dat - onder bepaalde aannames - ze kunnen worden samengevoegd tot één mengstaal.
+In de praktijk betekent dit dus dat een hoger bodemvolume zal geanalyseerd worden, maar het blijft één (meng)staal per locatie.
+Verder veronderstellen we dat we elke locatie in het gehele gebied kunnen beschouwen als een discrete eenheden die opgedeeld kunnen worden in discrete subeenheden.
+Hierbij nemen we de oppervlakte van de bodemboor als eenheid van een subeenheid en we stellen deze gelijk aan 1.
+Verder veronderstellen we dat elke locatie dezelfde grootte heeft ($M$ subeenheden) en dat er binnen elke locatie evenveel bodemstalen worden genomen ($m$ subeenheden).
+De huidige MZV SPATIAL survey kunnen we dus beschouwen als het geval waarbij $m = M = 1$.
 Indien er een grotere bodemoppervlakte per locatie wordt bemonsterd (door bijvoorbeeld een mengstaal te nemen), krijg je een soort smoother-effect: de schatter op die locatie is preciezer.
 Afhankelijk hoe groot je een locatie neemt $M$ en hoeveel subsamples $m$ je neemt per locatie, zal de steekproeffout wijzigen afhankelijk van de varianties tussen en binnen locaties (zie Figuur \@ref(fig:twostage) en \@ref(fig:sample-variances)).
-De schatter van variantie op het totaal kan als volgt berekend worden (geval self-weighting design, i.e. constante sample fracties en bovendien ook constante M en m):
+De schatter van variantie op het totaal kan als volgt berekend worden [@cochran1977a]:
 
-$$\hat{\sigma}^2_{\hat{y}} = \frac{N^2}{n}(1-f_1)\hat{s}^2_{1y} + \frac{N^2}{n}\frac{\bar{M}^2}{\bar{m}}(1-f_2)\bar{\hat{s}^2_{2y}}$$
+$$\hat{\sigma}^2_{\hat{y}} = \frac{N^2}{n}(1-f_1)\hat{s}^2_{1y} + \frac{N^2}{n}\frac{M^2}{m}f_1(1-f_2)\bar{\hat{s}^2_{2y}}$$
 
 Voor de variantie op het gemiddelde moeten we de linkse term delen door $N^2$ en de rechtse term delen door $N^2M^2$.
 De formule laat zien dat de totale variantie uiteenvalt in een som van variantie tussen de locaties (linkse term) en gemiddelde variantie binnen de locaties (rechtse term).
@@ -88,7 +97,11 @@ f_2 &= \frac{m}{M}\\
 \bar{y} &= \frac{1}{n}\frac{1}{m}\sum_{i=1}^n\sum_{j=1}^my_{ij}
 \end{align*}$$
 
-(ref:twostage) Illustratie van effect van grootte van locatie en aantal substalen op variantiecomponenten. De figuur is een simulatie van een gebied waarbinnen een vleksgewijze verspreiding van MZB is (in feite voor te stellen als een zich in alle richtingen oneindig uitgestrekt gebied met gelijkaardig ruimtelijk patroon: vergelijk rode zone met ruimer gebied errond). De simulatie gaat uit van 30% bedekking van MZB (en dus biomassa als we veronderstellen dat de biomassa homogeen verdeeld is waar het voorkomt). De zwarte vierkanten in de linkerbenedenhoek zijn de verschillende groottes van proefvlakken (locaties) die we doorgerekend hebben.
+Wanneer $\frac{n}{N}$ verwaarloosbaar is (wat het geval is voor MZB), dan vereenvoudigt de formule tot:
+
+$$\hat{\sigma}^2_{\hat{y}} = \frac{N^2}{n}\hat{s}^2_{1y} = \frac{N^2}{n}\frac{1}{n-1}\sum_{i=1}^n(\bar{y}_i-\bar{y})^2$$ Dit betekent dat we de individuele bodemstalen niet nodig hebben om een onvertekende schatter te bekomen, maar een mengstaal kunnen nemen per locatie (= gemiddelde van de individuele bodemstalen op een locatie = $\bar{y}_i$).
+
+(ref:twostage) Simulatie van een gebied waarbinnen een vleksgewijze verspreiding van MZB is (in feite voor te stellen als een zich in alle richtingen oneindig uitgestrekt gebied met gelijkaardig ruimtelijk patroon: vergelijk rode zone met ruimer gebied errond). De simulatie gaat uit van 30% bedekking van MZB (en dus biomassa als we veronderstellen dat de biomassa homogeen verdeeld is waar het voorkomt). De zwarte vierkanten in de linkerbenedenhoek zijn de verschillende groottes van proefvlakken (locaties) die we doorgerekend hebben.
 
 ```{r landschap}
 bedekking <- 0.3
@@ -153,17 +166,18 @@ p1 <- as.data.frame(landschap) %>%
 p1
 ```
 
-(ref:sample-variances) De figuur geeft de variantiecomponenten en de som van beide in functie van de oppervlakte van een locatie (het aantal subunits in deze locatie wordt uitgedrukt door M in termen van de oppervlakte van één bodemstaal m) en dit voor verschillende aantallen locaties (n) en aantal bodemstalen binnen een locatie (m). Zowel m als M zijn dus te begrijpen als aantallen of als oppervlaktes.
+(ref:sample-variances) Illustratie van effect van grootte van locatie (uitgedrukt in termen van $M$ subeenheden), aantal locaties ($n$) en aantal substalen ($m$) op variantiecomponenten. De figuur geeft de variantiecomponenten en de som van beide in functie van de oppervlakte van een locatie (het aantal subunits in deze locatie wordt uitgedrukt door $M$ in termen van de oppervlakte van één bodemstaal $m$) en dit voor verschillende aantallen locaties ($n$) en aantal bodemstalen binnen een locatie ($m$). Zowel $m$ als $M$ zijn dus te begrijpen als aantallen of als oppervlaktes. De gevallen waarbij $m = M$ is, kan je aflezen van de lijn die de variantie tussen locaties aangeeft. De x-as staat in een logaritmische schaal om beter de verschillen bij kleine waarden weer te geven.
 
-```{r sample-variances}
+```{r sample-variances, fig.cap = "(ref:sample-variances)"}
 varianties_df %>%
   expand_grid(n = c(25, 100)) %>%
   pivot_wider(names_from = variantiecomponent, values_from = waarde) %>%
   mutate(
-    varcomp1_mean = 1 / n * var_1y_pop,
-    varcomp2_mean = 1 / (n * m) * mean_var_2y_pop, 
-    var_mean_sample =  varcomp1_mean + varcomp2_mean) %>%
-  pivot_longer(cols = c(varcomp1_mean, varcomp2_mean, var_mean_sample),
+    `var tussen locaties` = 1 / n * var_1y_pop,
+    `var binnen locaties` = 1 / (n * m) * mean_var_2y_pop, 
+    `som van varianties` =  `var tussen locaties` + `var binnen locaties`) %>%
+  pivot_longer(cols = c(`var tussen locaties`, `var binnen locaties`,
+                        `som van varianties`),
                values_to = "waarde", names_to = "component") %>%
   ggplot(aes(x = M, y = waarde)) +
   geom_line(aes(colour = component)) + 
@@ -174,6 +188,8 @@ varianties_df %>%
   theme(aspect.ratio = 1,
         legend.position = "bottom")
 ```
+
+Figuur \@ref(fig:sample-variances) laat zien dat het - voor de hypothetische verdeling van MZB biomassa in Figuur \@ref(fig:twostage) - wellicht zal lonen om $m = 4$ bodemstalen te nemen in $n = 25$ locaties van 100 x 100 oppervlakte-eenheden omdat deze een vergelijkbare totale variantie heeft als $n = 100$ locaties van 1 oppervlakte-eenheid bemonsteren met $m = 1$.
 
 Momenteel is locatie gedefinieerd als een oppervlakte $M$ van `r round(opp_per_staal_m2 * 1e4)` cm² waarvan we de volledige oppervlakte bemonsteren met één staal ($m = M = 1$ in termen van oppervlakte van één staal).
 We zien in de figuur dan dat de totale variabiliteit gelijk is aan de variabiliteit tussen locaties (de tweestapssteekproef vereenvoudigt dan tot een enkelvoudige aselecte steekproef).
@@ -186,6 +202,12 @@ Dit zal een benadering geven van de biomassa binnen de locatie van 1 m x 1 m.
 Hoe goed deze benadering is zal er van afhangen hoe homogeen de biomassa lokaal verdeeld is (variabiliteit binnen locaties).
 Een betere benadering kunnen we altijd bekomen door het aantal bodemstalen binnen een locatie op te drijven en ze te poolen (een mengstaal maken; de substalen apart houden zou de kosten sterk opdrijven).
 We kunnen dus met verschillende variabelen spelen om een zo goed mogelijke kostenbatenbalans te krijgen voor de steekproef: het aantal locaties, de oppervlakte van een locatie, het aantal substalen per locatie en de oppervlakte per (sub)staal.
+Voor de MZB survey ontbreekt er echter nog cruciale informatie om zo'n afweging te kunnen maken.
+Hiervoor is een pilootstudie nodig waarbij bijvoorbeeld voor twee verschillende groottes van lokaties ($1 m²$ en $10 m²$) op $n = 10$ er $m = 8$ substalen worden genomen.
+Deze substalen worden in de pilootstudie *niet* samengevoegd tot een mengstaal (om ook de gevallen $m < 4$ in te kunnen schatten).
+De kosten hiervan dienen goed bijgehouden te worden op zo'n manier dat ze kunnen toegewezen worden aan de selectie van locaties versus de selectie binnen locaties.
+Vermits hoogteligging belangrijke verschuivingen in MZB kan veroorzaken is het nodig om de locaties een vorm te geven waarbij er geen (belangrijke) gradïent in hoogte is binnen de locatie.
+Voor de $10m²$ locatie zal dit wellicht beteken dat dit een langgerekte zone is van $1m \times 10m$ die met de lange zijde parallel aan de rivieras gelegen is.
 
 Een groter aantal substalen verwerken kan misschien haalbaar zijn indien de stalen op een andere manier verwerkt worden.
 Momenteel wordt het volledige bodemstaal bewaard door toevoeging van bewaarmiddel.

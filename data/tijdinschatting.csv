@@ -1,0 +1,10 @@
+taakgroep,taak,tidaal,campagne,aantal_stalen,uren_per_staal_excl_reistijd,uren_per_staal_incl_reistijd,tot_uren_excl_reistijd,tot_uren_incl_reistijd,tot_uren_gelogd
+voorbereiding,voorbereiding,,,,,,,,100.0
+veldwerk,staalname,intertidaal,raai,169,0.33,0.75,55.77,126.75,292.5
+veldwerk,staalname,intertidaal,spatial,117,0.5,1.25,58.5,146.25,337.5
+veldwerk,staalname,subtidaal,spatial,104,0.25,0.5,26,52,120.0
+labowerk,zeven,,,390,,,,,276.1
+labowerk,triage,,,390,,,,,1104.2
+labowerk,determinatie,,,390,,,,,414.1
+labowerk,drooggewicht,,,390,,,,,110.4
+labowerk,asgewicht,,,390,,,,,110.4

@@ -33,7 +33,8 @@ sp2019_metadata %>%
     ecotoop_gepland = as.factor(ecotoop_gepland),
     ecotoop_werkelijk = recode(as.factor(ecotoop_werkelijk),
                                "zeer diep subtidaal" = "diep subtidaal"),
-    SalZone = as.factor(SalZone),
+    SalZone = recode(as.factor(SalZone),
+                     "Mesohalien" = "Zone met sterke saliniteitsgradiënt"),
     Vallei_deel = as.factor(Vallei_deel),
     Omessegment = as.factor(Omessegment),
     KRWzone = recode(as.factor(KRWzone),
@@ -67,9 +68,16 @@ benthos %>%
   left_join(metadata, by = c("staal", "staalcode", "jaar")) ->
 benthos
 
+# er zitten duplicaten in de data
+nrow(benthos)
+benthos <- distinct(benthos)
+nrow(benthos)
 
 # bewaren als git2rdata object
 root <- find_root_file("data",
                        criterion = has_file("moneos-benthos-revisie.RProj"))
-benthosdata <- write_vc(benthos, "benthos", root, sorting = c("staal"))
+benthosdata <- write_vc(benthos, "benthos",
+                        root,
+                        sorting = c("staal", "jaar", "datum.x", "fractie",
+                                    "soort", "AFDW", "real_X"))
 rm(benthosdata)

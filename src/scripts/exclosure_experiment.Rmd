@@ -1,0 +1,319 @@
+---
+title: "Analyse exclosure experiment"
+author: "Hans Van Calster"
+date: "11 juni 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+opts_chunk$set(echo = TRUE)
+options(stringsAsFactors = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(brms)
+library(rprojroot)
+```
+
+## Gegevens
+
+```{r}
+alle_data <- read_excel(
+  path = find_root_file(
+    "data/exclosure_experiment.xlsx",
+    criterion = is_git_root),
+  sheet = "allData") 
+selectie_data <- read_excel(
+    path = find_root_file(
+    "data/exclosure_experiment.xlsx",
+    criterion = is_git_root),
+    sheet = "datselect")
+sedimentatie <- read_excel(
+    path = find_root_file(
+    "data/exclosure_experiment.xlsx",
+    criterion = is_git_root),
+    sheet = "sedimentatie")
+om <- read_excel(
+    path = find_root_file(
+    "data/exclosure_experiment.xlsx",
+    criterion = is_git_root),
+    sheet = "OM")
+d50 <- read_excel(
+    path = find_root_file(
+    "data/exclosure_experiment.xlsx",
+    criterion = is_git_root),
+    sheet = "D50")
+```
+
+```{r}
+alle_data %>%
+  count(Species, Treat_check, Plot_Nr, Date_sample) %>%
+  arrange(Species, Treat_check, Date_sample) %>%
+  kable()
+```
+
+```{r}
+sedimentatie_per_plot_datum <- sedimentatie %>%
+  group_by(Plot_Nr, Datum, Staalname) %>%
+  summarise(gemiddelde_hoogte = mean(Hoogte),
+            .groups = "drop_last") %>%
+  rename(datum_sediment = Datum) %>%
+  ungroup()
+```
+
+```{r}
+covariaten <- om %>% 
+  rename(datum_om = Datum) %>%
+  full_join(d50, 
+            by = c("Plot_Nr", "Treat_check", "Staalname")) %>%
+  full_join(sedimentatie_per_plot_datum,
+            by = c("Plot_Nr", "Staalname"))
+```
+
+Welke variabele is microphytobenthos?
+
+## Verkenning
+
+ratio: zeer kleine getallen.
+Herschalen?
+
+```{r}
+per_plot_datum <- alle_data %>%
+  filter(Species == "Oligochaeta") %>%
+  group_by(Species, Treat_check, Plot_Nr, Staalname, Date_sample) %>%
+  # ik rond het aantal af om terug gehele getallen te bekomen (nodig voor poisson modellen)
+  summarise(gemiddeld_aantal = round(mean(Aantal, na.rm = TRUE), 0),
+            gemiddeld_afdw = mean(AFDW, na.rm = TRUE),
+            ratio_afdw_aantal =  gemiddeld_afdw / gemiddeld_aantal) %>%
+  ungroup()
+```
+
+```{r}
+per_plot_datum %>%
+  gather("respons", "waarde", contains("gemiddeld"), contains("ratio")) %>%
+  ggplot(aes(x = Date_sample, y = waarde)) +
+  geom_line(aes(group = Plot_Nr), alpha = 0.5) + 
+  geom_smooth() +
+  facet_grid(respons ~ Treat_check, scales = "free_y")
+```
+
+```{r}
+covariaten %>%
+  gather("covariaat", "waarde", D50, Omperc, gemiddelde_hoogte) %>%
+  ggplot(aes(x = datum_om, y = waarde)) + 
+  geom_line(aes(group = Plot_Nr), alpha = 0.5) + 
+  geom_smooth() +
+  facet_grid(covariaat ~ Treat_check, scales = "free_y")
+```
+
+## Analyse 1: alle tijdspunten
+
+-   analyse enkel voor Species=Oligochaeta
+-   Dependent vars: Aantal, AFDW (ash free dry weight) en hun ratio (AFDW/Aantal)
+-   Random var: Exclosure nr (nummer van 1-35)
+-   Independent vars: Treatment (genest in excl nr), Datum (best als continue denk ik)
+-   covariabelen: variëren mee tijdens exp, dus voor elk tijdspunt andere waarde (D50 (maat voor korrelgrootte), OM% (percentage organisch materiaal), sedimentatiehoogte
+
+```{r}
+analyse_data <- per_plot_datum %>%
+  left_join(covariaten,
+            by = c("Treat_check", "Plot_Nr", "Staalname")) %>%
+  mutate(day_of_year = lubridate::yday(Date_sample),
+         Staalname = factor(Staalname, ordered = TRUE))
+```
+
+Loopt dit experiment nog door?
+Of blijft het bij data uit 2017.
+
+### Gemiddeld aantal Oligochaeta per plot
+
+```{r}
+a1_aantal <- brm(gemiddeld_aantal ~ Staalname * Treat_check + (1 | Plot_Nr), 
+                 data = analyse_data,
+                 family = poisson(),
+                 cores = 4,
+                 save_pars = save_pars(all = TRUE))
+```
+
+T0 rekening mee houden ?
+
+s(..., by = Treat_check) werkt niet?
+
+Of Staalname in het model als geordende factor
+
+```{r}
+summary(a1_aantal)
+```
+
+```{r}
+plot(conditional_effects(a1_aantal), ask = FALSE)
+```
+
+```{r}
+a1_aantal_2 <- brm(gemiddeld_aantal ~ 
+                     (Staalname + Treat_check + gemiddelde_hoogte)^2 +
+                     (1 | Plot_Nr), 
+                 data = analyse_data,
+                 family = poisson(),
+                 cores = 4,
+                 save_pars = save_pars(all = TRUE))
+```
+
+```{r}
+summary(a1_aantal_2)
+```
+
+Modellen vergelijken
+
+```{r}
+loo(a1_aantal, a1_aantal_2, moment_match = FALSE)
+```
+
+### AFDW
+
+Als distributie kan je hier een gamma distributie of lognormale distributie veronderstellen
+
+### AFDW / aantal
+
+Als distributie kan je hier een gamma distributie of lognormale distributie veronderstellen
+
+## Analyse 2
+
+Hoe definieer je eindpunt?
+
+-   Analyse enkel voor Species=Oligochaeta
+-   Dependent vars: Aantal, AFDW (ash free dry weight) en hun ratio (AFDW/Aantal)
+-   Random var: Exclosure nr (nummer van 1-35)
+-   Independent vars: Treatment (genest in excl nr)
+-   Covars: D50, OM%, Microphytobenthos
+
+## Analyse 3
+
+```{r}
+analyse_ba <- analyse_data %>% 
+  filter(Staalname %in% c("T0", "T7"))
+```
+
+### Aantal
+
+```{r}
+a3_aantal <- brm(gemiddeld_aantal ~ 
+                   (Staalname + Treat_check +  gemiddelde_hoogte)^2 + # omvat alle tweewegsinteracties
+                   (1|Plot_Nr),
+                 data = analyse_ba,
+                 family = poisson())
+```
+
+```{r}
+summary(a3_aantal)
+```
+
+```{r}
+plot(marginal_effects(a3_aantal), ask = FALSE)
+```
+
+```{r}
+## only plot the marginal interaction effect for some interaction
+## for different values of gemiddelde_hoogte
+conditions <- data.frame(gemiddelde_hoogte = c(5, 15, 25))
+
+plot(marginal_effects(a3_aantal, effects = "Staalname:Treat_check", 
+                      conditions = conditions))
+```
+
+```{r}
+# bv manueel berekenen van enkele effecten ter controle (obv waarden in summary)
+# voor de interactie tussen staalname en treatment, standaard worden de andere variabelen op gemiddelde waarde gehouden
+gemiddelde <- analyse_ba %>% summarise(mean = mean(gemiddelde_hoogte)) %>% pull
+exp(6.21 - 0.03 - 0.11 * gemiddelde  - 0.06 * gemiddelde) #13M
+exp(6.21 - 0.03 - 2.02 - 0.11 * gemiddelde  + 0.7 - 0.06 * gemiddelde + 0.13 * gemiddelde) #T7 + 2M
+exp(6.21 - 0.03 - 2.61 - 0.11 * gemiddelde  + 1.19 - 0.06 * gemiddelde + 0.16 * gemiddelde) #T7 + C
+
+
+```
+
+testen van een hypothese bv: Is het aantal in treatment 13M op T7 \> treatment C13M op T7?
+
+```{r}
+parnames(a3_aantal)
+hyp <- hypothesis(
+  x = a3_aantal,
+  "Intercept + StaalnameT7 > Intercept + Treat_checkC13M + StaalnameT7 + StaalnameT7:Treat_checkC13M + Treat_checkC13M:gemiddelde_hoogte",
+  class = "b")
+hyp
+
+```
+
+```{r}
+plot(hyp)
+```
+
+# Analyse mengstaal MZB (*toegevoegd 2022-14-01*)
+
+```{r}
+alle_data %>%
+  ggplot() + 
+  geom_point(aes(x = Plot_Nr, y = AFDW, colour = Staalname, shape = Species)) +
+  coord_flip() + 
+  facet_grid(cols = vars(Treat_check))
+```
+
+```{r}
+alle_data %>%
+  group_by(Plot_Nr, Staalname, Treat_check) %>%
+  summarise(aantal_subsamples = n(),
+            gemid_afdw = mean(AFDW, na.rm = TRUE),
+            sd_afdw = sd(AFDW, na.rm = TRUE),
+            median_afdw = median(AFDW, na.rm = TRUE),
+            mad_afdw = mad(AFDW, na.rm = TRUE)) -> afdw_stats
+
+```
+
+Variantie neemt toe met gemiddelde (pleit inderdaad voor gamma verdeling ipv lognormale).
+
+```{r}
+afdw_stats %>%
+  ggplot() + 
+  geom_point(aes(x = gemid_afdw, y = sd_afdw^2,
+                 colour = Staalname))
+```
+
+```{r}
+afdw_stats %>%
+  ggplot() +
+  geom_density(aes(x = sd_afdw / gemid_afdw,
+                   colour = Staalname))
+```
+
+```{r}
+alle_data %>%
+  group_by(Plot_Nr, Staalname, Treat_check) %>%
+  slice_sample(n = 1) %>%
+  group_by(Treat_check) %>%
+  summarize(var_afdw = var(AFDW, na.rm = TRUE))
+
+alle_data %>%
+  group_by(Plot_Nr, Staalname, Treat_check) %>%
+  summarize(AFDW = mean(AFDW, na.rm = TRUE)) %>%
+  group_by(Treat_check) %>%
+  summarize(var_afdw = var(AFDW, na.rm = TRUE))
+
+
+
+```
+
+```{r}
+m_afdw <- brm(AFDW ~ Treat_check + (1 | code),
+              data = alle_data,
+              family = gaussian(),
+              backend = "cmdstanr",
+              cores = 4,
+              silent = 2)
+```
+
+```{r}
+performance::variance_decomposition(m_afdw)
+```

@@ -49,6 +49,13 @@ ecotoop %>%
   ggplot() +
   geom_sf()
 
+#check areas
+all.equal(
+  ecotoop %>%
+  st_area(),
+  units::as_units(ecotoop$Shape_Area, "m^2"))
+#OK
+
 ecotoop %>%
   st_drop_geometry() %>%
   distinct(KRWzone, Naam, Ecotoop, SalZone, NrRandomPunten)

@@ -219,7 +219,7 @@ Om ze gedeeltelijk samen te voegen kan men per locatie twee bodemstalen apart an
 Eén van twee bodemstalen en één van vier bodemstalen (dus $8 = 1 + 1 + 2 + 4$).
 De kosten hiervan dienen goed bijgehouden te worden op zo'n manier dat ze kunnen toegewezen worden aan de selectie van locaties versus de selectie binnen locaties.
 Vermits hoogteligging belangrijke verschuivingen in MZB kan veroorzaken is het nodig om de locaties een vorm te geven waarbij er geen (belangrijke) gradïent in hoogte is binnen de locatie.
-Voor de $10m²$ locatie zal dit wellicht beteken dat dit een langgerekte zone is van $1m \times 10m$ die met de lange zijde parallel aan de rivieras gelegen is.
+Voor de $10m²$ locatie zal dit wellicht betekenen dat dit een langgerekte zone is van $1m \times 10m$ die met de lange zijde parallel aan de rivieras gelegen is.
 
 ### Rapportage aanpassen?
 

@@ -78,16 +78,16 @@ Een alternatieve methode is om de stalen ter plaatse te zeven met Scheldewater i
 
 ### Gebruik maken van een mengstaal?
 
-In plaats van meer locaties te bemonsteren, is het misschien beter om meer inspanning ter plaatse te doen.
+In plaats van meer locaties ($n$) te bemonsteren, is het misschien beter om meer inspanning ter plaatse te doen.
 In wat volgt veronderstellen we dat dezelfde diameter van bodemboor wordt gebruikt bij het nemen van meerdere bodemstalen op eenzelfde locatie.
 Verhogen van het aantal bodemstalen zal dus de totale bemonsterde bodemoppervlakte op een locatie evenredig verhogen.
 Om dit idee te verkennen gebruiken we formules voor een tweestapssteekproef.
 We zullen echter aantonen dat de bodemstalen per locatie niet individueel hoeven geanalyseerd te worden maar dat - onder bepaalde aannames - ze kunnen worden samengevoegd tot één mengstaal.
 In de praktijk betekent dit dus dat een hoger bodemvolume zal geanalyseerd worden, maar het blijft één (meng)staal per locatie.
-Verder veronderstellen we dat we elke locatie in het gehele gebied kunnen beschouwen als een discrete eenheden die opgedeeld kunnen worden in discrete subeenheden.
+Verder veronderstellen we dat we elke locatie in het gehele gebied kunnen beschouwen als een discrete eenheid ($n$ locaties uit $N$ mogelijke locaties in het gebied) die opgedeeld kan worden in discrete subeenheden.
 Hierbij nemen we de oppervlakte van de bodemboor als eenheid van een subeenheid en we stellen deze gelijk aan 1.
-Verder veronderstellen we dat elke locatie dezelfde grootte heeft ($M$ subeenheden) en dat er binnen elke locatie evenveel bodemstalen worden genomen ($m$ subeenheden).
-De huidige MZV SPATIAL survey kunnen we dus beschouwen als het geval waarbij $m = M = 1$.
+Verder veronderstellen we dat elke locatie dezelfde grootte heeft ($M$ subeenheden) en dat er binnen elke locatie evenveel bodemstalen worden genomen ($m$ subeenheden met $m \leq M$).
+De huidige MZB SPATIAL survey kunnen we dus beschouwen als het geval waarbij $m = M = 1$.
 Indien er een grotere bodemoppervlakte per locatie wordt bemonsterd (door bijvoorbeeld een mengstaal te nemen), krijg je een soort smoother-effect: de schatter op die locatie is preciezer.
 Afhankelijk hoe groot je een locatie neemt $M$ en hoeveel subsamples $m$ je neemt per locatie, zal de steekproeffout wijzigen afhankelijk van de varianties tussen en binnen locaties (zie Figuur \@ref(fig:twostage) en \@ref(fig:sample-variances)).
 De schatter van variantie op het totaal kan als volgt berekend worden [@cochran1977a]:
@@ -176,7 +176,7 @@ p1 <- as.data.frame(landschap) %>%
 p1
 ```
 
-(ref:sample-variances) Illustratie van effect van grootte van locatie (uitgedrukt in termen van $M$ subeenheden), aantal locaties ($n$) en aantal substalen ($m$) op variantiecomponenten. De figuur geeft de variantiecomponenten en de som van beide in functie van de oppervlakte van een locatie (het aantal subunits in deze locatie wordt uitgedrukt door $M$ in termen van de oppervlakte van één bodemstaal $m$) en dit voor verschillende aantallen locaties ($n$) en aantal bodemstalen binnen een locatie ($m$). Zowel $m$ als $M$ zijn dus te begrijpen als aantallen of als oppervlaktes. De gevallen waarbij $m = M$ is, kan je aflezen van de lijn die de variantie tussen locaties aangeeft. De x-as staat in een logaritmische schaal om beter de verschillen bij kleine waarden weer te geven.
+(ref:sample-variances) Illustratie van effect van grootte van locatie (uitgedrukt in termen van $M$ subeenheden), aantal locaties ($n$) en aantal substalen ($m$) op variantiecomponenten. De figuur geeft de variantiecomponenten en de som van beide in functie van de oppervlakte van een locatie (het aantal subunits in deze locatie wordt uitgedrukt door $M$ in termen van de oppervlakte van één bodemstaal $m$) en dit voor verschillende aantallen locaties ($n$) en aantal bodemstalen binnen een locatie ($m$). Zowel $m$ als $M$ zijn dus te begrijpen als aantallen of als oppervlaktes. In het geval dat $m = M$ is, is de totale variantie gelijk aan de variantie tussen locaties. Je kan dit geval aflezen uit de deelfiguur $m = 1$ door enkel te kijken naar de lijn die de variantie tussen locaties aangeeft (de waarde van $m = M$ lees je dan af van de x-as). De x-as staat in een logaritmische schaal om beter de verschillen bij kleine waarden weer te geven.
 
 ```{r sample-variances, fig.cap = "(ref:sample-variances)"}
 varianties_df %>%
@@ -213,8 +213,10 @@ Hoe goed deze benadering is zal er van afhangen hoe homogeen de biomassa lokaal 
 Een betere benadering kunnen we altijd bekomen door het aantal bodemstalen binnen een locatie op te drijven en ze te poolen (een mengstaal maken; de substalen apart houden zou de kosten sterk opdrijven).
 We kunnen dus met verschillende variabelen spelen om een zo goed mogelijke kostenbatenbalans te krijgen voor de steekproef: het aantal locaties, de oppervlakte van een locatie, het aantal substalen per locatie en de oppervlakte per (sub)staal.
 Voor de MZB survey ontbreekt er echter nog cruciale informatie om zo'n afweging te kunnen maken.
-Hiervoor is een pilootstudie nodig waarbij bijvoorbeeld voor twee verschillende groottes van lokaties ($1 m²$ en $10 m²$) op $n = 10$ er $m = 8$ substalen worden genomen.
-Deze substalen worden in de pilootstudie *niet* samengevoegd tot een mengstaal (om ook de gevallen $m < 4$ in te kunnen schatten).
+Hiervoor is een pilootstudie nodig waarbij bijvoorbeeld voor twee verschillende groottes van locaties ($1 m²$ en $10 m²$) op $n = 10$ er $m = 8$ substalen worden genomen.
+Deze substalen worden in de pilootstudie *niet of slechts gedeeltelijk* samengevoegd tot een mengstaal (om ook de gevallen $m < 8$ in te kunnen schatten).
+Om ze gedeeltelijk samen te voegen kan men per locatie twee bodemstalen apart analyseren, en twee mengstalen maken.
+Eén van twee bodemstalen en één van vier bodemstalen (dus $8 = 1 + 1 + 2 + 4$).
 De kosten hiervan dienen goed bijgehouden te worden op zo'n manier dat ze kunnen toegewezen worden aan de selectie van locaties versus de selectie binnen locaties.
 Vermits hoogteligging belangrijke verschuivingen in MZB kan veroorzaken is het nodig om de locaties een vorm te geven waarbij er geen (belangrijke) gradïent in hoogte is binnen de locatie.
 Voor de $10m²$ locatie zal dit wellicht beteken dat dit een langgerekte zone is van $1m \times 10m$ die met de lange zijde parallel aan de rivieras gelegen is.

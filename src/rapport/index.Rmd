@@ -43,7 +43,7 @@ github-repo: inbo/moneos-benthos-revisie
 
 output:
   INBOmd::gitbook: default
-  INBOmd::report: default
+  INBOmd::pdf_report: default
 ---
 
 # Voorwoord {.unnumbered}

@@ -15,4 +15,3 @@ LaTeX: XeLaTeX
 AutoAppendNewline: Yes
 
 BuildType: Website
-WebsitePath: C:/R/GitRepositories/moneos-benthos-revisie/src/rapport

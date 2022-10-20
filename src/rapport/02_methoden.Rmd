@@ -231,7 +231,7 @@ strata_fysiotopen <- data.frame(
 )
 
 strata_fysiotopen %>%
-  gt(caption = "(ref:strata-fysiotopen)")
+  kable(caption = "(ref:strata-fysiotopen)")
 ```
 
 Voor elke combinatie waterlichaam x fysiotoop worden jaarlijks random staalnamelocaties vastgelegd.

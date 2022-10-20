@@ -43,7 +43,9 @@ github-repo: inbo/moneos-benthos-revisie
 
 output:
   INBOmd::gitbook: default
-  INBOmd::pdf_report: default
+  INBOmd::pdf_report:
+    includes:
+      in_header: 'gt_packages.sty'
 ---
 
 # Voorwoord {.unnumbered}
@@ -64,7 +66,7 @@ Verplicht wanneer relevant.
 Insert a translation of the summary here.
 \eenglish
 
-```{r renv-restore, eval = FALSE}
+```{r renv-restore, eval = FALSE, echo=FALSE}
 renv::restore()
 cmdstanr::install_cmdstan(version = "v2.28.0")
 ```

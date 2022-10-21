@@ -205,8 +205,14 @@ strata_krw <- data.frame(
                         "Zoet")
 )
 
-strata_krw %>%
+sktab <- strata_krw %>%
   gt(caption = "(ref:strata-krw)")
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(sktab, "strata-krw")
+} else {
+  sktab
+}
 ```
 
 De ligging en oppervlakte van de fysiotopen verandert ieder jaar gedeeltelijk.
@@ -230,8 +236,14 @@ strata_fysiotopen <- data.frame(
                        "0-2m onder GLWS", "2-5m onder GLWS", ">5m onder GLWS")
 )
 
-strata_fysiotopen %>%
-  kable(caption = "(ref:strata-fysiotopen)")
+sftab <- strata_fysiotopen %>%
+  gt(caption = "(ref:strata-fysiotopen)")
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(sftab, "strata-fysiotopen")
+} else {
+  sftab
+}
 ```
 
 Voor elke combinatie waterlichaam x fysiotoop worden jaarlijks random staalnamelocaties vastgelegd.
@@ -247,7 +259,7 @@ Dat wordt apart bemonsterd en gaat mogelijk leiden tot definitie van apart type 
 (ref:spatial-steekproefgrootte) Gerealiseerde steekproefgroottes per stratumcombinatie op basis van enkel de spatial survey gegevens.
 
 ```{r spatial-steekproefgrootte, message = FALSE}
-benthos_afdw_zs_durme_rupel %>%
+tab <- benthos_afdw_zs_durme_rupel %>%
   st_drop_geometry() %>%
   filter(survey == "spatial") %>%
   group_by(jaar, tidaal, KRWzone, ecotoop_werkelijk.benthos) %>%
@@ -258,6 +270,12 @@ benthos_afdw_zs_durme_rupel %>%
   summary_rows(groups = TRUE,
                columns = stratum_n,
                fns = list(totaal = "sum"))
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "spatial-steekproefgrootte")
+} else {
+  tab
+}
 ```
 
 Merk op dat de subtidale locaties niet nodig zijn voor de berekening waarbij een vergelijking nodig is met de streefwaarde van 30 ton biomassa.
@@ -315,11 +333,17 @@ Tabel \@ref(tab:tijdsinschatting) geeft een overzicht hiervan.
 werklast <- read_csv(file = find_root_file("data/tijdinschatting.csv",
                                            criterion = is_git_root))
 
-werklast %>%
+tab <- werklast %>%
   select(taakgroep, taak, tidaal, campagne, aantal_stalen,
          `totaal aantal uren gelogd` = tot_uren_gelogd) %>%
   group_by(taakgroep) %>%
   gt(caption = "(ref:tijdsinschatting)")
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "tijdsinschatting")
+} else {
+  tab
+}
 ```
 
 ```{r kosten}
@@ -392,7 +416,7 @@ Ze zijn een betere basis voor onderzoek dan random punten die niet herbezocht wo
 (ref:raai-steekproefgrootte) Gerealiseerde steekproefgroottes per stratumcombinatie op basis van enkel de raaigegevens.
 
 ```{r raai-steekproefgrootte}
-benthos_afdw_raai %>%
+tab <- benthos_afdw_raai %>%
   st_drop_geometry() %>%
   group_by(jaar, ecotoop_werkelijk.benthos, KRWzone, SalZone, stratum_n) %>%
   summarize(n_raaien = n_distinct(staalcode),
@@ -405,6 +429,12 @@ benthos_afdw_raai %>%
     columns = c(n_locaties, n_raaien),
     fns = list(total = "sum")
     )
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "raai-steekproefgrootte")
+} else {
+  tab
+}
 ```
 
 De ligging van de locaties langsheen de raaien is volgens een hoogtegradiënt (loodrecht op de as van de rivier).

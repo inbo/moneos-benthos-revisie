@@ -50,14 +50,25 @@ output:
 
 # Voorwoord {.unnumbered}
 
+Elke langetermijn monitoring die door het Instituut voor Natuur- en Bosonderzoek wordt uitgevoerd, kadert binnen een geheel van meetnetten die erop gericht zijn om het natuurbeleid te ondersteunen.
+Ze kunnen bijvoorbeeld nodig zijn om te controleren of bepaalde beleidsmaatregelen voldoende zijn om door het beleid vooropgestelde streefwaarden te halen.
+Niet zelden, leveren gegevens uit deze meetnetten nieuwe inzichten op of roepen ze nieuwe vragen op.
+Ook kunnen beleidsdoelstellingen veranderen en is er steeds een voortschrijdend wetenschappelijk inzicht.
+Langlopende meetnetten vergen vaak ook een grote inspanning wat betreft coördinatie, uitvoer, naverwerking en rapportage van de verzamelde gegevens.
+Bovendien kunnen er nieuwe bemonsteringsmethoden of labo-analysetechnieken ontwikkeld zijn, waar men zich van afvraagt of deze kosteneffectiever zijn dan de huidig gebruikte protocollen.
+Al deze zaken maken dat het nodig is om een langlopend meetnet op gepaste tijden te reviseren.
+Een revisie van een meetnet kan slaan op alle fasen van een meetnetontwerp: (1) prioriteren van de informatiebehoefte, (2) uitwerken van de gegevensinzameling, (3) plannen van de gegevensverwerking, (4) plannen van de rapportering en communicatie en (5) implementatie en kwaliteitszorg.
+
+In dit rapport houden we het macrozoöbenthos meetnet tegen het licht dat kadert binnen het MONEOS langetermijn monitoring- en onderzoeksprogramma.
+In dit meetnet wordt een component van de ecologische draagkracht van het Zeeschelde-estuarium gemonitord aan de hand van de biomassa en samenstelling van het macrozoöbenthos.
+
 # Samenvatting {.unnumbered}
 
-De tekst voor de verplichte samenvatting.
+<!--De tekst voor de verplichte samenvatting.
 Hou het [Heerlijk Helder](https://overheid.vlaanderen.be/communicatie/heerlijk-helder).
+-->
 
-# Aanbevelingen voor beheer en/of beleid {.unnumbered}
 
-Verplicht wanneer relevant.
 
 \benglish
 

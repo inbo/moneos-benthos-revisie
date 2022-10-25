@@ -470,8 +470,8 @@ krw_sf <- ecotoop %>%
 
 mapview(krw_sf) +
   benthos_afdw_zs_durme_rupel %>%
-  filter(jaar == "2019") %>%
-  mapview(zcol = c("survey"), burst = TRUE)
+  filter(jaar == "2019") #%>%
+  #mapview(zcol = c("survey"), burst = TRUE)
 ```
 
 ## Databeschikbaarheid

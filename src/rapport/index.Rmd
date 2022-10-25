@@ -46,6 +46,7 @@ output:
   INBOmd::pdf_report:
     includes:
       in_header: 'gt_packages.sty'
+  bookdown::dontrun: default
 ---
 
 # Voorwoord {.unnumbered}
@@ -68,7 +69,7 @@ Insert a translation of the summary here.
 
 ```{r renv-restore, eval = FALSE, echo=FALSE}
 renv::restore()
-cmdstanr::install_cmdstan(version = "v2.28.0")
+cmdstanr::install_cmdstan(version = "2.29.1")
 ```
 
 ```{r setup, include = FALSE}

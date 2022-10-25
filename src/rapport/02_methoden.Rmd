@@ -1,5 +1,6 @@
 ---
 bibliography: [moneos.bib]
+tags: moneos-benthos-revisie
 ---
 
 # Materiaal en methoden
@@ -87,7 +88,7 @@ benthos_afdw_ecotoop %>%
 
 ### Steekproefkader
 
-De doelpopulatie betreft de subtidale geul (permanent ondergedoken) en de intertidale slikgebieden van de Zeeschelde en de getij-onderhevige delen van zijn zijrivieren (Rupel, Dijle, Zenne, Netes, Durme).
+De doelpopulatie betreft de subtidale geul (permanent ondergedoken) en de intertidale (niet door hogere planten begroeide) slikgebieden van de Zeeschelde en de getij-onderhevige delen van zijn zijrivieren (Rupel, Dijle, Zenne, Netes, Durme).
 Het steekproefkader (ruimtelijke begrenzing), waarmee deze doelpopulatie benaderd wordt, wordt samengesteld aan de hand van 7 waterlichamen overeenkomend met waterlichamen afgebakend voor beoordeling in het kader van de Europese Kaderrichtlijn Water (KRW) [@speybroeck2014].
 
 De biomassa doelstelling 30 ton wordt berekend op het intertidaal (slik) voor de Zeeschelde, Rupel en Durme.
@@ -149,7 +150,7 @@ benthos_afdw_zs_durme_rupel %>%
 ### Steekproefdesign
 
 Het gaat om een stratified random design over waterlichamen en fysiotopen [@speybroeck2014].
-De strata volgens waterlichamen komen overeen met een indeling in een saliniteitsgradiënt (dus zout naar zoet hoe verder weg van de monding van de Zeeschelde).
+De strata volgens waterlichamen komen overeen met een indeling in een saliniteitsgradiënt (dus zout naar zoet hoe verder weg van de monding van de Zeeschelde) en verblijftijdsgradiënt.
 De stratificatie volgens fysiotoop reflecteert een indeling volgens een gradiënt loodrecht op de as van de rivieren (hoe hoger gelegen, hoe verder van de rivierbedding, hoe minder frequent overstroomt) (zie Figuur \@ref(fig:spatial-hoogtes)).
 
 (ref:spatial-hoogtes) Voorstelling van de steekproef in functie van de hoogte en de verschillende saliniteitszones.

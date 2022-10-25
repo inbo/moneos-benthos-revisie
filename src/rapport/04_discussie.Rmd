@@ -181,7 +181,7 @@ p1
 
 (ref:sample-variances) Illustratie van effect van grootte van locatie (uitgedrukt in termen van $M$ subeenheden), aantal locaties ($n$) en aantal substalen ($m$) op variantiecomponenten. De figuur geeft de variantiecomponenten en de som van beide in functie van de oppervlakte van een locatie (het aantal subunits in deze locatie wordt uitgedrukt door $M$ in termen van de oppervlakte van één bodemstaal $m$) en dit voor verschillende aantallen locaties ($n$) en aantal bodemstalen binnen een locatie ($m$). Zowel $m$ als $M$ zijn dus te begrijpen als aantallen of als oppervlaktes. In het geval dat $m = M$ is, is de totale variantie gelijk aan de variantie tussen locaties. Je kan dit geval aflezen uit de deelfiguur $m = 1$ door enkel te kijken naar de lijn die de variantie tussen locaties aangeeft (de waarde van $m = M$ lees je dan af van de x-as). De x-as staat in een logaritmische schaal om beter de verschillen bij kleine waarden weer te geven.
 
-```{r sample-variances, fig.cap = "(ref:sample-variances)"}
+```{r sample-variances, fig.height=4, fig.width=5, fig.cap = "(ref:sample-variances)"}
 varianties_df %>%
   expand_grid(n = c(25, 100)) %>%
   pivot_wider(names_from = variantiecomponent, values_from = waarde) %>%

@@ -155,7 +155,7 @@ De stratificatie volgens fysiotoop reflecteert een indeling volgens een gradiën
 
 (ref:spatial-hoogtes) Voorstelling van de steekproef in functie van de hoogte en de verschillende saliniteitszones.
 
-```{r spatial-hoogtes, fig.height=7.5, fig.cap="(ref:spatial-hoogtes)"}
+```{r spatial-hoogtes, fig.height=7.5, fig.width = 5, fig.cap="(ref:spatial-hoogtes)"}
 benthos_afdw_spatial %>%
   mutate(staalcode = fct_reorder(staalcode, Z)) %>%
   ggplot() +
@@ -164,7 +164,9 @@ benthos_afdw_spatial %>%
              position = position_dodge(width = 0.5)) +
   labs(x = "Hoogte (m)") +
   facet_grid(vars(SalZone), scales = "free_y",
-             labeller = label_wrap_gen(width = 20))
+             labeller = label_wrap_gen(width = 20)) +
+  scale_shape_discrete(name = "werkelijk \n ecotoop", 
+                       labels = function(x) str_wrap(x, width = 15))
 ```
 
 Tabel \@ref(tab:strata-krw) toont het eerste niveau van stratificatie volgens waterlichamen en hun link met de KRW-waterlichamen.
@@ -422,14 +424,20 @@ tab <- benthos_afdw_raai %>%
   group_by(jaar, ecotoop_werkelijk.benthos, KRWzone, SalZone, stratum_n) %>%
   summarize(n_raaien = n_distinct(staalcode),
             .groups = "drop_last") %>%
-  rename(n_locaties = stratum_n) %>%
+  rename(n_locaties = stratum_n,
+         werkelijk_ecotoop = ecotoop_werkelijk.benthos) %>%
   group_by(jaar) %>%
   gt(caption = "(ref:raai-steekproefgrootte)") %>%
   summary_rows(
     groups = TRUE,
     columns = c(n_locaties, n_raaien),
     fns = list(total = "sum")
-    )
+    ) %>%
+  cols_width(
+    werkelijk_ecotoop ~ pct(20),
+    SalZone ~ pct(20),
+    everything() ~ pct(10)
+  ) %>% tab_options(table.width = pct(100))
 
 if (knitr::is_latex_output()) {
   as_latex_with_caption(tab, "raai-steekproefgrootte")
@@ -447,7 +455,7 @@ Tussen de jaren blijven deze hoogtes meestal gelijk, maar soms zien we grote ver
 
 (ref:raai-hoogtes) De hoogteligging van bemonsterde locaties langs elk van de raaien. De lijnen verbinden dezelfde locaties bemonsterd in verschillend jaren.
 
-```{r raai-hoogtes, fig.height=7.5, fig.cap="(ref:raai-hoogtes)"}
+```{r raai-hoogtes, fig.height=7.5, fig.width = 5, fig.cap="(ref:raai-hoogtes)"}
 benthos_afdw_raai %>%
   mutate(staalcode = fct_reorder(staalcode, Z)) %>%
   ggplot() +
@@ -456,7 +464,9 @@ benthos_afdw_raai %>%
   geom_line(aes(x = Z, y = staalcode, group = staal)) +
   labs(x = "Hoogte (m)") +
   facet_grid(vars(SalZone), scales = "free_y",
-             labeller = label_wrap_gen(width=20))
+             labeller = label_wrap_gen(width = 20)) +
+  scale_shape_discrete(name = "werkelijk \n ecotoop", 
+                       labels = function(x) str_wrap(x, width = 15))
 ```
 
 ## Ligging van de locaties

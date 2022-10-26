@@ -69,6 +69,26 @@ In dit meetnet wordt een component van de ecologische draagkracht van het Zeesch
 Hou het [Heerlijk Helder](https://overheid.vlaanderen.be/communicatie/heerlijk-helder).
 -->
 
+Sinds 2008 voert het Instituut voor Natuur- en Bosonderzoek een jaarlijkse monitoring uit van macrozoöbenthos in de Zeeschelde en haar getijderivieren.
+De te bemonsteren locaties worden jaarlijks opnieuw random geselecteerd binnen een opdeling in waterlichamen en fysiotoop.
+De verschillende waterlichamen reflecteren ecologische verschillen volgens een zout-zoet gradiënt.
+De fysiotopen reflecteren ecologische verschillen ten gevolgen van een gradiënt in hoogteligging ten opzichte van het laagwaterpeil en dus verschillen in overstromingsfrequentie.
+De gegevens hiervan gebruikt men voor de beoordeling van de draagkracht en het ecologisch functioneren van het Zeeschelde-estuarium en bij de beoordelingen voor de Europese Kaderrichtlijn Water.
+Het doel van deze campagne is om de (intertidale) systeembiomassa van macrozoöbenthos in zacht substraat in te schatten als indicator voor de draagkracht van het Zeeschelde-systeem.
+
+Sinds 2018 loopt er een jaarlijkse tweede campagne waarbij men het macrozoöbenthos bemonstert op _vaste_ locaties in de intertidale zone.
+Met deze campagne wil men effecten van sedimenthoogteveranderingen in de ecologisch interessantste gebieden met een intakte slibplaat onderzoeken.
+
+-   Is het steekproefontwerp (steekproefgrootte, stratificatie, randomisatieprocedure) van de voldoende om robuuste uitspraken te kunnen doen over de toestand van de systeembiomassa?
+
+
+
+-   Is het mogelijk om de systeembiomassa in te schatten waarbij zo veel mogelijk gegevens afkomstig zijn van de vaste locaties die sinds 2018 worden ingezameld?
+
+
+
+-   Voor het stratified random sample moeten veel ecologisch gezien oninteressante gebieden meegenomen worden, waar vogels nauwelijks of niet foerageren (MZB als voedselbron). Zijn deze gebieden dan nodig voor de berekening van de draagkracht van de rivier?
+
 
 
 \benglish

@@ -267,7 +267,8 @@ tab <- benthos_afdw_zs_durme_rupel %>%
   filter(survey == "spatial") %>%
   group_by(jaar, tidaal, KRWzone, ecotoop_werkelijk.benthos) %>%
   summarize(stratum_n = n(), .groups = "drop") %>%
-  rename(zone = tidaal) %>%
+  rename(zone = tidaal,
+         werkelijk_ecotoop = ecotoop_werkelijk.benthos) %>%
   group_by(jaar, zone) %>%
   gt(caption = "(ref:spatial-steekproefgrootte)") %>%
   summary_rows(groups = TRUE,
@@ -426,7 +427,7 @@ tab <- benthos_afdw_raai %>%
             .groups = "drop_last") %>%
   rename(n_locaties = stratum_n,
          werkelijk_ecotoop = ecotoop_werkelijk.benthos) %>%
-  group_by(jaar) %>%
+  group_by(jaar, werkelijk_ecotoop) %>%
   gt(caption = "(ref:raai-steekproefgrootte)") %>%
   summary_rows(
     groups = TRUE,
@@ -437,8 +438,7 @@ tab <- benthos_afdw_raai %>%
     werkelijk_ecotoop ~ pct(20),
     SalZone ~ pct(20),
     everything() ~ pct(10)
-  ) %>% tab_options(table.width = pct(100))
-
+  )
 if (knitr::is_latex_output()) {
   as_latex_with_caption(tab, "raai-steekproefgrootte")
 } else {

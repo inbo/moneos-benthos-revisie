@@ -473,16 +473,37 @@ benthos_afdw_raai %>%
 
 (ref:leaflet-map) Ligging van de raai-locaties en de locaties van de gestratificeerde steekproef voor het jaar 2019.
 
-```{r leaflet-map, out.width="100%", fig.cap="(ref:leaflet-map)", cache=TRUE}
+```{r krw-sf, cache=TRUE}
 krw_sf <- ecotoop %>%
   sf::st_simplify() %>%
   group_by(KRWzone) %>%
   summarize()
+```
 
-mapview(krw_sf) +
+
+```{r leaflet-map, out.width="100%", fig.cap="(ref:leaflet-map)"}
+if (knitr::is_html_output()) {
+  mapview(krw_sf) +
   benthos_afdw_zs_durme_rupel %>%
-  filter(jaar == "2019") #%>%
-  #mapview(zcol = c("survey"), burst = TRUE)
+  filter(jaar == "2019") %>%
+  mapview(zcol = c("survey"), burst = TRUE)
+}
+
+if (knitr::is_latex_output()) {
+  krw_centroid <- st_centroid(krw_sf)
+  
+  benthos_afdw_zs_durme_rupel %>%
+    filter(jaar == "2019") %>%
+    ggplot() +
+    geom_sf_text(data = krw_centroid,
+                 aes(label = KRWzone, colour = KRWzone)) +
+    geom_sf(data = krw_sf,
+            aes(fill = KRWzone, colour = KRWzone),
+            alpha = 0.5) +
+    geom_sf() +
+    facet_wrap(~survey) +
+    theme(legend.position = "none")
+}
 ```
 
 ## Databeschikbaarheid

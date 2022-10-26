@@ -61,35 +61,31 @@ Al deze zaken maken dat het nodig is om een langlopend meetnet op gepaste tijden
 Een revisie van een meetnet kan slaan op alle fasen van een meetnetontwerp: (1) prioriteren van de informatiebehoefte, (2) uitwerken van de gegevensinzameling, (3) plannen van de gegevensverwerking, (4) plannen van de rapportering en communicatie en (5) implementatie en kwaliteitszorg.
 
 In dit rapport houden we het macrozoöbenthos meetnet tegen het licht dat kadert binnen het MONEOS langetermijn monitoring- en onderzoeksprogramma.
-In dit meetnet wordt een component van de ecologische draagkracht van het Zeeschelde-estuarium gemonitord aan de hand van de biomassa en samenstelling van het macrozoöbenthos.
+In dit meetnet wordt een component van de ecologische draagkracht van het Schelde estuarium gemonitord aan de hand van de biomassa en samenstelling van het macrozoöbenthos.
 
 # Samenvatting {.unnumbered}
 
+```{=html}
 <!--De tekst voor de verplichte samenvatting.
 Hou het [Heerlijk Helder](https://overheid.vlaanderen.be/communicatie/heerlijk-helder).
 -->
-
+```
 Sinds 2008 voert het Instituut voor Natuur- en Bosonderzoek een jaarlijkse monitoring uit van macrozoöbenthos in de Zeeschelde en haar getijderivieren.
 De te bemonsteren locaties worden jaarlijks opnieuw random geselecteerd binnen een opdeling in waterlichamen en fysiotoop.
 De verschillende waterlichamen reflecteren ecologische verschillen volgens een zout-zoet gradiënt.
 De fysiotopen reflecteren ecologische verschillen ten gevolgen van een gradiënt in hoogteligging ten opzichte van het laagwaterpeil en dus verschillen in overstromingsfrequentie.
-De gegevens hiervan gebruikt men voor de beoordeling van de draagkracht en het ecologisch functioneren van het Zeeschelde-estuarium en bij de beoordelingen voor de Europese Kaderrichtlijn Water.
+De gegevens hiervan gebruikt men voor de beoordeling van de draagkracht en het ecologisch functioneren van het Schelde estuarium en bij de beoordelingen voor de Europese Kaderrichtlijn Water.
 Het doel van deze campagne is om de (intertidale) systeembiomassa van macrozoöbenthos in zacht substraat in te schatten als indicator voor de draagkracht van het Zeeschelde-systeem.
 
-Sinds 2018 loopt er een jaarlijkse tweede campagne waarbij men het macrozoöbenthos bemonstert op _vaste_ locaties in de intertidale zone.
+Sinds 2018 loopt er een jaarlijkse tweede campagne waarbij men het macrozoöbenthos bemonstert op *vaste* locaties in de intertidale zone.
 Met deze campagne wil men effecten van sedimenthoogteveranderingen in de ecologisch interessantste gebieden met een intakte slibplaat onderzoeken.
 
 -   Is het steekproefontwerp (steekproefgrootte, stratificatie, randomisatieprocedure) van de voldoende om robuuste uitspraken te kunnen doen over de toestand van de systeembiomassa?
 
-
-
 -   Is het mogelijk om de systeembiomassa in te schatten waarbij zo veel mogelijk gegevens afkomstig zijn van de vaste locaties die sinds 2018 worden ingezameld?
 
-
-
--   Voor het stratified random sample moeten veel ecologisch gezien oninteressante gebieden meegenomen worden, waar vogels nauwelijks of niet foerageren (MZB als voedselbron). Zijn deze gebieden dan nodig voor de berekening van de draagkracht van de rivier?
-
-
+-   Voor het stratified random sample moeten veel ecologisch gezien oninteressante gebieden meegenomen worden, waar vogels nauwelijks of niet foerageren (MZB als voedselbron).
+    Zijn deze gebieden dan nodig voor de berekening van de draagkracht van de rivier?
 
 \benglish
 
@@ -98,9 +94,9 @@ Met deze campagne wil men effecten van sedimenthoogteveranderingen in de ecologi
 Insert a translation of the summary here.
 \eenglish
 
-```{r renv-restore, eval = FALSE, echo=FALSE}
+```{r renv-restore, include=FALSE}
 renv::restore()
-cmdstanr::install_cmdstan(version = "2.29.1")
+cmdstanr::install_cmdstan(version = "2.29.2")
 ```
 
 ```{r setup, include = FALSE}

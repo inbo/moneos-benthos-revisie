@@ -1,5 +1,6 @@
 ---
 bibliography: moneos.bib
+tags: moneos-benthos-revisie
 ---
 
 # Discussie
@@ -89,7 +90,7 @@ Hierbij nemen we de oppervlakte van de bodemboor als eenheid van een subeenheid 
 Verder veronderstellen we dat elke locatie dezelfde grootte heeft ($M$ subeenheden) en dat er binnen elke locatie evenveel bodemstalen worden genomen ($m$ subeenheden met $m \leq M$).
 De huidige MZB SPATIAL survey kunnen we dus beschouwen als het geval waarbij $m = M = 1$.
 Indien er een grotere bodemoppervlakte per locatie wordt bemonsterd (door bijvoorbeeld een mengstaal te nemen), krijg je een soort smoother-effect: de schatter op die locatie is preciezer.
-Afhankelijk hoe groot je een locatie neemt $M$ en hoeveel subsamples $m$ je neemt per locatie, zal de steekproeffout wijzigen afhankelijk van de varianties tussen en binnen locaties (zie Figuur \@ref(fig:twostage) en \@ref(fig:sample-variances)).
+Afhankelijk hoe groot je een locatie neemt ($M$) en hoeveel subsamples ($m$) je neemt per locatie, zal de steekproeffout wijzigen afhankelijk van de varianties tussen en binnen locaties (zie Figuur \@ref(fig:twostage) en \@ref(fig:sample-variances)).
 De schatter van variantie op het totaal kan als volgt berekend worden [@cochran1977a]:
 
 $$\hat{\sigma}^2_{\hat{y}} = \frac{N^2}{n}(1-f_1)\hat{s}^2_{1y} + \frac{N^2}{n}\frac{M^2}{m}f_1(1-f_2)\bar{\hat{s}^2_{2y}}$$
@@ -180,7 +181,7 @@ p1
 
 (ref:sample-variances) Illustratie van effect van grootte van locatie (uitgedrukt in termen van $M$ subeenheden), aantal locaties ($n$) en aantal substalen ($m$) op variantiecomponenten. De figuur geeft de variantiecomponenten en de som van beide in functie van de oppervlakte van een locatie (het aantal subunits in deze locatie wordt uitgedrukt door $M$ in termen van de oppervlakte van één bodemstaal $m$) en dit voor verschillende aantallen locaties ($n$) en aantal bodemstalen binnen een locatie ($m$). Zowel $m$ als $M$ zijn dus te begrijpen als aantallen of als oppervlaktes. In het geval dat $m = M$ is, is de totale variantie gelijk aan de variantie tussen locaties. Je kan dit geval aflezen uit de deelfiguur $m = 1$ door enkel te kijken naar de lijn die de variantie tussen locaties aangeeft (de waarde van $m = M$ lees je dan af van de x-as). De x-as staat in een logaritmische schaal om beter de verschillen bij kleine waarden weer te geven.
 
-```{r sample-variances, fig.cap = "(ref:sample-variances)"}
+```{r sample-variances, fig.height=4, fig.width=5, fig.cap = "(ref:sample-variances)"}
 varianties_df %>%
   expand_grid(n = c(25, 100)) %>%
   pivot_wider(names_from = variantiecomponent, values_from = waarde) %>%
@@ -201,7 +202,7 @@ varianties_df %>%
         legend.position = "bottom")
 ```
 
-Figuur \@ref(fig:sample-variances) laat zien dat het - voor de hypothetische verdeling van MZB biomassa in Figuur \@ref(fig:twostage) - wellicht zal lonen om $m = 4$ bodemstalen te nemen in $n = 25$ locaties van 100 x 100 oppervlakte-eenheden omdat deze een vergelijkbare totale variantie heeft als $n = 100$ locaties van 1 oppervlakte-eenheid bemonsteren met $m = 1$.
+Figuur \@ref(fig:sample-variances) laat zien dat het - voor de hypothetische verdeling van MZB biomassa in Figuur \@ref(fig:twostage) - afhangt van de grootte van de locatie ($M$)  of het loont om meerdere substalen te nemen. Voor een waarde van $M$ van 10 zien we dat de variantie hoofdzakelijk tussen locaties zit en een verhoging van aantal substalen $m$ niet veel effect heeft op de variantie. Voor een waarden van $M$ van 100 x 100 oppervlakte-eenheden ($M$ = 10000) zal het daarentegen wellicht lonen om bijvoorbeeld $m = 4$ bodemstalen te nemen in $n = 25$ locaties omdat dit een vergelijkbare totale variantie heeft als $n = 100$ locaties van 1 oppervlakte-eenheid bemonsteren met $m = 1$. Het belang van het nemen van substalen hangt dus af van hoe de verdeling van MZB biomassa zich verhoudt tot de grootte $M$ van de locaties (i.e. 'coarse grained' (veranderingen in MZB << $M$) versus 'fine grained' (veranderingen in MZB >> $M$) verdeling van de biomassa). 
 
 Momenteel is locatie gedefinieerd als een oppervlakte $M$ van `r round(opp_per_staal_m2 * 1e4)` cm² waarvan we de volledige oppervlakte bemonsteren met één staal ($m = M = 1$ in termen van oppervlakte van één staal).
 We zien in de figuur dan dat de totale variabiliteit gelijk is aan de variabiliteit tussen locaties (de tweestapssteekproef vereenvoudigt dan tot een enkelvoudige aselecte steekproef).

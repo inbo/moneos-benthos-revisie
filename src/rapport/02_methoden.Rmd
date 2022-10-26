@@ -1,5 +1,6 @@
 ---
 bibliography: [moneos.bib]
+tags: moneos-benthos-revisie
 ---
 
 # Materiaal en methoden
@@ -87,7 +88,7 @@ benthos_afdw_ecotoop %>%
 
 ### Steekproefkader
 
-De doelpopulatie betreft de subtidale geul (permanent ondergedoken) en de intertidale slikgebieden van de Zeeschelde en de getij-onderhevige delen van zijn zijrivieren (Rupel, Dijle, Zenne, Netes, Durme).
+De doelpopulatie betreft de subtidale geul (permanent ondergedoken) en de intertidale (niet door hogere planten begroeide) slikgebieden van de Zeeschelde en de getij-onderhevige delen van zijn zijrivieren (Rupel, Dijle, Zenne, Netes, Durme).
 Het steekproefkader (ruimtelijke begrenzing), waarmee deze doelpopulatie benaderd wordt, wordt samengesteld aan de hand van 7 waterlichamen overeenkomend met waterlichamen afgebakend voor beoordeling in het kader van de Europese Kaderrichtlijn Water (KRW) [@speybroeck2014].
 
 De biomassa doelstelling 30 ton wordt berekend op het intertidaal (slik) voor de Zeeschelde, Rupel en Durme.
@@ -149,12 +150,12 @@ benthos_afdw_zs_durme_rupel %>%
 ### Steekproefdesign
 
 Het gaat om een stratified random design over waterlichamen en fysiotopen [@speybroeck2014].
-De strata volgens waterlichamen komen overeen met een indeling in een saliniteitsgradiënt (dus zout naar zoet hoe verder weg van de monding van de Zeeschelde).
+De strata volgens waterlichamen komen overeen met een indeling in een saliniteitsgradiënt (dus zout naar zoet hoe verder weg van de monding van de Zeeschelde) en verblijftijdsgradiënt.
 De stratificatie volgens fysiotoop reflecteert een indeling volgens een gradiënt loodrecht op de as van de rivieren (hoe hoger gelegen, hoe verder van de rivierbedding, hoe minder frequent overstroomt) (zie Figuur \@ref(fig:spatial-hoogtes)).
 
 (ref:spatial-hoogtes) Voorstelling van de steekproef in functie van de hoogte en de verschillende saliniteitszones.
 
-```{r spatial-hoogtes, fig.height=7.5, fig.cap="(ref:spatial-hoogtes)"}
+```{r spatial-hoogtes, fig.height=7.5, fig.width = 5, fig.cap="(ref:spatial-hoogtes)"}
 benthos_afdw_spatial %>%
   mutate(staalcode = fct_reorder(staalcode, Z)) %>%
   ggplot() +
@@ -163,7 +164,9 @@ benthos_afdw_spatial %>%
              position = position_dodge(width = 0.5)) +
   labs(x = "Hoogte (m)") +
   facet_grid(vars(SalZone), scales = "free_y",
-             labeller = label_wrap_gen(width = 20))
+             labeller = label_wrap_gen(width = 20)) +
+  scale_shape_discrete(name = "werkelijk \n ecotoop", 
+                       labels = function(x) str_wrap(x, width = 15))
 ```
 
 Tabel \@ref(tab:strata-krw) toont het eerste niveau van stratificatie volgens waterlichamen en hun link met de KRW-waterlichamen.
@@ -421,14 +424,20 @@ tab <- benthos_afdw_raai %>%
   group_by(jaar, ecotoop_werkelijk.benthos, KRWzone, SalZone, stratum_n) %>%
   summarize(n_raaien = n_distinct(staalcode),
             .groups = "drop_last") %>%
-  rename(n_locaties = stratum_n) %>%
+  rename(n_locaties = stratum_n,
+         werkelijk_ecotoop = ecotoop_werkelijk.benthos) %>%
   group_by(jaar) %>%
   gt(caption = "(ref:raai-steekproefgrootte)") %>%
   summary_rows(
     groups = TRUE,
     columns = c(n_locaties, n_raaien),
     fns = list(total = "sum")
-    )
+    ) %>%
+  cols_width(
+    werkelijk_ecotoop ~ pct(20),
+    SalZone ~ pct(20),
+    everything() ~ pct(10)
+  ) %>% tab_options(table.width = pct(100))
 
 if (knitr::is_latex_output()) {
   as_latex_with_caption(tab, "raai-steekproefgrootte")
@@ -446,7 +455,7 @@ Tussen de jaren blijven deze hoogtes meestal gelijk, maar soms zien we grote ver
 
 (ref:raai-hoogtes) De hoogteligging van bemonsterde locaties langs elk van de raaien. De lijnen verbinden dezelfde locaties bemonsterd in verschillend jaren.
 
-```{r raai-hoogtes, fig.height=7.5, fig.cap="(ref:raai-hoogtes)"}
+```{r raai-hoogtes, fig.height=7.5, fig.width = 5, fig.cap="(ref:raai-hoogtes)"}
 benthos_afdw_raai %>%
   mutate(staalcode = fct_reorder(staalcode, Z)) %>%
   ggplot() +
@@ -455,7 +464,9 @@ benthos_afdw_raai %>%
   geom_line(aes(x = Z, y = staalcode, group = staal)) +
   labs(x = "Hoogte (m)") +
   facet_grid(vars(SalZone), scales = "free_y",
-             labeller = label_wrap_gen(width=20))
+             labeller = label_wrap_gen(width = 20)) +
+  scale_shape_discrete(name = "werkelijk \n ecotoop", 
+                       labels = function(x) str_wrap(x, width = 15))
 ```
 
 ## Ligging van de locaties
@@ -470,8 +481,8 @@ krw_sf <- ecotoop %>%
 
 mapview(krw_sf) +
   benthos_afdw_zs_durme_rupel %>%
-  filter(jaar == "2019") %>%
-  mapview(zcol = c("survey"), burst = TRUE)
+  filter(jaar == "2019") #%>%
+  #mapview(zcol = c("survey"), burst = TRUE)
 ```
 
 ## Databeschikbaarheid

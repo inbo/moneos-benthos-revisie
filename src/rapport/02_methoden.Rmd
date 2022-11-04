@@ -91,7 +91,7 @@ benthos_afdw_ecotoop %>%
 De doelpopulatie betreft de subtidale geul (permanent ondergedoken) en de intertidale (niet door hogere planten begroeide) slikgebieden van de Zeeschelde en de getij-onderhevige delen van zijn zijrivieren (Rupel, Dijle, Zenne, Netes, Durme).
 Het steekproefkader (ruimtelijke begrenzing), waarmee deze doelpopulatie benaderd wordt, wordt samengesteld aan de hand van 7 waterlichamen overeenkomend met waterlichamen afgebakend voor beoordeling in het kader van de Europese Kaderrichtlijn Water (KRW) [@speybroeck2014].
 
-De biomassa doelstelling 30 ton wordt berekend op het intertidaal (slik) voor de Zeeschelde, Rupel en Durme.
+De biomassa doelstelling 30 ton wordt berekend overheen alle fysiotopen (zie verder) voor de Zeeschelde, Rupel en Durme.
 Deze totaal doelstelling zal eveneens ook opgesplitst worden naar een minimum per zone:
 
 -   Saliniteitsgradiënt: 14,2 ton
@@ -219,10 +219,10 @@ if (knitr::is_latex_output()) {
 ```
 
 De ligging en oppervlakte van de fysiotopen verandert ieder jaar gedeeltelijk.
-Deze kan afgeleid worden uit de gebiedsdekkende ecotoopkarteringen, die echter niet voor elk jaar beschikbaar is.
+Deze kan afgeleid worden uit de gebiedsdekkende ecotoopkarteringen, die echter niet voor elk jaar beschikbaar zijn.
 Tabel \@ref(tab:strata-fysiotopen) toont de indeling volgens fysiotopen (tweede niveau van stratificatie).
 
-(ref:strata-fysiotopen) Strata van tweede niveau - fysiotopentypologie (Van Braeckel et al. 2006)
+(ref:strata-fysiotopen) Strata van tweede niveau - fysiotopentypologie [@braeckel2006]
 
 ```{r strata-fysiotopen}
 strata_fysiotopen <- data.frame(
@@ -301,7 +301,7 @@ De bemonsterde oppervlakte en volume (bij 15 cm diepte) per locatie bedraagt dus
 ### Procedure berekening van analysevariabelen
 
 De stalen worden gefixeerd (doodt de aanwezige organismen) en pas daarna nat gezeefd over maaswijdtes van 0,5 en 1 mm.
-Op de fractie \< 0,5 mm heeft men dus geen zicht, maar dit leidt slechts tot een beperkte onderschatting van de biomassa van 7,7% (+/- 2,7% standaardfout) volgens @speybroeck2014.
+Op de fractie \< 0,5 mm heeft men dus geen zicht, maar dit leidt slechts tot een beperkte onderschatting van de biomassa van 7,7% (+/- 2,7% standaardfout) volgens @speybroeck2014. Bovendien wordt de fractie kleiner dan 0.5mm meestal niet tot het macrozoöbenthos gerekend.
 
 Alle individuen worden gedetermineerd tot op het laagste taxonomische niveau, behalve de oligochaeten die als één taxon worden beschouwd (om de drie jaar is er wel een apart staal waarop oligochaeten worden gedetermineerd).
 
@@ -397,8 +397,8 @@ kosten <- bind_rows(kosten_veldwerk, kosten_niet_veldwerk) %>%
 ## Raaien
 
 Sinds 2018 werden vaste raaien jaarlijks bemonsterd (170 punten), bovenop de 228 random stalen voor jaarlijkse rapportage.
-Het gaat om 35 raaien (transecten) in de intertidale zone (dus niet in het subtidaal).
-Dus gemiddeld worden er `r round(170/35)` locaties per raai bemonsterd.
+Het gaat om 34 vaste raaien (transecten) in de intertidale zone (dus niet in het subtidaal).
+Dus gemiddeld worden er `r round(170/34)` locaties per raai bemonsterd.
 
 ```{r benthos-afdw-raai}
 benthos_afdw_zs_durme_rupel %>%

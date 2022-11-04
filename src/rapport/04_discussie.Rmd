@@ -19,7 +19,7 @@ Dat wil zeggen dat een vergroting van de steekproefgrootte pas een substantieel 
 Om de onzekerheid te verkleinen kan men daarom beter over andere opties nadenken.
 Eén van deze opties is bijvoorbeeld om de kans op nulwaarnemingen (geen MZB) te verkleinen door de hoeveelheid staal per locatie te vergroten - eventueel via een mengstaal.
 Een andere optie is om de besluitvorming niet te baseren op één jaar gegevens, maar te werken met een lopend gemiddelde van de afgelopen twee of drie jaar.
-De steekproefgrootte vergroten zal pas een substantieel effect hebben bij een heel sterke toename van de steekproefgrootte (x 4 geeft een halvering van de foutenmarge).
+
 
 (ref:foutenmargeVsN) Foutenmarge als functie van de steekproefgrootte. De rode punten geven de huidige steekproefgrootte en foutenmarge weer. De rode lijnen illustreren de omgekeerd evenredige relatie tussen de foutenmarge en de vierkantswortel van de steekproefgrootte; de foutenmarge halveert wanneer de steekgroef 4 keer groter is.
 
@@ -69,8 +69,8 @@ We besluiten dan ook dat de huidige manier van alloceren best aangehouden wordt.
 Een tweede mogelijkheid is wijzigingen maken aan de verdeling van de inspanning tussen selectie, bemonstering en naverwerking van de stalen in het labo (Sectie \@ref(bemonsteringsinspanning)).
 We hebben echter maar gedeeltelijk zicht op de benodigde informatie (kosten en varianties) om hier volledig onderbouwde uitspraken over te doen.
 De kosten (weliswaar onvolledig) gaven aan dat de bemonsteringskost de kleinste fractie is van de kosten (10% à 15%), gevolgd door de selectiekost (15% à 25%).
-Het resterende en grootste deel zijn de labokosten waarbij de triage van de soorten het grootste aandeel inneemt (iets meer dan 50%).
-De triage en determinatie zijn strikt genomen niet noodzakelijk voor de biomassabepaling, maar wel voor andere doeleinden.
+Het resterende en grootste deel zijn de labokosten waarbij de triage van de soorten het grootste aandeel inneemt (iets meer dan 50%). Tijdens de triage wordt benthos van sediment gescheiden waarna het benthos meteen in verschillende soortenfracties wordt gesorteerd. 
+De sortering in soortenfracties en determinatie zijn strikt genomen niet noodzakelijk voor de biomassabepaling, maar wel voor andere doeleinden.
 Als we triage en determinatie buiten beschouwing laten, is de verdeling evenwichtiger (voor de spatial survey ruwweg 25% bemonstering, 45% selectie, 30% labowerk).
 
 Een groter aantal stalen verwerken kan misschien haalbaar zijn indien de stalen op een andere manier verwerkt worden.
@@ -179,7 +179,7 @@ p1 <- as.data.frame(landschap) %>%
 p1
 ```
 
-(ref:sample-variances) Illustratie van effect van grootte van locatie (uitgedrukt in termen van $M$ subeenheden), aantal locaties ($n$) en aantal substalen ($m$) op variantiecomponenten. De figuur geeft de variantiecomponenten en de som van beide in functie van de oppervlakte van een locatie (het aantal subunits in deze locatie wordt uitgedrukt door $M$ in termen van de oppervlakte van één bodemstaal $m$) en dit voor verschillende aantallen locaties ($n$) en aantal bodemstalen binnen een locatie ($m$). Zowel $m$ als $M$ zijn dus te begrijpen als aantallen of als oppervlaktes. In het geval dat $m = M$ is, is de totale variantie gelijk aan de variantie tussen locaties. Je kan dit geval aflezen uit de deelfiguur $m = 1$ door enkel te kijken naar de lijn die de variantie tussen locaties aangeeft (de waarde van $m = M$ lees je dan af van de x-as). De x-as staat in een logaritmische schaal om beter de verschillen bij kleine waarden weer te geven.
+(ref:sample-variances) Illustratie van effect van grootte van locatie (uitgedrukt in termen van $M$ subeenheden), aantal locaties ($n$) en aantal substalen ($m$) op variantiecomponenten. De figuur geeft de variantiecomponenten en de som van beide in functie van de oppervlakte van een locatie (het aantal subunits in deze locatie wordt uitgedrukt door $M$ in termen van de oppervlakte van één bodemstaal $m$) en dit voor verschillende aantallen locaties ($n$) en aantal bodemstalen binnen een locatie ($m$). Zowel $m$ als $M$ zijn dus te begrijpen als aantallen of als oppervlaktes. In het geval dat $m = M$ is, is de totale variantie gelijk aan de variantie tussen locaties. Je kan dit geval aflezen uit de deelfiguur $m = 1$ door enkel te kijken naar de lijn die de variantie tussen locaties aangeeft (de waarde van $m = M$ lees je dan af van de x-as). De x-as staat in een logaritmische schaal om beter de verschillen bij kleine waarden weer te geven en de schaal van de y-as verschilt voor $n = 25$ en $n = 100$. 
 
 ```{r sample-variances, fig.height=4, fig.width=5, fig.cap = "(ref:sample-variances)"}
 varianties_df %>%
@@ -202,7 +202,7 @@ varianties_df %>%
         legend.position = "bottom")
 ```
 
-Figuur \@ref(fig:sample-variances) laat zien dat het - voor de hypothetische verdeling van MZB biomassa in Figuur \@ref(fig:twostage) - afhangt van de grootte van de locatie ($M$)  of het loont om meerdere substalen te nemen. Voor een waarde van $M$ van 10 zien we dat de variantie hoofdzakelijk tussen locaties zit en een verhoging van aantal substalen $m$ niet veel effect heeft op de variantie. Voor een waarden van $M$ van 100 x 100 oppervlakte-eenheden ($M$ = 10000) zal het daarentegen wellicht lonen om bijvoorbeeld $m = 4$ bodemstalen te nemen in $n = 25$ locaties omdat dit een vergelijkbare totale variantie heeft als $n = 100$ locaties van 1 oppervlakte-eenheid bemonsteren met $m = 1$. Het belang van het nemen van substalen hangt dus af van hoe de verdeling van MZB biomassa zich verhoudt tot de grootte $M$ van de locaties (i.e. 'coarse grained' (veranderingen in MZB << $M$) versus 'fine grained' (veranderingen in MZB >> $M$) verdeling van de biomassa). 
+Figuur \@ref(fig:sample-variances) laat zien dat het - voor de hypothetische verdeling van MZB biomassa in Figuur \@ref(fig:twostage) - afhangt van de grootte van de locatie ($M$)  of het loont om meerdere substalen te nemen. Voor een waarde van $M$ van 10 zien we dat de variantie hoofdzakelijk tussen locaties zit en een verhoging van aantal substalen $m$ niet veel effect heeft op de variantie. Voor een waarde van $M$ van 100 x 100 oppervlakte-eenheden ($M$ = 10000) zal het daarentegen wellicht lonen om bijvoorbeeld $m = 4$ bodemstalen te nemen in $n = 25$ locaties omdat dit een vergelijkbare totale variantie heeft als $n = 100$ locaties van 1 oppervlakte-eenheid bemonsteren met $m = 1$. Het belang van het nemen van substalen hangt dus af van hoe de verdeling van MZB biomassa zich verhoudt tot de grootte $M$ van de locaties (i.e. 'coarse grained' (veranderingen in MZB << $M$) versus 'fine grained' (veranderingen in MZB >> $M$) verdeling van de biomassa). 
 
 Momenteel is locatie gedefinieerd als een oppervlakte $M$ van `r round(opp_per_staal_m2 * 1e4)` cm² waarvan we de volledige oppervlakte bemonsteren met één staal ($m = M = 1$ in termen van oppervlakte van één staal).
 We zien in de figuur dan dat de totale variabiliteit gelijk is aan de variabiliteit tussen locaties (de tweestapssteekproef vereenvoudigt dan tot een enkelvoudige aselecte steekproef).
@@ -258,7 +258,7 @@ Een aanvulling met extra, aselecte gegevens blijft dus zeker nodig.
 
 ## Is een sample in ecologisch oninteressante gebieden nodig?
 
-Voor het stratified random sample moeten veel ecologisch gezien oninteressante gebieden meegenomen worden, waar vogels nauwelijks of niet foerageren (MZB als voedselbron).
+Voor het stratified random sample moeten veel ecologisch gezien oninteressante gebieden meegenomen worden, waar vogels en andere biota nauwelijks of niet foerageren (MZB als voedselbron).
 Zijn deze gebieden dan nodig voor de berekening van de draagkracht van de rivier?
 
 Vooraleer we hierop antwoorden, is het zinvol een onderscheid te maken tussen de slikzones en de zones met hard substraat.
@@ -334,7 +334,7 @@ We kunnen dan als volgt de trekking uitvoeren:
 -   Hoogteligging gebruiken om de richting van transecten te bepalen: enkel volgens toenemende hoogte (dit is dus een randvoorwaarde die je oplegt).
     Door deze randvoorwaarde is het niet meer nodig om ecotoop te beschouwen bij de berekening van inclusiekansen.
 
--   Een geschikte raailengte bepalen en tussenafstand tussen locaties binnen een raai (indien dit afhankelijk is van KRW zone, kan de hele procedure apart worden uitgevoerd per KRW zone).
+-   Een geschikte raailengte bepalen en tussenafstand tussen locaties binnen een raai (indien dit afhankelijk is van KRW zone, kan de hele procedure apart worden uitgevoerd per KRW zone). De raailengte dient gemeten te worden in het verticaal vlak gezien het sterke verschil in hellingsgraad en hoogte.
 
 -   De (variabele) inclusiekansen berekenen op basis van een verrasterde kaart(en) met de informatie die de inclusiekansen beïnvloedt (KRW zone, ecologische potentie).
     Deze inclusiekansen per rastercel omrekenen naar geaggregeerde inclusiekansen voor de raaien.

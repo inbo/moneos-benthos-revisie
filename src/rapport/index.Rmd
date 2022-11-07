@@ -26,12 +26,12 @@ reviewer:
     name: "Vanoverbeke"
     email: joost.vanoverbeke@inbo.be
     orcid: 0000-0002-3893-9529
-year: 2021
+year: 2022
 cover_photo:
-cover_description:
-doi:
-reportnr:
-depotnr:
+cover_description: "geen cover"
+doi: "geen doi"
+reportnr: "intern rapport"
+depotnr: "intern rapport"
 embargo:
 
 bibliography: [moneos.bib]
@@ -87,12 +87,7 @@ Met deze campagne wil men effecten van sedimenthoogteveranderingen in de ecologi
 -   Voor het stratified random sample moeten veel ecologisch gezien oninteressante gebieden meegenomen worden, waar vogels nauwelijks of niet foerageren (MZB als voedselbron).
     Zijn deze gebieden dan nodig voor de berekening van de draagkracht van de rivier?
 
-\benglish
 
-# English abstract {.unnumbered}
-
-Insert a translation of the summary here.
-\eenglish
 
 ```{r renv-restore, include=FALSE}
 renv::restore()

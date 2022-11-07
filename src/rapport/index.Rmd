@@ -80,6 +80,8 @@ Het doel van deze campagne is om de systeembiomassa van macrozoöbenthos in zach
 Sinds 2018 loopt er een jaarlijkse tweede campagne waarbij men het macrozoöbenthos bemonstert op *vaste* locaties in de intertidale zone.
 Met deze campagne wil men effecten van sedimenthoogteveranderingen in de ecologisch interessantste gebieden met een intakte slibplaat onderzoeken [@vandemeutter2022].
 
+We belichten in dit rapport de volgende vragen in verband met deze meetcampagnes:
+
 -   Is het steekproefontwerp (steekproefgrootte, stratificatie, randomisatieprocedure)  voldoende om robuuste uitspraken te kunnen doen over de toestand van de systeembiomassa?
 
 -   Is het mogelijk om de systeembiomassa in te schatten waarbij zo veel mogelijk gegevens afkomstig zijn van de vaste locaties die sinds 2018 worden ingezameld?
@@ -88,6 +90,14 @@ Met deze campagne wil men effecten van sedimenthoogteveranderingen in de ecologi
     Zijn deze gebieden dan nodig voor de berekening van de draagkracht van de rivier?
 
 
+Verschillende manieren werden bekeken om de gegevens te verwerken en een foutenmarge te bekomen op de schatting van het macrozoöbenthos.
+Voor het volledige systeem, lag de relatieve foutenmarge rond de 35%.
+Voor individuele strata, kon deze oplopen tot meer dan 100%.
+
+De vergelijking van gegevens afkomstig van de vaste locaties met de aselect steekproef, toonde aan dat de biomassa - zoals te verwachten - hoger ligt in de ecologisch interessantste gebieden, maar dat een aselecte steekproef nodig is om een onvertekende inschatting te bekomen voor het hele ecosysteem.
+
+In de discussie bespreken we verschillende pistes hoe met deze bevindingen kan omgegaan worden in het licht van een goede balans vinden tussen beperking van de veldwerklast en zo informatief mogelijke gegevens bekomen die de verschillende meetvragen kunnen beantwoorden.
+Deze discussie moet als input dienen om finale keuzes en motivatie van keuzes te maken bij een (gedeeltelijke) herziening van toekomstige meetcampagnes en gegevensverwerking in rapportages over de meetcampagnes.
 
 ```{r renv-restore, include=FALSE}
 renv::restore()

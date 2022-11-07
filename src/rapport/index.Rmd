@@ -26,12 +26,12 @@ reviewer:
     name: "Vanoverbeke"
     email: joost.vanoverbeke@inbo.be
     orcid: 0000-0002-3893-9529
-year: 2021
+year: 2022
 cover_photo:
-cover_description:
-doi:
-reportnr:
-depotnr:
+cover_description: "geen cover"
+doi: "geen doi"
+reportnr: "intern rapport"
+depotnr: "intern rapport"
 embargo:
 
 bibliography: [moneos.bib]
@@ -88,6 +88,7 @@ We belichten in dit rapport de volgende vragen in verband met deze meetcampagnes
 
 -   Voor het stratified random sample moeten veel ecologisch gezien oninteressante gebieden meegenomen worden, waar vogels nauwelijks of niet foerageren (MZB als voedselbron).
     Zijn deze gebieden dan nodig voor de berekening van de draagkracht van de rivier?
+
 
 Verschillende manieren werden bekeken om de gegevens te verwerken en een foutenmarge te bekomen op de schatting van het macrozoöbenthos.
 Voor het volledige systeem, lag de relatieve foutenmarge rond de 35%.

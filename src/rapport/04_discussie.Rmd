@@ -236,8 +236,9 @@ Kan een betrouwbare schatting van de totale MZB biomassa bekomen worden op basis
 
 Bij de vergelijking van raaien met spatial survey was vooral het jaar 2019 opvallend verschillend en dan met name veroorzaakt door een veel groter biomassa-aandeel ingeschat door de raaien in middelhoge slikzone van zones met een sterke saliniteitsgradiënt (wat meteen ook de grootste oppervlakte is in het systeem).
 De raaien liggen op plaatsen met mooi ontwikkeld slik terwijl bij de spatial survey in elk stratum een vergelijkbaar aantal locaties getrokken worden en er ook locaties getrokken worden met breuksteen.
+De hogere biomassa schattingen van de raaien, kunnen dus ook duiden op een verlies van MZB biomassa ten opzichte van een meer natuurlijke ideale situatie (= de raaien), zelfs wanneer er toch zacht substraat aanwezig is.
 
-Met de informatie die we nu hebben, kunnen de raaien niet gebruikt worden om een betrouwbare inschatting te maken.
+Met de informatie die we nu hebben, kunnen de raaien niet gebruikt worden om een betrouwbare inschatting te maken van de totale biomassa van het Schelde estuarium.
 De poststratificatie die we nu toepassen is enkel gebaseerd op de originele stratificatie door KRW zones in combinatie met ecotopen.
 Dit betekent dat met enkel de raaien we veel kans hebben op een overschatting van de werkelijke biomassa in het systeem, omdat de raaien gelegen zijn in de best ontwikkelde zones terwijl we de steekproefschattingen aandikken met de volledige stratum-oppervlaktes (ongeacht of deze goed of slecht ontwikkeld zijn) om tot totalen te komen voor de volledige doelpopulatie.
 Aangezien er geen duidelijke ruimtelijke afbakening is van wat de ecologisch beste gebieden zijn, kunnen we deze ontbrekende informatie niet gebruiken om tot betere poststratificatie correcties te komen van de raaien.

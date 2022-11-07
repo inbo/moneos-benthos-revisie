@@ -282,8 +282,8 @@ if (knitr::is_latex_output()) {
 }
 ```
 
-Merk op dat de subtidale locaties niet nodig zijn voor de berekening waarbij een vergelijking nodig is met de streefwaarde van 30 ton biomassa.
-Het gaat om iets minder dan de helft van het aantal locaties de spatial surveys (tabel \@ref(tab:spatial-steekproefgrootte)).
+Merk op dat de subtidale locaties strikt genomen nodig zijn voor de berekening waarbij een vergelijking nodig is met de streefwaarde van 30 ton biomassa, maar vaak wordt dit gereduceerd tot het intertidaal.
+Het gaat om iets minder dan de helft van het aantal locaties van de spatial surveys (tabel \@ref(tab:spatial-steekproefgrootte)).
 
 Alle stalen worden genomen tussen de eerste week van september en de eerste week van oktober.
 In principe kan, als alles goed gaat, de staalname op 2-3 weken tijd uitgevoerd worden.
@@ -293,7 +293,7 @@ Er zijn geen replica's binnen eenzelfde locatie.
 
 Voor de gedetailleerde beschrijving van het staalnameprotocol verwijzen we naar @speybroeck2014 (sectie 2.4.2).
 We beperken ons hier tot enkel die elementen die van belang kunnen zijn voor onze vraagstellingen.
-Er worden twee types stalen genomen, enkel het basisstaal is voor dit rapport van belang.
+Er worden sedimentstalen en benthosstalen genomen, enkel de sedimentstalen zijn voor dit rapport van belang.
 
 Zowel in het subtidaal als het intertidaal neemt men een steekbuisstaal met diameter van 4,5 cm tot 15 cm diepte, behalve in Zeeschelde IV tot 30 cm diep.
 De bemonsterde oppervlakte en volume (bij 15 cm diepte) per locatie bedraagt dus respectievelijk: `r round(pi*4.5^2/4)` cm² en `r round(pi*4.5^2/4*15/1000,2)` liter (x2 bij 30 cm diepte).

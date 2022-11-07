@@ -1,18 +1,98 @@
 ---
-bibliography: [moneos.bib, packages.bib]
+bibliography: [moneos.bib]
+tags: moneos-benthos-revisie
 ---
 
 # Materiaal en methoden
+
+```{r benthos-afdw}
+benthos <- read_vc(file = "benthos",
+                   root = find_root_file("data",
+                                         criterion = is_git_root))
+
+# correctie van ecotoop van een punt dat duidelijk in subtidaal lag
+benthos$ecotoop_werkelijk[
+  benthos$staal == "DU18_23" & benthos$jaar == "2018"] <- "matig diep subtidaal"
+
+benthos_afdw <- benthos %>%
+  mutate(survey = ifelse(grepl("raai", .$campagne.y), "raai", "spatial")) %>%
+  # enkele stalen met negatieve AFDW: op nul zetten
+  # bij enkele stalen stonden Z-waarden (hoogte) in mm ipv m
+  mutate(AFDW = ifelse(AFDW < 0, 0, AFDW),
+         Z = ifelse(Z >= 20, Z / 1000, Z)) %>%
+  group_by(survey, campagne.x, campagne.y, staal, staalcode, jaar, datum.x,
+           datum.y, real_X, real_Y, Z, geomorf, ecotoop_werkelijk,
+           ecotoop_gepland, SalZone, Vallei_deel, Omessegment, KRWzone) %>%
+  summarise(tot_aantal = sum(aantal),
+            tot_afdw = sum(AFDW),
+            aantal_fractietaxa = n_distinct(soort, fractie),
+           .groups = "drop")
+```
+
+```{r eval=FALSE}
+# mogelijke fouten in de data:
+benthos_afdw %>%
+  filter(str_extract(campagne.x, "SP\\d{2}") !=
+           str_extract(campagne.y, "SP\\d{2}")) %>%
+  select(staal, survey, campagne.x, campagne.y, jaar, datum.x, datum.y)
+# verschillend jaartal in campagne.x en campagne.y
+# variabele jaar komt overeen met campagne.y en is conform datum.x en datum.y
+# dus best variabelen jaar en survey gebruiken (niet campagne.x)
+
+# staal waar real_X 0 is en metadata ontbreken
+benthos_afdw %>%
+  filter(real_X == 0)
+# uit mail Frank: DG18_23 is een bestaand benthosstaal (zie benthosdata -niet
+# weggevallen of verlegd dus) in matig diep subtidaal genomen.
+```
+
+```{r ecotoop, warning=FALSE}
+layers <- st_layers(gdrive_gdb_path)
+
+ecotoop <- read_sf(gdrive_gdb_path,
+                   layer = layers$name[1]) %>%
+  st_cast("MULTIPOLYGON") %>%
+  mutate(ecotoop_werkelijk = recode(as.factor(Ecotoop),
+                                    "breuksteen" = "hard substraat",
+                                    "hard antropogeen" = "hard substraat",
+                                    "hoog slik" = "hoge slikzone",
+                                    "middelhoog slik" = "middelhoge slikzone",
+                                    "laag slik" = "lage slikzone",
+                                    "intertidaal" = "slik"),
+         KRWzone = recode(as.factor(KRWzone),
+                          "TijarmZwijnaarde" = "Tijarm-Zwijnaarde"),
+         KRWzone = replace_na(KRWzone, "Getijdedijle en -zenne")
+         )
+```
+
+```{r benthos-ecotoop}
+benthos_afdw_ecotoop <- benthos_afdw %>%
+  st_as_sf(coords = c("real_X", "real_Y"), crs = 31370) %>%
+  st_join(ecotoop %>%
+            select(-KRWzone, -SalZone),
+          left = FALSE,
+          suffix = c(".benthos", ".ecotoop"))
+```
+
+```{r eval=FALSE}
+# probleemgevallen met verschillende ecosysteem_werkelijk
+benthos_afdw_ecotoop %>%
+  filter(as.character(ecotoop_werkelijk.benthos) !=
+           as.character(ecotoop_werkelijk.ecotoop)) %>%
+  st_drop_geometry() %>%
+  select(jaar, staal, starts_with("ecotoop_werkelijk")) %>%
+  gt()
+```
 
 ## SPATIAL campagne
 
 ### Steekproefkader
 
-De doelpopulatie betreft de subtidale geul (permanent ondergedoken) en de intertidale slikgebieden van de Zeeschelde en de getij-onderhevige delen van zijn zijrivieren (Rupel, Dijle, Zenne, Netes, Durme).
+De doelpopulatie betreft de subtidale geul (permanent ondergedoken) en de intertidale (niet door hogere planten begroeide) slikgebieden van de Zeeschelde en de getij-onderhevige delen van zijn zijrivieren (Rupel, Dijle, Zenne, Netes, Durme).
 Het steekproefkader (ruimtelijke begrenzing), waarmee deze doelpopulatie benaderd wordt, wordt samengesteld aan de hand van 7 waterlichamen overeenkomend met waterlichamen afgebakend voor beoordeling in het kader van de Europese Kaderrichtlijn Water (KRW) [@speybroeck2014].
 
-De biomassa doelstelling 30 ton wordt berekend op het intertidaal (slik) voor de Zeeschelde + Rupel + Durme.
-Deze totaal doelstelling zal eveneens ook opgesplitst worden naar een minimum per zone: 
+De biomassa doelstelling 30 ton wordt berekend overheen alle fysiotopen (zie verder) voor de Zeeschelde, Rupel en Durme.
+Deze totaal doelstelling zal eveneens ook opgesplitst worden naar een minimum per zone:
 
 -   Saliniteitsgradiënt: 14,2 ton
 
@@ -22,9 +102,73 @@ Deze totaal doelstelling zal eveneens ook opgesplitst worden naar een minimum pe
 
 -   Zoet Korte Verblijftijd: 2,5 ton
 
+```{r biomassa-doelstellingen}
+mzb_targets <- tibble(
+  SalZone = c("Zoet korte verblijftijd",
+              "Oligohalien",
+              "Zoet lange verblijftijd",
+              "Zone met sterke saliniteitsgradiënt"),
+  doel = c(2.5, 8.3, 5, 14.2))
+```
+
+```{r zeeschelde-durme-rupel}
+benthos_afdw_ecotoop %>%
+  select(jaar, survey, staal, staalcode, tot_afdw, tot_aantal,
+         aantal_fractietaxa,
+         ecotoop_werkelijk.benthos,
+         KRWzone,
+         SalZone,
+         Vallei_deel,
+         Naam,
+         stratum_opp_m2 = Shape_Area,
+         Z) %>%
+  filter(Naam %in% c("Zeeschelde", "Durme", "Rupel")) %>%
+  group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
+  mutate(
+    tidaal = ifelse(str_detect(ecotoop_werkelijk.benthos, "subtidaal"),
+                    "subtidaal", "intertidaal"),
+    SalZone = factor(SalZone)) %>%
+  arrange(jaar, KRWzone, ecotoop_werkelijk.benthos, staal) %>%
+  ungroup() -> benthos_afdw_zs_durme_rupel
+```
+
+```{r benthos-afdw-spatial}
+#diameter = 4.5 cm
+opp_per_staal_m2 <- pi * (4.5 / 100) ^ 2 / 4
+
+benthos_afdw_zs_durme_rupel %>%
+  filter(survey == "spatial",
+         tidaal != "subtidaal") %>%
+  group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
+  mutate(stratum_n = n(),
+         stratum_weight = stratum_opp_m2 / (opp_per_staal_m2 * stratum_n)
+         ) %>%
+  arrange(jaar, KRWzone, ecotoop_werkelijk.benthos, staal) %>%
+  ungroup() -> benthos_afdw_spatial
+```
+
 ### Steekproefdesign
 
 Het gaat om een stratified random design over waterlichamen en fysiotopen [@speybroeck2014].
+De strata volgens waterlichamen komen overeen met een indeling in een saliniteitsgradiënt (dus zout naar zoet hoe verder weg van de monding van de Zeeschelde) en verblijftijdsgradiënt.
+De stratificatie volgens fysiotoop reflecteert een indeling volgens een gradiënt loodrecht op de as van de rivieren (hoe hoger gelegen, hoe verder van de rivierbedding, hoe minder frequent overstroomt) (zie Figuur \@ref(fig:spatial-hoogtes)).
+
+(ref:spatial-hoogtes) Voorstelling van de steekproef in functie van de hoogte en de verschillende saliniteitszones.
+
+```{r spatial-hoogtes, fig.height=7.5, fig.width = 5, fig.cap="(ref:spatial-hoogtes)"}
+benthos_afdw_spatial %>%
+  mutate(staalcode = fct_reorder(staalcode, Z)) %>%
+  ggplot() +
+  geom_point(aes(x = Z, y = staalcode, colour = jaar,
+                 shape = ecotoop_werkelijk.benthos),
+             position = position_dodge(width = 0.5)) +
+  labs(x = "Hoogte (m)") +
+  facet_grid(vars(SalZone), scales = "free_y",
+             labeller = label_wrap_gen(width = 20)) +
+  scale_shape_discrete(name = "werkelijk \n ecotoop", 
+                       labels = function(x) str_wrap(x, width = 15))
+```
+
 Tabel \@ref(tab:strata-krw) toont het eerste niveau van stratificatie volgens waterlichamen en hun link met de KRW-waterlichamen.
 De Zeeschelde wordt jaarlijks bemonsterd.
 De zijrivieren worden om de drie jaar bemonsterd.
@@ -64,22 +208,28 @@ strata_krw <- data.frame(
                         "Zoet")
 )
 
-strata_krw %>%
-  kable(caption = "(ref:strata-krw)")
+sktab <- strata_krw %>%
+  gt(caption = "(ref:strata-krw)")
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(sktab, "strata-krw")
+} else {
+  sktab
+}
 ```
 
 De ligging en oppervlakte van de fysiotopen verandert ieder jaar gedeeltelijk.
-Deze kan afgeleid worden uit de gebiedsdekkende ecotoopkarteringen, die echter niet voor elk jaar beschikbaar is.
+Deze kan afgeleid worden uit de gebiedsdekkende ecotoopkarteringen, die echter niet voor elk jaar beschikbaar zijn.
 Tabel \@ref(tab:strata-fysiotopen) toont de indeling volgens fysiotopen (tweede niveau van stratificatie).
 
-(ref:strata-fysiotopen) Strata van tweede niveau - fysiotopentypologie (Van Braeckel et al. 2006)
+(ref:strata-fysiotopen) Strata van tweede niveau - fysiotopentypologie [@braeckel2006]
 
 ```{r strata-fysiotopen}
 strata_fysiotopen <- data.frame(
-      getijdenzone = c("intertidaal hoog",
+      getijdenzone = c("intertidaal",
                        "intertidaal", "intertidaal", "subtidaal", "subtidaal",
                        "subtidaal"),
-         Fysiotoop = c("intertidaal",
+         Fysiotoop = c("hoog intertidaal",
                        "midden intertidaal", "laag intertidaal",
                        "ondiep subtidaal",
                        "matig diep subtidaal", "diep subtidaal"),
@@ -89,8 +239,14 @@ strata_fysiotopen <- data.frame(
                        "0-2m onder GLWS", "2-5m onder GLWS", ">5m onder GLWS")
 )
 
-strata_fysiotopen %>%
-  kable(caption = "(ref:strata-fysiotopen)")
+sftab <- strata_fysiotopen %>%
+  gt(caption = "(ref:strata-fysiotopen)")
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(sftab, "strata-fysiotopen")
+} else {
+  sftab
+}
 ```
 
 Voor elke combinatie waterlichaam x fysiotoop worden jaarlijks random staalnamelocaties vastgelegd.
@@ -99,24 +255,53 @@ Voor het grootste areaal, Zeeschelde IV, wordt dit aantal opgetrokken naar 10 lo
 Voor de kleinste arealen, Dijle en Zenne, komt men toe met respectievelijk 3 en 2 locaties per fysiotoop.
 Dit komt neer op 150 locaties die jaarlijks bemonsterd worden en 115 locaties driejaarlijks.
 Dit is het theoretisch vooropgestelde aantal locaties volgens @speybroeck2014.
-In de praktijk zien we dat er een iets hoger aantal locaties bemonsterd worden.
+In de praktijk zien we dat er een iets hoger aantal locaties bemonsterd worden (Tabel \@ref(tab:spatial-steekproefgrootte)).
+Dit komt doordat het MZB (biomassa/densiteit) in tijarmen sterk afwijkt van in de Zeeschelde zelf.
+Dat wordt apart bemonsterd en gaat mogelijk leiden tot definitie van apart type fysiotoop.
 
-Alle stalen worden genomen in de tweede en derde week van september.
+(ref:spatial-steekproefgrootte) Gerealiseerde steekproefgroottes per stratumcombinatie op basis van enkel de spatial survey gegevens.
+
+```{r spatial-steekproefgrootte, message = FALSE}
+tab <- benthos_afdw_zs_durme_rupel %>%
+  st_drop_geometry() %>%
+  filter(survey == "spatial") %>%
+  group_by(jaar, tidaal, KRWzone, ecotoop_werkelijk.benthos) %>%
+  summarize(stratum_n = n(), .groups = "drop") %>%
+  rename(zone = tidaal,
+         werkelijk_ecotoop = ecotoop_werkelijk.benthos) %>%
+  group_by(jaar, zone) %>%
+  gt(caption = "(ref:spatial-steekproefgrootte)") %>%
+  summary_rows(groups = TRUE,
+               columns = stratum_n,
+               fns = list(totaal = "sum"))
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "spatial-steekproefgrootte")
+} else {
+  tab
+}
+```
+
+Merk op dat de subtidale locaties strikt genomen nodig zijn voor de berekening waarbij een vergelijking nodig is met de streefwaarde van 30 ton biomassa, maar vaak wordt dit gereduceerd tot het intertidaal.
+Het gaat om iets minder dan de helft van het aantal locaties van de spatial surveys (tabel \@ref(tab:spatial-steekproefgrootte)).
+
+Alle stalen worden genomen tussen de eerste week van september en de eerste week van oktober.
+In principe kan, als alles goed gaat, de staalname op 2-3 weken tijd uitgevoerd worden.
 Er zijn geen replica's binnen eenzelfde locatie.
 
 ### Bemonsteringsprotocol
 
 Voor de gedetailleerde beschrijving van het staalnameprotocol verwijzen we naar @speybroeck2014 (sectie 2.4.2).
 We beperken ons hier tot enkel die elementen die van belang kunnen zijn voor onze vraagstellingen.
-Er worden twee types stalen genomen, enkel het basisstaal is voor dit rapport van belang.
+Er worden sedimentstalen en benthosstalen genomen, enkel de sedimentstalen zijn voor dit rapport van belang.
 
 Zowel in het subtidaal als het intertidaal neemt men een steekbuisstaal met diameter van 4,5 cm tot 15 cm diepte, behalve in Zeeschelde IV tot 30 cm diep.
-De bemonsterde oppervlakte en volume (bij 15 cm diepte) per locatie bedraagt dus respectievelijk: `r round(pi*4.5^2/4)` cm² en `round(pi*4.5^2/4*15/1000,2)` liter (x2 bij 30 cm diepte).
+De bemonsterde oppervlakte en volume (bij 15 cm diepte) per locatie bedraagt dus respectievelijk: `r round(pi*4.5^2/4)` cm² en `r round(pi*4.5^2/4*15/1000,2)` liter (x2 bij 30 cm diepte).
 
 ### Procedure berekening van analysevariabelen
 
-De stalen worden gefixeerd (dood de aanwezige organismen) en pas daarna nat gezeefd over maaswijdtes van 0,5 en 1 mm.
-Op de fractie \< 0,5 mm heeft men dus geen zicht, maar dit leidt slechts tot een beperkte onderschatting van de biomassa van 7,7% (+/- 2,7% standaardfout) volgens @speybroeck2014.
+De stalen worden gefixeerd (doodt de aanwezige organismen) en pas daarna nat gezeefd over maaswijdtes van 0,5 en 1 mm.
+Op de fractie \< 0,5 mm heeft men dus geen zicht, maar dit leidt slechts tot een beperkte onderschatting van de biomassa van 7,7% (+/- 2,7% standaardfout) volgens @speybroeck2014. Bovendien wordt de fractie kleiner dan 0.5mm meestal niet tot het macrozoöbenthos gerekend.
 
 Alle individuen worden gedetermineerd tot op het laagste taxonomische niveau, behalve de oligochaeten die als één taxon worden beschouwd (om de drie jaar is er wel een apart staal waarop oligochaeten worden gedetermineerd).
 
@@ -133,8 +318,8 @@ Er zijn 3 mensen bijna fulltime mee bezig en uiteindelijk komt er maar 1 getal u
 ```
 Omvang van het veldwerk:
 
--   staalname in intertidaal
--   staalname in subtidaal
+-   staalname in intertidaal voor de raai- en de spatial campagne
+-   staalname in subtidaal voor de spatial campagne
 
 Omvang van het geassocieerde labowerk:
 
@@ -144,19 +329,183 @@ Omvang van het geassocieerde labowerk:
 -   bepalen drooggewicht per soort per stratum
 -   bepalen asgewicht per soort per stratum
 
-```{=html}
-<!--
-(labowerk wellicht groter dan het veldwerk dat geconcentreerd is in de tijd binnen 2-3 weken).
--->
+Tabel \@ref(tab:tijdsinschatting) geeft een overzicht hiervan.
+
+(ref:tijdsinschatting) Ruwe schatting van de tijdsverdeling voor het veldwerk en het labowerk in één jaar.
+
+```{r tijdsinschatting, message=FALSE}
+werklast <- read_csv(file = find_root_file("data/tijdinschatting.csv",
+                                           criterion = is_git_root))
+
+tab <- werklast %>%
+  select(taakgroep, taak, tidaal, campagne, aantal_stalen,
+         `totaal aantal uren gelogd` = tot_uren_gelogd) %>%
+  group_by(taakgroep) %>%
+  gt(caption = "(ref:tijdsinschatting)")
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "tijdsinschatting")
+} else {
+  tab
+}
 ```
+
+```{r kosten}
+kosten <- werklast %>%
+  mutate(
+    aantal_stalen = ifelse(is.na(aantal_stalen),
+                           max(aantal_stalen, na.rm = TRUE),
+                           aantal_stalen),
+    uren_per_staal_reistijd = uren_per_staal_incl_reistijd -
+      uren_per_staal_excl_reistijd,
+    uren_per_staal_gelogd = tot_uren_gelogd / aantal_stalen,
+    uren_per_staal_excl_reistijd = uren_per_staal_excl_reistijd /
+      uren_per_staal_incl_reistijd * uren_per_staal_gelogd,
+    uren_per_staal_reistijd = uren_per_staal_reistijd /
+      uren_per_staal_incl_reistijd * uren_per_staal_gelogd) %>%
+  select(taakgroep, taak, tidaal, campagne, starts_with("uren_per_staal"),
+         -uren_per_staal_incl_reistijd)
+
+kosten_veldwerk <- kosten %>%
+  filter(taakgroep == "veldwerk") %>%
+  select(-uren_per_staal_gelogd, -taak) %>%
+  pivot_longer(cols = starts_with("uren"),
+               names_to = "taak",
+               values_to = "uren_per_staal_gelogd"
+              ) %>%
+  mutate(taak = ifelse(taak == "uren_per_staal_reistijd",
+                             "reistijd",
+                             "staalname")) %>%
+  rename(kostenpost = taak) %>%
+  mutate(kostenallocatie = ifelse(kostenpost == "reistijd",
+                                  "selectiekost",
+                                  "bemonsteringskost"),
+         taakgroep = paste(taakgroep, campagne, sep = "_"),
+         kostenpost = paste(kostenpost, tidaal, sep = "_")) %>%
+  select(-campagne, -tidaal)
+
+kosten_niet_veldwerk <- kosten %>%
+  filter(taakgroep != "veldwerk") %>%
+  select(taakgroep, taak, uren_per_staal_gelogd) %>%
+  rename(kostenpost = taak) %>%
+  mutate(kostenallocatie = c("selectiekost", rep("bemonsteringskost", 5)))
+  
+kosten <- bind_rows(kosten_veldwerk, kosten_niet_veldwerk) %>%
+  relocate(kostenallocatie)
+```
+
 ## Raaien
 
-Sinds 2018 werden vaste raaien jaarlijks bemonstert (170 punten), bovenop de 228 random stalen voor jaarlijkse rapportage.
-Het gaat om 35 raaien (transecten) in de intertidale zone (dus niet in het subtidaal).
-Dus gemiddeld worden een `r round(170/35)` locaties per raai bemonsterd.
+Sinds 2018 werden vaste raaien jaarlijks bemonsterd (170 punten), bovenop de 228 random stalen voor jaarlijkse rapportage.
+Het gaat om 34 vaste raaien (transecten) in de intertidale zone (dus niet in het subtidaal).
+Dus gemiddeld worden er `r round(170/34)` locaties per raai bemonsterd.
+
+```{r benthos-afdw-raai}
+benthos_afdw_zs_durme_rupel %>%
+  filter(survey == "raai",
+         tidaal != "subtidaal") %>%
+  group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
+  mutate(stratum_n = n(),
+         stratum_weight = stratum_opp_m2 / (opp_per_staal_m2 * stratum_n)
+         ) %>%
+  arrange(jaar, KRWzone, ecotoop_werkelijk.benthos, staal) %>%
+  ungroup() -> benthos_afdw_raai
+```
 
 De ligging van de raaien is gekozen in functie van het ecologisch belang en dekking van het systeem.
 Ze zijn voornamelijk gelegd in de ecologisch interessantste gebieden met een intakte slibplaat (veel delen van de Schelde zijn verstevigd met breuksteen, bv ongeveer volledig westerschelde IV, wat een veel minder geschikt substraat is voor MZB).
+Raaien zijn gebruikt om beter ecologische relaties te kunnen onderzoeken.
+Ze zijn een betere basis voor onderzoek dan random punten die niet herbezocht worden.
+
+(ref:raai-steekproefgrootte) Gerealiseerde steekproefgroottes per stratumcombinatie op basis van enkel de raaigegevens.
+
+```{r raai-steekproefgrootte}
+tab <- benthos_afdw_raai %>%
+  st_drop_geometry() %>%
+  group_by(jaar, ecotoop_werkelijk.benthos, KRWzone, SalZone, stratum_n) %>%
+  summarize(n_raaien = n_distinct(staalcode),
+            .groups = "drop_last") %>%
+  rename(n_locaties = stratum_n,
+         werkelijk_ecotoop = ecotoop_werkelijk.benthos) %>%
+  group_by(jaar, werkelijk_ecotoop) %>%
+  gt(caption = "(ref:raai-steekproefgrootte)") %>%
+  summary_rows(
+    groups = TRUE,
+    columns = c(n_locaties, n_raaien),
+    fns = list(total = "sum")
+    ) %>%
+  cols_width(
+    werkelijk_ecotoop ~ pct(20),
+    SalZone ~ pct(20),
+    everything() ~ pct(10)
+  )
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "raai-steekproefgrootte")
+} else {
+  tab
+}
+```
+
+De ligging van de locaties langsheen de raaien is volgens een hoogtegradiënt (loodrecht op de as van de rivier).
+Dit heeft tot voordeel dat er tussen de locaties veel variatie kan verwacht worden terwijl tegelijk het veldwerk beperkt blijft doordat de locaties dicht bij elkaar liggen.
+Dit soort van samplingstrategie wordt bediscussieerd in @gillison1985.
+De auteurs geven aan dat deze strategie, waarbij transecten gericht volgens een omgevingsgradiënt worden gekozen, aanvaardbaar kan zijn op voorwaarde dat de totale steekproef aantoonbaar representatief is voor de gehele doelpopulatie én wanneer het doel van de survey is om zoveel mogelijk diversiteit (niet biomassa!) te vatten in de steekproef.
+In figuur \@ref(fig:raai-hoogtes) zien we duidelijk dat de locaties langsheen de raaien liggen volgens een hoogtegradiënt.
+Tussen de jaren blijven deze hoogtes meestal gelijk, maar soms zien we grote verschillen wellicht door de rivierwerking of effecten van baggerwerken.
+
+(ref:raai-hoogtes) De hoogteligging van bemonsterde locaties langs elk van de raaien. De lijnen verbinden dezelfde locaties bemonsterd in verschillend jaren.
+
+```{r raai-hoogtes, fig.height=7.5, fig.width = 5, fig.cap="(ref:raai-hoogtes)"}
+benthos_afdw_raai %>%
+  mutate(staalcode = fct_reorder(staalcode, Z)) %>%
+  ggplot() +
+  geom_point(aes(x = Z, y = staalcode, colour = jaar,
+                 shape = ecotoop_werkelijk.benthos)) +
+  geom_line(aes(x = Z, y = staalcode, group = staal)) +
+  labs(x = "Hoogte (m)") +
+  facet_grid(vars(SalZone), scales = "free_y",
+             labeller = label_wrap_gen(width = 20)) +
+  scale_shape_discrete(name = "werkelijk \n ecotoop", 
+                       labels = function(x) str_wrap(x, width = 15))
+```
+
+## Ligging van de locaties
+
+(ref:leaflet-map) Ligging van de raai-locaties en de locaties van de gestratificeerde steekproef voor het jaar 2019.
+
+```{r krw-sf, cache=TRUE, message=FALSE, warning=FALSE}
+krw_sf <- ecotoop %>%
+  sf::st_simplify() %>%
+  group_by(KRWzone) %>%
+  summarize()
+```
+
+
+```{r leaflet-map, out.width="100%", fig.cap="(ref:leaflet-map)", message=FALSE, warning=FALSE, fig.width=8, fig.height=8}
+if (knitr::is_html_output()) {
+  mapview(krw_sf) +
+  benthos_afdw_zs_durme_rupel %>%
+  filter(jaar == "2019") %>%
+  mapview(zcol = c("survey"), burst = TRUE)
+}
+
+if (knitr::is_latex_output()) {
+  krw_centroid <- st_centroid(krw_sf)
+  
+  benthos_afdw_zs_durme_rupel %>%
+    filter(jaar == "2019") %>%
+    ggplot() +
+    geom_sf_text(data = krw_centroid,
+                 aes(label = KRWzone, colour = KRWzone)) +
+    geom_sf(data = krw_sf,
+            aes(fill = KRWzone, colour = KRWzone),
+            alpha = 0.5) +
+    geom_sf() +
+    facet_wrap(~survey, ncol = 1) +
+    theme(legend.position = "none",
+          axis.title = element_blank())
+}
+```
 
 ## Databeschikbaarheid
 
@@ -165,8 +514,138 @@ Er wordt gewerkt aan een SQL databank (Scheldedatabank) waarin actuele en histor
 
 ## Gegevensverwerking
 
-Voor de inschatting van de foutenmarge op de biomassa MZB, maken we gebruik van design-based formules voor de schatting van een totaal in een gestratificeerde steekproef.
+### Design-based inschatting biomassa
+
+Voor de inschatting van de foutenmarge op de biomassa MZB, kunnen we gebruik maken van design-based formules voor de schatting van een totaal in een gestratificeerde steekproef.
 Om het totaal in te schatten is het belangrijk dat we de juiste gewichten (inverse van inclusiekansen) gebruiken om de extrapolatie te doen van de totale biomassa geobserveerd in de steekproef naar de totale biomassa in het gehele systeem (de statistische populatie).
+Stratificatie verhoogt de precisie van de schatters op voorwaarde dat de strata homogeen zijn.
+Heterogene strata zullen daarentegen de precisie verlagen.
+Homogene strata zijn strata waarbij de variantie binnen een stratum lager is dan de variantie tussen strata (en omgekeerd voor heterogene strata).
+De design-based schatters voor het totaal en variantie op het totaal van een gestratificeerde steekproef zijn (voor het geval van één stratificatievariabele met $H$ strata):
+
+$$\hat{y}_{hi} = \sum_{h=1}^H\frac{N_h}{n_h}\sum_{i=1}^{n_h}y_{hi}$$ en $$\hat{\sigma}^2_{\hat{y}} = \sum_{h=1}^H\hat{\sigma}^2_{\hat{y_h}} = \sum_{h=1}^H\frac{N^2_h}{n_h}\frac{1}{n_h-1}\sum_{i=1}^{n_h}(y_{hi}-\bar{y_h})^2$$
+
+waarbij $N_h$ de populatiegrootte van stratum $h$ is, $n_h$ de steekproefgrootte van stratum $h$ en $y_{hi}$ is de waarde van de responsvariabele op locatie $i$ in stratum $h$.
+Deze formules zijn de zogenaamde Horvitz-Thompson schatters voor een gestratificeerde steekproef [@horvitz1952].
+We zullen in de resultaten hiernaar verwijzen als 'H-T'.
+
+Op basis van deze formules kunnen vervolgens betrouwbaarheidsintervallen berekend worden.
+Hierbij maken we gebruik van de normale distributie omdat de distributie van de schattingen, die je zou bekomen als je telkens opnieuw een steekproef zou trekken, normaal verdeeld is volgens de centrale limietstelling.
+Hier wordt aan voldaan voor een aselecte gestratificeerde steekproef op voorwaarde dat de steekproefgrootte voldoende groot is en er geen invloedrijke datapunten zijn.
+
+Merk op dat bij deze methode het mogelijk is dat het betrouwbaarheidsinterval negatieve waarden bevat terwijl biomassa uiteraard nooit negatief kan zijn.
+Dit kan gebeuren wanneer de variabiliteit groot is en / of de steekproefgrootte klein.
+We zullen in de resultaten deze negatieve ondergrenzen tonen, maar in de praktijk mogen deze gelijkgesteld worden aan 0.
+We berekenen daarom ook een tweede design-based methode waarbij we vermijden dat de betrouwbaarheidsintervallen waarden kunnen bevatten die buiten het theoretische bereik van de beschouwde variabele liggen.
+Hiervoor veronderstellen we dat de data een bepaalde statistische distributie volgt.
+Voor continue waarden \>= 0 kunnen we een zogenaamde hurdle-gamma of hurdle-lognormale verdeling veronderstellen.
+De hurdle is nodig voor waarden gelijk aan 0, omdat de gamma verdeling of lognormale verdeling enkel voor strikt positieve continue waarden gedefinieerd is.
+Om deze verdelingen te fitten aan de data dient de 'likelihood' gemaximaliseerd te worden om puntschattingen te bekomen van de drie parameters (een parameter voor de kans op nul en twee parameters die het gemiddelde en de variantie van de Gamma of lognormale verdeling beschrijven).
+Klassiek doet men dit met software voor veralgemeende lineaire regressiemodellen.
+Om echter te garanderen dat de puntschattingen rekening houden met de steekproefgewichten (Engels: sampling weights; omgekeerde van de inclusiekansen), zijn er correcties nodig [@lumley2017; @lumley2004].
+Een manier om gecorrigeerde, design-based standaardfouten te schatten is door het hurdle-gamma model vele malen opnieuw te fitten met telkens iets andere gewichten (replicated weights).
+Het `survey` package heeft functies om deze set van gewichten te berekenen - het algoritme dat we hiervoor gebruikt hebben is het Jackknife algoritme voor gestratificeerde steekproeven.
+We zullen in de resultaten daarom verwijzen naar deze methode als 'RW-J' (replicated weights - Jacknife methode).
+
+### Multilevel regressie en poststratificatie
+
+Een alternatieve analysemethode waarmee uitspraken kunnen gedaan worden over de statistische doelpopulatie op basis van een aselecte steekproef is Multilevel Regressie gevolgd door Poststratificatie (in de resultaten verwijzen we hiernaar als 'MRP')[@gelman2007; @gelman2007a; @si2020].
+
+Bij deze aanpak, wordt eerst een multilevel regressie uitgevoerd waarbij de belangrijkste designvariabelen (strata, clustering, ...) als effecten aan het model worden toegevoegd.
+Er wordt dus niet gewerkt met steekproefgewichten.
+In een tweede poststratificatiestap worden daarna de parameterschattingen aangedikt door ze te wegen volgens de oppervlaktes van elk van de poststrata combinaties zodat uitspraken over de doelpopulatie gedaan kunnen worden.
+Deze methode zou vooral interessant zijn voor uitspraken over kleine subdomeinen van de doelpopulatie.
+
+Waar de design-based methodes absoluut een probabilistische steekproef vereisen, is dat bij MRP minder het geval.
+Dat biedt perspectieven om de preferentieel ingezamelde data via de raaien met deze methode te analyseren of combinaties van beide surveys te exploreren.
+
+Voor de MRP analyse veronderstellen we dat de data hurdle-gamma verdeeld zijn.
+Als design-variabelen voegen we random intercepten toe voor de ecotopen en KRW zones en hun interactie.
+We gebruiken in deze gevallen de modus (meest voorkomende/waarschijnlijke waarde) en een 95% (aaneengesloten) hoogste-densiteit interval om de posterior distributie samen te vatten.
+De modus laat een vergelijking toe met de design-based schatters.
+
+Voor de raaigegevens is het verleidelijk om ook de identiteit van de afzonderlijke raaien en de individuele locaties (genest in raaien) in de analyse te betrekken als random intercepten.
+Door dit te doen kan er rekening gehouden worden met de gepaardheid van de individuele locaties en met het geclusterd zijn van de locaties binnen een bepaalde raai.
+Wanneer we dit deden waren de schattingen echter erg onrealistisch en bekwamen we zeer brede betrouwbaarheidsintervallen.
+Wellicht is het model met deze extra parameters te complex en worden sommige parameters zeer onnauwkeurig ingeschat.
+
+### Allocatie van steekproefeenheden over strata
+
+Voor een gestratificeerde steekproef kan volgende evenredigheid gebruikt worden voor een optimale allocatie van de totale steekproefgrootte over de verschillende strata:
+
+$$n_h \propto \frac{N_h\sigma_h}{\sqrt{cost_h}}$$.
+
+Dit suggereert dat een groter aandeel moet gaan naar grote strata (in oppervlakte), meer variabele strata en minder kostelijke strata.
+
+### Afweging steekproefgrootte en bemonsteringsinspanning per locatie
+
+Een eenvoudig denkmodel is een waarneming te beschrijven als een proces in drie stappen: eerst selecteren we een meetplaats, vervolgens bemonsteren we die en daarna verwerken we het staal.
+Symbolisch:
+
+$$\text{waarneming} \leftarrow \text{selectie} + \text{bemonstering} + \text{staalverwerking}$$
+
+Dit model maakt duidelijk dat de totale waarnemingsfout ($\sigma^2_{TF}$) de som is van de selectiefout ($\sigma^2_{SF}$), de bemonsteringsfout ($\sigma^2_{BF}$) en een labofout ($\sigma^2_{LF}$), waarbij:
+
+```{=latex}
+\begin{align*}
+\sigma^2_{SF} &= \frac{\sigma^2_P}{n}\\
+\sigma^2_{BF} &= \frac{\sigma^2_B}{n}\\
+\sigma^2_{LF} &= \frac{\sigma^2_L}{n}
+\end{align*}
+```
+
+Hierbij hebben we een oneindige populatie verondersteld bij de formule voor de steekproeffout.
+De steekproeffout neemt dus evenredig toe met de variabiliteit in de populatie ($\sigma^2_P$) en omgekeerd evenredig met de steekproefgrootte $n$.
+
+De variabiliteit in de populatie is een intrinsiek gegeven: het kan niet verkleind of vergroot worden éénmaal we het kenmerk dat we willen meten hebben vastgelegd.
+In ons geval is dit de biomassa MZB, $Y_i$ op een bepaalde locatie $i$.
+De definitie van wat we als locatie beschouwen is hierbij van belang.
+Het kenmerk zal van plaats tot plaats een andere waarde $Y_i$ hebben en deze intrinsieke (ruimtelijke) variabiliteit kunnen we berekenen via de formule voor een variantie:
+
+$$
+\frac{1}{N}\sum_{i=1}^N(Y_i - \mu)^2 \quad \textrm{met} \quad \mu = \frac{1}{N}\sum_{i=1}^NY_i
+$$
+
+De werkelijke biomassawaarde op een locatie $Y_i$ zal echter afwijken van wat we uiteindelijk meten: $Z_i$, maar het gemiddelde van de $Z_i$ op basis van $n$ aselect getrokken locaties kan nog wel beschouwd worden als een schatter voor $\mu$ (het werkelijke populatiegemiddelde).
+Bemerk dat we in bovenstaande formule alle elementen $N$ uit de populatie beschouwen.
+De formule geldt dus voor discreet telbare populaties.
+Voor een ruimtelijke continue populatie impliceert dit dat we de ruimte op één of andere manier moeten discretiseren en daar is een definitie voor nodig van wat we beschouwen als een locatie.
+Dit is een extra element dat $\sigma_P$ zal vastleggen.
+
+Het feit dat we $Z_i$ observeren voor een locatie in plaats van de werkelijke waarde $Y_i$ voor die locatie wordt veroorzaakt door fouten die niets te maken hebben met het steekproefproces zelf.
+Het verschil is het gevolg van fouten die we maken op het terrein en in het labo en geeft aanleiding tot de bemonsteringsfout en de labofout.
+Een mogelijke fout op het terrein is bijvoorbeeld het gevolg van verschillen in bemonsterd bodemvolume ten opzichte van vooropgesteld bodemvolume.
+Een ander voorbeeld is onzekerheid op de plaatsbepaling van een locatie of het gericht verplaatsen van random geselecteerde locaties (introduceert non-sampling bias).
+De term $\sigma^2_B$ stelt de bemonsteringsfout voor bij herhaalde metingen (staalnames) op één locatie uit de $n$ mogelijke locaties van de steekproef.
+Hoe groot $\sigma^2_B$ is hangt af de precisie waarmee de plaats bepaald wordt en de stalen genomen worden.
+De in het labo gemaakte meetfout $\sigma^2_{LF}$, hangt af van de keuzes die gemaakt worden bij de naverwerking van de stalen en de invloed daarvan op de herhaalbaarheid van een meting $\sigma^2_L$.
+De formules tonen dat het aantal staalnamelocaties $n$ verhogen een gunstig effect heeft op elk van de foutenbronnen.
+Deze decompositie van variantiebronnen kan vergeleken worden met de kosten geassocieerd met selectie, bemonstering en naverwerking van het staal door een vereenvoudigd lineair kostenmodel te veronderstellen waarmee de totale kost $K_T$ kan berekend worden:
+
+$$K_T = n(K_P + K_B + K_L)$$.
+
+In het huidige steekproefontwerp wordt op een puntlocatie (x, y coördinaat) een staal met gutsboor genomen van een bepaalde diameter.
+Soms kan het kostenefficiënt zijn om in twee stappen te werken: een locatie van een bepaalde oppervlakte selecteren (bv 1 m²) en vervolgens binnen deze locatie meerdere substalen te nemen die samen een schatting geven voor de volledige locatie.
+Op deze manier ontbinden we de steekproeffout in twee componenten: een variantiecomponent die de afwijking beschrijft van de geschatte locatiespecifieke totalen of gemiddelden ten opzichte van het globaal gemiddelde en een component die de gemiddelde afwijkingen binnen een locatie ten opzichte van locatie-specifieke totalen of gemiddelden beschrijft.
+Dit is een tweetrapssteekproef (two-stage sample) (subscript 1 = locatieniveau, subscript 2 = niveau substaal binnen locatie) [@cochran1977]:
+
+$$\mathbf{Var}(\hat{Y})=\mathbf{Var_1}[\mathbf{E_2}(\hat{Y})]+\mathbf{E_1}[\mathbf{Var_2}(\hat{Y})]$$
+
+Een pilootstudie kan uitgevoerd worden om deze componenten in te schatten.
+Voor een deel zijn zulke gegevens al beschikbaar uit een MZB exclosure experiment.
+Eenmaal een kostenoptimale balans gevonden is tussen aantal locaties ($n$ uit $N$) en aantal substalen binnen een locatie ($m$ uit $M$) uit een pilootstudie, hoeven daarna de individuele substalen niet meer apart geanalyseerd te worden.
+Ze kunnen vanaf dan worden samengenomen in een mengstaal per locatie.
+
+@cochran1977 toont aan dat, wanneer we uitgaan van volgend kostenmodel:
+
+$$K_T = nK_1 + nmK_2$$ een optimaal aantal subsamples bekomen wordt indien:
+
+$$m_{opt} = \frac{S_2}{\sqrt{S^2_1 - S^2_2/M}}\frac{\sqrt{K_1}}{\sqrt{K_2}}$$
+
+De hiermee overeenkomende waarde voor een optimaal aantal locaties $n_{opt}$ kan vervolgens gevonden worden door ofwel de kostenvergelijking op te lossen, ofwel de variantievergelijking.
+Welke van de twee wordt gekozen is afhankelijk of men uitgaat van een totaal budget of van een vooropgestelde precisie die men wil halen.
+
+### Gebruikte software en packages
 
 Alle analyses werden uitgevoerd in R [@R-base] .
-We maken hierbij gebruik van verschillende R packages: `dplyr` [@R-dplyr] voor het voorbereiden van de ruwe data, `ggplot2` [@R-ggplot2] voor aanmaken van figuren en `srvyr` [@R-srvyr] voor design-based inferentie.
+We maken hierbij gebruik van verschillende R packages: `dplyr` [@R-dplyr] voor het voorbereiden van de ruwe data, `ggplot2` [@R-ggplot2] voor aanmaken van figuren, `srvyr` [@R-srvyr] en `survey` [@R-survey] voor design-based inferentie, en `brms` [@R-brms] voor MRP.

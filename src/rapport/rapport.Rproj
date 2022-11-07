@@ -14,7 +14,4 @@ LaTeX: XeLaTeX
 
 AutoAppendNewline: Yes
 
-MarkdownWrap: Sentence
-MarkdownCanonical: Yes
-
-SpellingDictionary: nl_NL
+BuildType: Website

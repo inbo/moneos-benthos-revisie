@@ -1,33 +1,1594 @@
 ---
 bibliography: moneos.bib
+tags: moneos-benthos-revisie
 ---
 
 # Resultaten
 
-## Inschatting tonnage droge massa macrozoöbenthos (totaal + foutenmarge)
+## Inschatting tonnage droge biomassa macrozoöbenthos via gestratificeerde aselecte steekproef
 
-```{r eval=FALSE}
+```{r svytotal-jaar}
 # data.frame maken met alle survey design variabele en responsvariabelen
-srv_data <- data.frame()
-
-mzb_strata <- srv_data %>%
-  as_survey_design(strata = strata,
-                   weights = weights)
+benthos_design <- benthos_afdw_spatial %>%
+  as_survey_design(strata = c(KRWzone, ecotoop_werkelijk.benthos),
+                   weights = stratum_weight)
 
 # https://cran.r-project.org/web/packages/srvyr/vignettes/srvyr-vs-survey.html
-# Horvitz-Thomson type schatters (eventueel eerst sqrt-transformeren;
-# of log, maar nullen)
-mzb_strata %>%
-  #group_by(...) %>%
-  summarize(mzb_tot = survey_total(x = responsvar, na.rm = TRUE,
-                                   vartype = "ci", level = 0.95))
+# Horvitz-Thompson type schatters
+benthos_design %>%
+  group_by(jaar) %>%
+  summarize(
+    n = n(),
+    totopp_km2 = sum(unique(stratum_opp_m2)) / 1e6,
+    mzb_tonnage = survey_total(
+    x = tot_afdw / 1e6,
+    na.rm = TRUE,
+    vartype = "ci",
+    level = 0.95)) %>%
+  mutate(methode = "H-T") -> svytotal_jaar
+```
 
+```{r svytotal-salzone}
+# https://cran.r-project.org/web/packages/srvyr/vignettes/srvyr-vs-survey.html
+# Horvitz-Thompson type schatters
+benthos_design %>%
+  group_by(jaar, SalZone) %>%
+  summarize(
+        n = n(),
+        totopp_km2 = sum(unique(stratum_opp_m2)) / 1e6,
+        mzb_tonnage = survey_total(
+          x = tot_afdw / 1e6,
+          na.rm = TRUE,
+          vartype = "ci",
+          level = 0.95)) %>%
+  mutate(methode = "H-T") -> svytotal_salzone
+```
 
-# ofwel droge stof via zero-inflated lognormal distributie?
+```{r svymle, eval=FALSE}
+# ofwel droge stof via hurdle gamma distributie?
 # cf examples in ?survey::svymle (voor censored lognormal)
 # censored kan eventueel ook een optie zijn: alle nullen beschouwen als
 # links-gecensureerde data met kleine cutoff
 # zie ook ?survey::svysurvreg
+
+# not working
+# in terms of linear predictors (lp)
+loglike_hurdle_gamma <- function(y, lp_shape, lp_rate, lp_hu) {
+  hu <- plogis(lp_hu)
+  shape <- exp(lp_shape)
+  rate <- exp(lp_rate)
+  ifelse(y == 0,
+         dbinom(1, 1, hu, log = TRUE),
+         dbinom(0, 1, hu, log = TRUE) +
+           dgamma(y, shape = shape, rate = rate, log = TRUE)
+  )
+}
+
+# derivatives with respect to hu, shape and rate
+
+d_lp_shape <- function(y, lp_shape, lp_rate, lp_hu) {
+  hu <- plogis(lp_hu)
+  shape <- exp(lp_shape)
+  rate <- exp(lp_rate)
+  d_shape <- ifelse(
+    y == 0,
+    - (1 - y) / (1 - hu),
+    y / hu +
+      exp(-rate * y) * y^(shape - 1) * rate^shape / gamma(shape) *
+      (log(rate) + log(y) - digamma(shape))
+  )
+  return(d_shape * shape)
+}
+
+d_lp_rate <- function(y, lp_shape, lp_rate, lp_hu) {
+  hu <- plogis(lp_hu)
+  shape <- exp(lp_shape)
+  rate <- exp(lp_rate)
+  d_rate <- ifelse(
+    y == 0,
+    - (1 - y) / (1 - hu),
+    y / hu +
+      y^(shape - 1) / gamma(shape) * exp(-rate * y) * rate^(shape - 1)
+    * (shape - y * rate)
+    )
+  return(d_rate * rate)
+}
+
+d_lp_hu <- function(y, lp_shape, lp_rate, lp_hu) {
+  hu <- plogis(lp_hu)
+  d_hu <- y / hu - (1 - y) / (1 - hu)
+  return(d_hu * (1 / hu + 1 / (1 - hu)) ^ (-1))
+}
+
+gradient_hurdle_gamma <- function(y, lp_shape, lp_rate, lp_hu) {
+  return(
+    cbind(
+      d_lp_shape(y, lp_shape, lp_rate, lp_hu),
+      d_lp_rate(y, lp_shape, lp_rate, lp_hu),
+      d_lp_hu(y, lp_shape, lp_rate, lp_hu)
+      )
+    )
+}
+
+m <- svymle(
+  loglike = loglike_hurdle_gamma,
+  gradient = gradient_hurdle_gamma,
+  design = benthos_design,
+  method = "Nelder-Mead",
+  formulas = list(~tot_afdw,
+                  lp_shape = ~ 0 + jaar,
+                  lp_rate = ~ 0 + jaar,
+                  lp_hu = ~ 0 + jaar),
+  start = list(c(0.5, 0),
+               c(0.5, 0),
+               c(0.1, 0)
+  ),
+  control = list(maxit = 10000),
+  na.action = "na.omit"
+)
+
+
+summary(m)
+
+# see also https://github.com/strengejacke/sjstats/blob/master/R/svyglmzip.R
+
+# need predict method to obtain population total estimates, but no method for
+# svymle
+
+
+# from ?svymle The usual variance estimator for MLEs in a survey sample is a
+# `sandwich' variance that requires the score vector and the information matrix.
+# It requires only sampling assumptions to be valid (though some model
+# assumptions are required for it to be useful).
+# This is the stderr="robust" option, which is available only when the gradient
+# argument was specified.
+data.frame(est = coef(m), se = SE(m)) %>%
+  rownames_to_column(var = "parameter") %>%
+  separate(parameter, into = c("parameter", "jaar"), sep = ".jaar")
+
+# combine with var-covar matrix to calculate CI on overall mean?
+m$sandwich
+all.equal(SE(m), sqrt(diag(m$sandwich)))
+samples <- MASS::mvrnorm(n = 1e5, mu = coef(m), Sigma = m$sandwich)
+
+mle_summary <- samples %>%
+  as_tibble() %>%
+  mutate(
+    log_zero_part.2018 = log(1 - plogis(lp_hu.jaar2018)),
+    log_gamma_part.2018 = log(exp(lp_shape.jaar2018) / exp(lp_rate.jaar2018)),
+    sum_logparts.2018 = log_zero_part.2018 + log_gamma_part.2018,
+    log_zero_part.2019 = log(1 - plogis(lp_hu.jaar2019)),
+    log_gamma_part.2019 = log(exp(lp_shape.jaar2019) / exp(lp_rate.jaar2019)),
+    sum_logparts.2019 = log_zero_part.2019 + log_gamma_part.2019
+    ) %>%
+  select(starts_with("sum")) %>%
+  pivot_longer(cols = everything()) %>%
+  separate(name, c("name", "jaar"), sep = "\\.") %>%
+  group_by(jaar) %>%
+  summarize(y = exp(median(value)) /
+              opp_per_staal_m2,
+            ymin = exp(quantile(value, 0.025)) /
+              opp_per_staal_m2,
+            ymax = exp(quantile(value, 0.975)) /
+              opp_per_staal_m2,
+            y_alternative = mean(exp(value) / opp_per_staal_m2))
+
+# gram per m2
+mle_summary
+
+# vergelijk met:
+benthos_design %>%
+  group_by(jaar) %>%
+  summarize(
+    n = n(),
+    mzb_gram_per_m2 = survey_mean(
+    x = tot_afdw / opp_per_staal_m2,
+    na.rm = TRUE,
+    vartype = "ci",
+    level = 0.95))
+# er zit zeker nog iets fout
 ```
 
-## Vergelijking raaien met gestratificeerde aselecte steekproef
+```{r replicate-weights, cache=TRUE}
+# using replicate weights on a hurdle-gamma regression
+benthos_design_repl <- as.svrepdesign(benthos_design)
+
+hg_optim <- withReplicates(
+  benthos_design_repl,
+  quote(
+    glmmTMB(tot_afdw  ~ 0 + jaar,
+            family = ziGamma(link = "log"),
+            ziformula = ~ 0 + jaar,
+            dispformula = ~ 0 + jaar,
+            data = model.frame(design),
+            weights = .weights,
+            se = TRUE,
+            na.action = na.omit,
+            control = glmmTMBControl(
+              optimizer = optim,
+              optArgs = list(method = "BFGS")
+            ))$fit$par),
+  return.replicates = TRUE
+)
+totopp <- sum(unique(benthos_design$variables$stratum_opp_m2))
+
+hg_optim_estimates <- hg_optim %>%
+  as_tibble() %>%
+  mutate(param = rep(c("conditional", "hurdle", "dispersion"), each = 2),
+         jaar = rep(c("2018", "2019"), times = 3)) %>%
+  pivot_wider(id_cols = c(jaar),
+              names_from = c(param),
+              values_from = c(theta, SE)) %>%
+  mutate(overall_mean = (1 - plogis(theta_hurdle)) * exp(theta_conditional),
+         mzb_tonnage = overall_mean / opp_per_staal_m2 * totopp / 1e6)
+
+hg_optim_sigma <- attr(hg_optim$theta, which = "var")
+hg_optim_mean <- hg_optim$theta
+
+hg_samples <- MASS::mvrnorm(n = 1e5, mu = hg_optim_mean, Sigma = hg_optim_sigma)
+colnames(hg_samples) <- paste0(colnames(hg_samples), c(".2018", ".2019"))
+
+hg_summary <- hg_samples %>%
+  as_tibble() %>%
+  mutate(
+    epred.2018 = (1 - plogis(betazi.2018)) * exp(beta.2018),
+    epred.2019 = (1 - plogis(betazi.2019)) * exp(beta.2019),
+    ) %>%
+  select(starts_with("epred")) %>%
+  pivot_longer(cols = everything()) %>%
+  separate(name, c("name", "jaar"), sep = "\\.") %>%
+  group_by(jaar) %>%
+  mean_qi(value)
+# convert to tonnes
+n_samples <- benthos_design$variables %>%
+  count(jaar)
+
+hg_summary %>%
+  mutate(across(where(is.double) & !.width,
+         ~ .x / opp_per_staal_m2 * totopp / 1e6),
+         totopp_km2 = totopp / 1e6,
+         methode = "RW-J") %>%
+    inner_join(n_samples, by = "jaar") %>%
+  rename(mzb_tonnage = value,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) -> hg_replicated_jaar
+```
+
+```{r replicate-weights-salzone, warning=FALSE, message=FALSE, cache=TRUE}
+hg_salzone <- withReplicates(
+  design = benthos_design_repl,
+  quote(glmmTMB(tot_afdw  ~ 0 + jaar:SalZone,
+            family = ziGamma(link = "log"),
+            ziformula = ~ 0 + jaar:SalZone,
+            dispformula = ~ 0 + jaar:SalZone,
+            data = model.frame(design),
+            weights = .weights,
+            se = TRUE,
+            na.action = na.omit
+            ,
+            control = glmmTMBControl(
+              optimizer = optim,
+              optArgs = list(method = "BFGS", maxit = 20000)
+            )
+        )$fit$par
+      ),
+  return.replicates = TRUE
+)
+#BFGS did not converge... nor did default algorithm. Really a problem or false?
+
+hg_salzone_sigma <- attr(hg_salzone$theta, which = "var")
+hg_salzone_mean <- hg_salzone$theta
+
+
+hg_salzone_samples <- MASS::mvrnorm(n = 1e5,
+                                    mu = hg_salzone_mean,
+                                    Sigma = hg_salzone_sigma)
+colnames(hg_salzone_samples) <- paste0(
+  colnames(hg_salzone_samples),
+  paste0(
+    c("_2018_", "_2019_"),
+    rep(make.names(unique(benthos_design$variables$SalZone)), each = 2)))
+
+hg_salzone_samples <- hg_salzone_samples %>%
+  as_tibble() %>%
+  mutate(sample = row_number()) %>%
+  pivot_longer(-sample) %>%
+  separate(name, c("par", "jaar", "SalZone"), sep = "_")
+
+hg_salzone_summary <- hg_salzone_samples %>%
+  pivot_wider(names_from = par, values_from = value) %>%
+  mutate(
+    epred = (1 - plogis(betazi)) * exp(beta)) %>%
+  group_by(jaar, SalZone) %>%
+  mean_qi(epred)
+
+# convert to tonnes
+jointable_salzone <- benthos_design_repl$variables %>%
+  group_by(jaar, SalZone) %>%
+  summarize(n = n(),
+            totopp = sum(unique(stratum_opp_m2)))
+
+hg_salzone_summary %>%
+  mutate(SalZone = str_replace_all(SalZone, "\\.", " ")) %>%
+  inner_join(jointable_salzone, by = c("jaar", "SalZone")) %>%
+  mutate(across(where(is.double) & !.width & !totopp,
+         ~ .x / opp_per_staal_m2 * totopp / 1e6),
+         methode = "RW-J",
+         totopp_km2 = totopp / 1e6) %>%
+  select(-totopp) %>%
+  rename(mzb_tonnage = epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) -> hg_replicated_salzone
+```
+
+```{r eval=FALSE}
+for (i in 1:194) {
+  convergence <- glmmTMB(tot_afdw / opp_per_staal_m2 ~ 0 + jaar:SalZone,
+            family = ziGamma(link = "log"),
+            ziformula = ~ 0 + jaar:SalZone,
+            dispformula = ~ 0 + jaar:SalZone,
+            data = model.frame(benthos_design_repl),
+            weights = weights(benthos_design_repl)[, i],
+            se = TRUE,
+            na.action = na.omit,
+            control = glmmTMBControl(
+              optimizer = optim,
+              optArgs = list(method = "BFGS", maxit = 20000)
+            ))
+  cat(ifelse(convergence$fit$convergence > 0, i, "-"))
+}
+
+hg_summary
+
+# vergelijk met:
+bd_vergelijk <- benthos_design %>%
+  group_by(jaar) %>%
+  summarize(
+    n = n(),
+    mzb_gram_per_m2 = survey_mean(
+    x = tot_afdw / opp_per_staal_m2,
+    na.rm = TRUE,
+    vartype = "ci",
+    level = 0.95))
+
+bd_vergelijk
+
+all.equal(hg_summary$y,
+          bd_vergelijk$mzb_gram_per_m2)
+
+# lijkt er al beter op
+# maar er is nog een klein verschil,
+# dat er bijna niet was via rechtstreekse berekening
+all.equal(
+  hg_optim_estimates$overall_mean,
+  bd_vergelijk$mzb_gram_per_m2)
+```
+
+```{r mrp-benthos-afdw-poststrat, warning=FALSE}
+stratum_n <- benthos_afdw_zs_durme_rupel %>%
+  st_drop_geometry() %>%
+  filter(!str_detect(ecotoop_werkelijk.benthos, "subtidaal")) %>%
+  count(jaar, survey,
+        ecotoop_werkelijk = ecotoop_werkelijk.benthos,
+        KRWzone, SalZone)
+
+ecotoop %>%
+  st_cast("POLYGON") %>%
+  select(-Shape_Length, -Shape_Area, -Ecotoop) %>%
+  filter(!is.na(NrRandomPunten),
+         !str_detect(ecotoop_werkelijk, "subtidaal"),
+         Naam %in% c("Zeeschelde", "Durme", "Rupel")) %>%
+  mutate(opp_polygoon_m2 = as.numeric(st_area(.))) %>%
+  st_drop_geometry() %>%
+  group_by(SalZone, KRWzone, ecotoop_werkelijk) %>%
+  summarise(stratum_opp_m2 = sum(opp_polygoon_m2),
+            .groups = "drop") %>%
+  droplevels() %>%
+  expand_grid(survey = c("raai", "spatial"),
+              jaar = factor(c("2018", "2019"))) %>%
+  left_join(
+    stratum_n,
+    by = c("SalZone", "KRWzone", "survey", "jaar", "ecotoop_werkelijk")) %>%
+  mutate(n = ifelse(is.na(n), 0, n)) -> benthos_afdw_poststrat
+```
+
+```{r mrp-spatial-model, message=FALSE}
+fs::dir_create(find_root_file("src/rapport/brms_models",
+                              criterion = is_git_root))
+# multilevel regression + poststratification
+benthos_afdw_spatial %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  st_drop_geometry() %>%
+  brm(bf(
+    tot_afdw ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone),
+    hu ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+    ),
+  family = hurdle_gamma(),
+  data = .,
+  silent = 2,
+  cores = 4,
+  control = list(adapt_delta = 0.95),
+  backend = "cmdstanr",
+  file = find_root_file("src/rapport/brms_models/mrp_spatial",
+                        criterion = is_git_root),
+  file_refit = "on_change"
+  ) -> mrp_spatial
+```
+
+```{r mrp-spatial-jaar}
+poststrat_spatial <- benthos_afdw_poststrat %>%
+  filter(survey == "spatial")
+
+mrp_spatial %>%
+  add_epred_draws(newdata = poststrat_spatial) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(jaar) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(poststrat_spatial %>%
+               group_by(jaar) %>%
+               summarize(n = sum(n),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6),
+             by = "jaar"
+             ) %>%
+  mutate(methode = "MRP") -> mrp_spatial_jaar
+```
+
+```{r eval=FALSE}
+mrp_spatial %>%
+  add_epred_draws(newdata = poststrat_spatial) %>%
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, .draw) %>%
+  summarise(.epred = sum(.epred),
+            totopp_km2 = sum(stratum_opp_m2) / 1e6,
+            .groups = "drop_last") %>%
+  ggplot(aes(x = .epred, y = jaar)) +
+  stat_halfeye(point_interval = mode_hdci, .width = c(.66, .95))
+
+mrp_spatial %>%
+  add_epred_draws(newdata = poststrat_spatial) %>%
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, .draw) %>%
+  summarise(.epred = sum(.epred),
+            totopp_km2 = sum(stratum_opp_m2) / 1e6,
+            .groups = "drop_last") %>%
+  ggplot(aes(x = .epred, y = jaar)) +
+  stat_halfeye(point_interval = median_qi, .width = c(.66, .95))
+```
+
+```{r mrp-spatial-salzone}
+mrp_spatial %>%
+  add_epred_draws(newdata = poststrat_spatial) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, SalZone, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(jaar, SalZone) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(poststrat_spatial %>%
+               group_by(jaar, SalZone) %>%
+               summarize(n = sum(n),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("jaar", "SalZone")
+             ) %>%
+  mutate(methode = "MRP") -> mrp_spatial_salzone
+```
+
+De drie methoden verschillen in de geschatte totale biomassa MZB (Tabel \@ref(tab:schattingen-overzichtstabel)), maar deze schattingen liggen wel binnen elk van de drie 95% intervallen.
+Bij de Horvitz-Thompson schatter is het geschatte totaal duidelijk lager.
+Dit geschatte totaal stemt overeen met de manier waarop de biomassa-totalen gerapporteerd worden [zie bv @ryckegem2020].
+Het interval rond de Horvitz-Thompson schatter is per definitie symmetrisch, terwijl de andere methoden asymmetrische intervallen opleveren.
+Dit type van schatters is betrouwbaar op voorwaarde dat de steekproef voldoende groot is en er geen invloedrijke datapunten zijn.
+Wellicht is aan beide voorwaarden onvoldoende voldaan en dit komt nog beter tot uiting bij de subtotalen per saliniteitszone waar het interval soms negatieve waarden omvat (Tabel \@ref(tab:schattingen-overzichtstabel-salzone)).
+De twee andere methoden stemmen beter overeen.
+Beide methoden maken gebruik van een hurdle-gamma assumptie voor de verdeling van de biomassagegevens, maar ze verschillen sterk in de manier waarop rekening wordt gehouden met het steekproefontwerp.
+In het `RW-J` geval wordt de onzekerheid op de schatting volledig bepaald door Jackknife-herhalingen.
+In het model zelf zitten dan geen designvariabelen (enkel de factor jaar of jaar en saliniteitszone waar we een schatting voor willen).
+Bij de MRP methode zitten de designvariabelen wel bij in het model (als random effecten).
+De MRP schattingen lijken systematisch iets hoger te liggen dan de schattingen gebaseerd op de Jackknife herhalingen.
+
+(ref:schattingen-overzichtstabel) Schatting van tonnages biomassa MZB volgens verschillende methodes in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar. rfm = relatieve foutenmarge.
+
+```{r schattingen-overzichtstabel}
+tab <- bind_rows(svytotal_jaar, hg_replicated_jaar, mrp_spatial_jaar) %>%
+  select(jaar, methode, n, totopp_km2, starts_with("mzb")) %>%
+  mutate(n = as.integer(n),
+         rfm = (mzb_tonnage_upp - mzb_tonnage_low) / (2 * mzb_tonnage)) %>%
+  arrange(desc(methode), jaar) %>%
+  group_by(jaar) %>%
+  gt(caption = "(ref:schattingen-overzichtstabel)") %>%
+  fmt_number(columns = starts_with("mzb"), decimals = 1) %>%
+  fmt_number(columns = rfm, decimals = 2) %>%
+  fmt_number(columns = totopp_km2, decimals = 1)
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "schattingen-overzichtstabel")
+} else {
+  tab
+}
+```
+
+De drie methoden verschillen in de conclusies die getrokken kunnen worden wanneer de betrouwbaarheidsintervallen vergelijken met de doelstelling van 30 ton MZB (Figuur \@ref(fig:plot-jaar)).
+Volgens de MRP methode is er in beide jaren een hoger tonnage dan minimaal vooropgesteld wordt.
+Volgens de RW-J methode is dat enkel in 2019 het geval en volgens de Horvitz-Thompson schatter is het in geen van beide jaren het geval.
+
+(ref:plot-jaar) Vergelijking van de geschatte betrouwbaarheidsintervallen volgens de drie methoden met de doelstelling voor biomassa MZB in het volledige systeem.
+
+```{r plot-jaar, fig.cap="(ref:plot-jaar)"}
+bind_rows(svytotal_jaar, hg_replicated_jaar, mrp_spatial_jaar) %>%
+  select(jaar, methode, n, totopp_km2, starts_with("mzb")) %>%
+  ggplot() +
+  geom_pointrange(aes(
+    x = jaar,
+    y = mzb_tonnage,
+    ymin = mzb_tonnage_low,
+    ymax = mzb_tonnage_upp,
+    colour = methode
+  ),
+  position = position_dodge(width = 0.6)) +
+  geom_hline(aes(yintercept = 30))
+```
+
+(ref:schattingen-overzichtstabel-salzone) Schatting van tonnages biomassa MZB volgens verschillende methodes in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar en saliniteitszone.
+
+```{r schattingen-overzichtstabel-salzone}
+tab <- bind_rows(svytotal_salzone, hg_replicated_salzone, mrp_spatial_salzone) %>%
+  select(jaar, SalZone, methode, n, totopp_km2, starts_with("mzb")) %>%
+  mutate(n = as.integer(n),
+         rfm = (mzb_tonnage_upp - mzb_tonnage_low) / (2 * mzb_tonnage)) %>%
+  arrange(desc(methode), jaar, SalZone) %>%
+  group_by(jaar, SalZone) %>%
+  gt(caption = "(ref:schattingen-overzichtstabel-salzone)") %>%
+  fmt_number(columns = starts_with("mzb"), decimals = 1) %>%
+  fmt_number(columns = rfm, decimals = 2) %>%
+  fmt_number(columns = totopp_km2, decimals = 1)
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "schattingen-overzichtstabel-salzone")
+} else {
+  tab
+}
+```
+
+Figuur \@ref(fig:plot-salzone) geeft aan dat meestal de betrouwbaarheidsintervallen overlappen met de doelstelling.
+Voor het oligohalien zitten de locatieschattingen meestal onder de doelstelling, voor de andere zones zitten ze erboven.
+
+(ref:plot-salzone) Vergelijking van de geschatte betrouwbaarheidsintervallen volgens de drie methoden met de doelstelling voor biomassa MZB per saliniteitszone.
+
+```{r plot-salzone, fig.width=7, fig.height=4, fig.cap = "(ref:plot-salzone)"}
+bind_rows(svytotal_salzone, hg_replicated_salzone, mrp_spatial_salzone) %>%
+  select(jaar, SalZone, methode, n, totopp_km2, starts_with("mzb")) %>%
+  mutate(n = as.integer(n)) %>%
+  ggplot() +
+  geom_pointrange(aes(
+    x = jaar,
+    y = mzb_tonnage,
+    ymin = mzb_tonnage_low,
+    ymax = mzb_tonnage_upp,
+    colour = methode
+  ),
+  position = position_dodge(width = 0.6)) +
+  geom_hline(data = mzb_targets,
+             aes(yintercept = doel)) +
+  facet_grid(~ SalZone, labeller = label_wrap_gen(width = 20)) + 
+  theme(legend.position = "bottom")
+```
+
+```{r eval=FALSE}
+benthos_afdw_zs_durme_rupel %>%
+  filter(tidaal == "subtidaal",
+         Z > 0) %>%
+  st_drop_geometry() %>%
+  select(jaar, staal, ecotoop_werkelijk.benthos, KRWzone, Z) %>%
+  gt()
+```
+
+## Inschatting aan de hand van enkel raaigegevens
+
+```{r svytotal-raai-jaar}
+# data.frame maken met alle survey design variabele en responsvariabelen
+benthos_raai_design <- benthos_afdw_raai %>%
+  as_survey_design(strata = c(KRWzone, ecotoop_werkelijk.benthos),
+                   weights = stratum_weight)
+
+
+benthos_raai_design %>%
+  group_by(jaar) %>%
+  summarise(
+    n_raaien = n_distinct(staalcode),
+    n = n(),
+    totopp_km2 = sum(unique(stratum_opp_m2)) / 1e6,
+    mzb_tonnage = survey_total(
+      x = tot_afdw / 1e6,
+      na.rm = TRUE,
+      vartype = "ci",
+      level = 0.95),
+    .groups = "drop") %>%
+  mutate(methode = "H-T") -> svytotal_raai_jaar
+```
+
+```{r svytotal-raai-salzone}
+benthos_raai_design %>%
+  group_by(jaar, SalZone) %>%
+  summarise(
+    n_raaien = n_distinct(staalcode),
+    n = n(),
+    totopp_km2 = sum(unique(stratum_opp_m2)) / 1e6,
+    mzb_tonnage = survey_total(
+      x = tot_afdw / 1e6,
+      na.rm = TRUE,
+      vartype = "ci",
+      level = 0.95),
+    .groups = "drop_last") %>%
+  mutate(methode = "H-T") -> svytotal_raai_salzone
+```
+
+```{r mrp-raai-model}
+benthos_afdw_raai %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  st_drop_geometry() %>%
+  brm(bf(
+    tot_afdw ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone),
+    hu ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+  ),
+  family = hurdle_gamma(),
+  data = .,
+  silent = 2,
+  cores = 4,
+  control = list(adapt_delta = 0.95),
+  backend = "cmdstanr",
+  file = find_root_file("src/rapport/brms_models/mrp_raai",
+                        criterion = is_git_root),
+  file_refit = "on_change"
+  ) -> mrp_raai
+```
+
+```{r mrp-raai-clusters-model, eval=FALSE}
+# toevoegen van random effect staalcode en staal geeft zeer brede BI's
+benthos_afdw_raai %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  st_drop_geometry() %>%
+  brm(bf(
+    tot_afdw ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+    + (1 | staalcode)
+    + (1 | staalcode:staal),
+    hu ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+    + (1 | staalcode)
+    + (1 | staalcode:staal)
+    ),
+  family = hurdle_gamma(),
+  data = .,
+  silent = 2,
+  cores = 4,
+  control = list(adapt_delta = 0.95),
+  backend = "cmdstanr",
+  file = find_root_file("src/rapport/brms_models/mrp_raai_clusters",
+                        criterion = is_git_root),
+  file_refit = "on_change"
+  ) -> mrp_raai_clusters
+
+mrp_raai_clusters
+
+# proberen met enkel effect van locatie (staal)
+benthos_afdw_raai %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  st_drop_geometry() %>%
+  brm(bf(
+    tot_afdw ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+    + (1 | staal),
+    hu ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+    + (1 | staal)
+    ),
+  family = hurdle_gamma(),
+  data = .,
+  silent = 2,
+  cores = 4,
+  control = list(adapt_delta = 0.95),
+  backend = "cmdstanr",
+  file = find_root_file("src/rapport/brms_models/mrp_raai_gepaard",
+                        criterion = is_git_root),
+  file_refit = "on_change"
+  ) -> mrp_raai_gepaard
+
+mrp_raai_gepaard
+```
+
+```{r mrp-raai-clusters-jaar, eval=FALSE}
+# vermoedelijk is onderstaande berekening niet juist.
+# staalcode en staal wordt hier impliciet op NA gezet
+# maar de effecten van staalcode en staal moeten gemarginaliseerd worden
+# en dat vereist integratie over de random effecten
+# kan wellicht met 
+# https://cran.r-project.org/web/packages/brmsmargins/index.html
+
+poststrat_raai <- benthos_afdw_poststrat %>%
+  filter(survey == "raai")
+
+mrp_raai_clusters %>%
+  add_epred_draws(newdata = poststrat_raai,
+                  allow_new_levels = TRUE) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(jaar) %>%
+  filter(.epred < quantile(.epred, 0.999)) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(poststrat_raai %>%
+               group_by(jaar) %>%
+               summarize(n = sum(n),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6),
+             by = "jaar"
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raai_clusters_jaar
+
+mrp_raai_gepaard %>%
+  add_epred_draws(newdata = poststrat_raai,
+                  allow_new_levels = TRUE) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(jaar) %>%
+  filter(.epred < quantile(.epred, 0.999)) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(poststrat_raai %>%
+               group_by(jaar) %>%
+               summarize(n = sum(n),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6),
+             by = "jaar"
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raai_gepaard_jaar
+```
+
+```{r mrp-raai-jaar}
+poststrat_raai <- benthos_afdw_poststrat %>%
+  filter(survey == "raai")
+
+mrp_raai %>%
+  add_epred_draws(newdata = poststrat_raai,
+                  allow_new_levels = TRUE) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(jaar) %>%
+  filter(.epred < quantile(.epred, 0.999)) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(poststrat_raai %>%
+               group_by(jaar) %>%
+               summarize(n = sum(n),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6),
+             by = "jaar"
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raai_jaar
+```
+
+```{r mrp-raai-salzone}
+mrp_raai %>%
+  add_epred_draws(newdata = poststrat_raai,
+                  allow_new_levels = TRUE) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, SalZone, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(jaar, SalZone) %>%
+  filter(.epred < quantile(.epred, 0.999)) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(poststrat_raai %>%
+               group_by(jaar, SalZone) %>%
+               summarize(n = sum(n),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop_last"),
+             by = c("jaar", "SalZone")
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raai_salzone
+```
+
+Indien we de Horvitz-Thompson en MRP methode toepassen op enkel de gegevens van de raaien, bekomen we duidelijk andere cijfers dan die bekomen via de gestratificeerde steekproef (zie tabellen \@ref(tab:schattingen-raai-overzichtstabel) en \@ref(tab:schattingen-raai-overzichtstabel-salzone)).
+Vooral in 2019 ligt de schatting veel hoger vergeleken met de gestratificeerde steekproef.
+De punten langs de raaien zijn vrij gelijk verdeeld over de hoogtegradiënt.
+Bij de spatial survey hangt dit af van toevalligheden veroorzaakt door de jaarlijkse randomisatie.
+Mogelijk zou dit kunnen verklaren waarom in 2019 in de spatial survey er een lagere biomassa bekomen wordt indien in 2019 toevallig ook de punten lager langs de hoogtegradiënt liggen.
+Er is immers een toename van de biomassa met de hoogte (vooral langs de hoogtegradiënt in de lage en middelhoge intertidale zone is dit te zien; zie ook sectie \@ref(biomassa-hoogte-relatie)) [@braeckel2020].
+Als we figuur \@ref(fig:hoogteligging-survey) bekijken, blijkt dit beperkt het geval te zijn in het Oligohalien en de zone met sterke saliniteitsgradiënt.
+In de zone zoet met lange verblijftijd zien we echter het omgekeerde.
+Het lijkt dus eerder onwaarschijnlijk dat alleen verschillen in hoogte tussen de jaren het grote verschil in biomassa tussen raai en survey in 2019 verklaren.
+
+(ref:hoogteligging-survey) Boxplots van de hoogteligging van de bemonsterde locaties in beide jaren en voor beide survey-types.
+
+```{r hoogteligging-survey, fig.width=6, fig.height=5, fig.cap = "(ref:hoogteligging-survey)"}
+datahs <- benthos_afdw_zs_durme_rupel %>%
+  st_drop_geometry() %>%
+  filter(
+    tidaal == "intertidaal",
+    Z >= 0)
+
+datahs %>%
+  ggplot() + 
+  geom_boxplot(aes(x = survey, y = Z, fill = jaar),
+               alpha = 0.3) +
+  geom_point(aes(x = survey, y = Z, colour = jaar),
+              alpha = 0.3,
+              position = position_dodge(width = 0.75)) +
+  labs(y = "Hoogteligging boven laagwater 30 in m") +
+  facet_wrap(~SalZone)
+```
+
+De berekeningen voor de raaien op basis van Horvitz-Thompson schatters zijn echter fout om minstens twee redenen: (1) de doelpopulatie is verschillend, en (2) we gebruiken design-based inferentie terwijl het geen probabilistische steekproef betreft.
+Wellicht zijn dit sterk vertekende schattingen (overschatting vermits vooral in beste gebieden).
+Bovendien bekomen we bredere betrouwbaarheidsintervallen ondanks een hoger aantal locaties die via raaien bemonsterd worden in het intertidaal (150 versus 100-tal).
+
+Voor de MRP schattingen is het belangrijk om eerst op te merken dat er twee manieren zijn om de poststratificatie schattingen voor raaien te berekenen:
+
+1.  ofwel poststrata waarin geen raaien verwijderen => veranderen van de doelpopulatie
+
+2.  ofwel alle poststrata behouden en het model predicties laten doen voor poststrata zonder data
+
+    -   in dat geval zullen de geschatte "gemiddelde" biomassa ongeveer gelijk blijven
+    -   maar interval zal breder zijn
+
+In de tabellen staan de resultaten voor het tweede geval zodat de MRP methode een cijfer kan geven dat overeenstemt met de doelpopulatie (intertidale deel van Zeeschelde, Durme, Rupel).
+Dit is ook de kracht van MRP analyses omdat ze toelaten om voor poststratificatiecellen waarvoor er weinig of geen gegevens zijn, toch predicties te doen op basis van similariteiten met andere kenmerken waarvan er wel gegevens zijn (ook wel *smoothing* of *partial pooling* genoemd).
+Dit zal uiteraard wel bijdragen aan verhoogde onzekerheid over de schatting en dus resulteren in brede betrouwbaarheidsintervallen.
+Voor de MRP analyse op basis van enkel de raaigegevens, zaten in de posterior samples extreem hoge waarden voor de geschatte biomassa.
+Om stabiele schattingen te krijgen werden daarom de 0.1% hoogste waarden verwijderd alvorens berekening van de modus en het interval.
+
+(ref:schattingen-raai-overzichtstabel) Schatting van tonnages biomassa MZB volgens verschillende methodes in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar.
+
+```{r schattingen-raai-overzichtstabel}
+tab <- bind_rows(svytotal_raai_jaar, mrp_raai_jaar) %>%
+  select(jaar, methode, n_raaien, n, totopp_km2, starts_with("mzb")) %>%
+  mutate(n = as.integer(n),
+         n_raaien = as.integer(n_raaien)) %>%
+  arrange(desc(methode), jaar) %>%
+  group_by(jaar) %>%
+  gt(caption = "(ref:schattingen-raai-overzichtstabel)") %>%
+  fmt_number(columns = where(is.double), decimals = 1)
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "schattingen-raai-overzichtstabel")
+} else {
+  tab
+}
+```
+
+(ref:schattingen-raai-overzichtstabel-salzone) Schatting van tonnages biomassa MZB volgens verschillende methodes in de intertidale zone van de Zeeschelde en Durme opgesplitst per jaar en saliniteitszone.
+
+```{r schattingen-raai-overzichtstabel-salzone}
+tab <- bind_rows(svytotal_raai_salzone, mrp_raai_salzone) %>%
+  select(jaar, SalZone, methode, n_raaien, n, totopp_km2,
+         starts_with("mzb")) %>%
+  mutate(n = as.integer(n),
+         n_raaien = as.integer(n_raaien)) %>%
+  arrange(desc(methode), jaar, SalZone) %>%
+  group_by(jaar, SalZone) %>%
+  gt(caption = "(ref:schattingen-raai-overzichtstabel-salzone)") %>%
+  fmt_number(columns = where(is.double), decimals = 1)
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "schattingen-raai-overzichtstabel-salzone")
+} else {
+  tab
+}
+```
+
+## Vergelijking spatial en raai surveys
+
+Figuur \@ref(fig:plot-ruwe-data) visualiseert de ruwe biomassadata.
+De gemiddelde en betrouwbaarheidsintervallen die hierop getoond worden houden geen rekening met de oppervlaktes van de strata.
+De figuur geeft wel een eerste indicatie van de moeilijkheden die er zijn bij een vergelijking tussen de raaigegevens en de gegevens afkomstig van de spatial survey.
+
+(ref:plot-ruwe-data) Geobserveerde biomassa MZB is weergegeven door de cirkels. De grootte van de cirkels is evenredig met het aantal locaties in het geval dezelfde biomassa werd geobserveerd. Kruisjes geven de gemiddelde waarde aan en de betrouwbaarheidsintervallen zijn 95% bootstrap intervallen. De y-as is voorgesteld als een semi-logarithmische schaal (met een zachte overgang naar een lineaire schaal voor waarden dichtbij nul).
+
+```{r plot-ruwe-data, fig.width=6, fig.height=6, fig.cap = "(ref:plot-ruwe-data)", warning=FALSE}
+benthos_afdw_zs_durme_rupel %>%
+  filter(tidaal != "subtidaal") %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  st_drop_geometry() %>%
+  ggplot() +
+  stat_sum(aes(x = survey,
+               y = tot_afdw / opp_per_staal_m2,
+               colour = ecotoop_werkelijk),
+           position = position_dodge(width = 0.6),
+           alpha = 0.5) +
+  stat_summary(aes(x = survey,
+                   y = tot_afdw / opp_per_staal_m2,
+                   colour = ecotoop_werkelijk),
+               position = position_dodge(width = 0.6),
+               fun.data = mean_cl_boot,
+               shape = "cross") +
+  facet_grid(jaar ~ KRWzone + SalZone,
+             labeller = label_wrap_gen(width = 20)) +
+  scale_y_continuous("MZB gram per m²",
+                     trans = "pseudo_log",
+                     breaks = c(0, 1, 2, 5, 10, 20, 50, 100, 200)) +
+  scale_color_discrete(name = "werkelijk \n ecotoop", 
+                       labels = function(x) str_wrap(x, width = 15))
+  
+```
+
+```{r mrp-raaispatial-model}
+benthos_afdw_zs_durme_rupel %>%
+  filter(tidaal != "subtidaal") %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  st_drop_geometry() %>%
+  brm(bf(
+    tot_afdw ~
+      jaar
+    + survey
+    + jaar:survey
+    + (1 | survey:jaar:ecotoop_werkelijk)
+    + (1 | survey:jaar:KRWzone)
+    + (1 | survey:jaar:ecotoop_werkelijk:KRWzone),
+    hu ~
+      jaar
+    + survey
+    + jaar:survey
+    + (1 | survey:jaar:ecotoop_werkelijk)
+    + (1 | survey:jaar:KRWzone)
+    + (1 | survey:jaar:ecotoop_werkelijk:KRWzone)
+  ),
+  family = hurdle_gamma(),
+  data = .,
+  silent = 2,
+  cores = 4,
+  control = list(adapt_delta = 0.95),
+  backend = "cmdstanr",
+  file = find_root_file("src/rapport/brms_models/mrp_raaispatial",
+                        criterion = is_git_root),
+  file_refit = "on_change"
+  ) -> mrp_raaispatial
+```
+
+```{r mrp-raaispatial-2-model}
+benthos_afdw_zs_durme_rupel %>%
+  filter(tidaal != "subtidaal") %>%
+  rename(ecotoop_werkelijk = ecotoop_werkelijk.benthos) %>%
+  st_drop_geometry() %>%
+  brm(bf(
+    tot_afdw ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone),
+    hu ~
+      jaar
+    + (1 | jaar:ecotoop_werkelijk)
+    + (1 | jaar:KRWzone)
+    + (1 | jaar:ecotoop_werkelijk:KRWzone)
+  ),
+  family = hurdle_gamma(),
+  data = .,
+  silent = 2,
+  cores = 4,
+  control = list(adapt_delta = 0.95),
+  backend = "cmdstanr",
+  file = find_root_file("src/rapport/brms_models/mrp_raaispatial_2",
+                        criterion = is_git_root),
+  file_refit = "on_change"
+  ) -> mrp_raaispatial_2
+```
+
+```{r mrp-raaispatial-jaar}
+mrp_raaispatial %>%
+  add_epred_draws(newdata = benthos_afdw_poststrat,
+                  allow_new_levels = TRUE) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(survey, jaar, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(survey, jaar) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(benthos_afdw_poststrat %>%
+               group_by(survey, jaar) %>%
+               summarize(n = sum(n),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("survey", "jaar")
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raaispatial_jaar
+```
+
+```{r mrp-raaispatial-salzone}
+mrp_raaispatial %>%
+  add_epred_draws(newdata = benthos_afdw_poststrat,
+                  allow_new_levels = TRUE) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(survey, jaar, SalZone, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(survey, jaar, SalZone) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(benthos_afdw_poststrat %>%
+               group_by(survey, jaar, SalZone) %>%
+               summarize(n = sum(n),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("survey", "jaar", "SalZone")
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raaispatial_salzone
+```
+
+```{r mrp-raaispatial-ecotoop}
+mrp_raaispatial %>%
+  add_epred_draws(newdata = benthos_afdw_poststrat,
+                  allow_new_levels = TRUE) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(survey, jaar, ecotoop_werkelijk, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(survey, jaar, ecotoop_werkelijk) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(benthos_afdw_poststrat %>%
+               group_by(survey, jaar, ecotoop_werkelijk) %>%
+               summarize(n = sum(n),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("survey", "jaar", "ecotoop_werkelijk")
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raaispatial_ecotoop
+```
+
+```{r mrp-raaispatial-salzone-ecotoop}
+mrp_raaispatial %>%
+  add_epred_draws(newdata = benthos_afdw_poststrat,
+                  allow_new_levels = TRUE) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(survey, jaar, SalZone, ecotoop_werkelijk, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(survey, jaar, SalZone, ecotoop_werkelijk) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(benthos_afdw_poststrat %>%
+               group_by(survey, jaar, SalZone, ecotoop_werkelijk) %>%
+               summarize(n = sum(n),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("survey", "jaar", "SalZone", "ecotoop_werkelijk")
+             ) %>%
+  mutate(methode = "MRP") -> mrp_rsp_salzone_ecotoop
+```
+
+```{r mrp-raaispatial-2-jaar}
+# model zonder survey => poststrata ook survey verwijderen anders dubbeltelling
+benthos_afdw_ps_zonder_survey <- benthos_afdw_poststrat %>%
+  group_by(SalZone, KRWzone, ecotoop_werkelijk, jaar, stratum_opp_m2) %>%
+  summarise(n_raai = sum(n[survey == "raai"]),
+            n_spatial = sum(n[survey == "spatial"]),
+            n = sum(n),
+            .groups = "drop")
+
+mrp_raaispatial_2 %>%
+  add_epred_draws(newdata = benthos_afdw_ps_zonder_survey) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(jaar) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(benthos_afdw_ps_zonder_survey %>%
+               group_by(jaar) %>%
+               summarize(n = sum(n),
+                         n_raai = sum(n_raai),
+                         n_spatial = sum(n_spatial),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6),
+             by = "jaar"
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raaispatial2_jaar
+```
+
+```{r mrp-raaispatial-2-salzone}
+mrp_raaispatial_2 %>%
+  add_epred_draws(newdata = benthos_afdw_ps_zonder_survey) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, SalZone, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(jaar, SalZone) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(benthos_afdw_ps_zonder_survey %>%
+               group_by(jaar, SalZone) %>%
+               summarize(n = sum(n),
+                         n_raai = sum(n_raai),
+                         n_spatial = sum(n_spatial),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("jaar", "SalZone")
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raaispatial2_salzone
+```
+
+```{r mrp-raaispatial-2-ecotoop}
+mrp_raaispatial_2 %>%
+  add_epred_draws(newdata = benthos_afdw_ps_zonder_survey) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, ecotoop_werkelijk, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(jaar, ecotoop_werkelijk) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(benthos_afdw_ps_zonder_survey %>%
+               group_by(jaar, ecotoop_werkelijk) %>%
+               summarize(n = sum(n),
+                         n_raai = sum(n_raai),
+                         n_spatial = sum(n_spatial),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("jaar", "ecotoop_werkelijk")
+             ) %>%
+  mutate(methode = "MRP") -> mrp_raaispatial2_ecotoop
+```
+
+```{r mrp-raaispatial-2-salzone-ecotoop}
+mrp_raaispatial_2 %>%
+  add_epred_draws(newdata = benthos_afdw_ps_zonder_survey) %>%
+  # omzetting naar ton per stratum per jaar
+  mutate(.epred = .epred / opp_per_staal_m2 * stratum_opp_m2 / 1e6) %>%
+  # sommering naar ton voor gewenste groepering in elk jaar
+  group_by(jaar, SalZone, ecotoop_werkelijk, .draw) %>%
+  summarise(.epred = sum(.epred),
+            .groups = "drop_last") %>%
+  # berekening modus en interval
+  group_by(jaar, SalZone, ecotoop_werkelijk) %>%
+  mode_hdci(.epred) %>%
+  rename(mzb_tonnage = .epred,
+         mzb_tonnage_low = .lower,
+         mzb_tonnage_upp = .upper) %>%
+  inner_join(benthos_afdw_ps_zonder_survey %>%
+               group_by(jaar, SalZone, ecotoop_werkelijk) %>%
+               summarize(n = sum(n),
+                         n_raai = sum(n_raai),
+                         n_spatial = sum(n_spatial),
+                         totopp_km2 = sum(stratum_opp_m2) / 1e6,
+                         .groups = "drop"),
+             by = c("jaar", "SalZone", "ecotoop_werkelijk")
+             ) %>%
+  mutate(methode = "MRP") -> mrp_rsp2_salzone_ecotoop
+```
+
+Voor de vergelijking beperken we ons tot enkel de multilevel regressie en poststratificatie methode omdat deze beter toelaat om de raai-survey (preferential sample) te analyseren.
+
+Tabel \@ref(tab:schattingen-raaispatial-jaar) toont nogmaals dat via de raaien in 2019 een veel hogere biomassa wordt ingeschat.
+Wanneer we alle data samen gebruiken om de inschatting te maken, bekomen we een schatting die, in het geval van 2018, weinig verschillend is van de spatial survey en, in het geval van 2019, ligt de schatting tussen deze van de raai en spatial survey in.
+Het betrouwbaarheidsinterval is wel smaller omwille van de grotere steekproef.
+De schatting van 2019 suggereert weer dat de spatial en raai survey sterk van elkaar kunnen verschillen en dat combineren van beide surveys nog steeds een vertekend resultaat kan geven.
+De meest waarschijnlijke waarde van 2019 op basis van de spatial survey ligt net iets lager dan de ondergrens van het 95% interval dat we bekomen als we de data van beide surveys samenvoegen.
+Tabel \@ref(tab:schattingen-raaispatial-salzone) toont dat dit vooral komt door de "Zone met sterke saliniteitsgradiënt" waar met de raaien een veel hogere biomassa werd ingeschat.
+
+(ref:schattingen-raaispatial-jaar) Schatting van tonnage MZB voor elk jaar met de MRP methode. Twee modellen werden gefit, één waarbij aparte schattingen per type survey bekomen werd en één waarbij het type survey uit het model gelaten werd (= schatting op basis van alle locaties samen ongeacht survey).
+
+```{r schattingen-raaispatial-jaar}
+tab <- bind_rows(mrp_raaispatial_jaar,
+          mrp_raaispatial2_jaar) %>%
+  select(jaar, survey, methode, n, totopp_km2, starts_with("mzb")) %>%
+  group_by(jaar) %>%
+  mutate(n = as.integer(n)) %>%
+  gt(caption = "(ref:schattingen-raaispatial-jaar)") %>%
+  fmt_number(columns = where(is.double), decimals = 1)
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "schattingen-raaispatial-jaar")
+} else {
+  tab
+}
+```
+
+(ref:schattingen-raaispatial-salzone) Schatting van tonnage MZB voor elk jaar in elke saliniteitszone met de MRP methode. Twee modellen werden gefit, één waarbij aparte schattingen per type survey bekomen werd en één waarbij het type survey uit het model gelaten werd (= schatting op basis van alle locaties samen ongeacht survey).
+
+```{r schattingen-raaispatial-salzone}
+tab <- bind_rows(mrp_raaispatial_salzone,
+          mrp_raaispatial2_salzone) %>%
+  select(jaar, SalZone, survey, methode, n, totopp_km2, starts_with("mzb")) %>%
+  group_by(jaar, SalZone) %>%
+  mutate(n = as.integer(n)) %>%
+  gt(caption = "(ref:schattingen-raaispatial-salzone)") %>%
+  fmt_number(columns = where(is.double), decimals = 1)
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "schattingen-raaispatial-salzone")
+} else {
+  tab
+}
+```
+
+```{r schattingen-rsp-ecotoop, eval=FALSE}
+tab <- bind_rows(mrp_raaispatial_ecotoop,
+          mrp_raaispatial2_ecotoop) %>%
+  select(jaar, ecotoop_werkelijk, survey, methode, n, totopp_km2,
+         starts_with("mzb")) %>%
+  group_by(jaar, ecotoop_werkelijk) %>%
+  mutate(n = as.integer(n),
+         survey = ifelse(is.na(survey), "beide", survey)) %>%
+  gt(caption = "(ref:schattingen-raaispatial-ecotoop)") %>%
+  fmt_number(columns = where(is.double), decimals = 1)
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "schattingen-raaispatial-ecotoop")
+} else {
+  tab
+}
+```
+
+Figuur \@ref(fig:schattingen-raaispatial-ecotoop) zoomt verder in op de verdeling van de biomassa over de ecotopen binnen de saliniteitszones.
+In deze figuur zien we dat de hoogste biomassa zich bevindt in de middelhoge slikzones.
+Hard substraat heeft meestal de laagste biomassa, maar er zijn uitzondering zoals in het oligohalien waar de locatieschatting hoger ligt dan in de hoge slikzone (in 2018 en 2019) en de lage slikzone (in 2019), die een gelijkaardige oppervlakte heeft.
+We zien dat de hoge schatting van 2019 met de raaien in de zone met sterke saliniteitsgradiënt voornamelijk te wijten is aan de zeer hoge schatting in de middelhoge slikzone (het grootste stratum met 2 km²).
+De spatial survey heeft echter voor beide jaren in dat geval een gelijkaardige lagere schatting.
+Bij de combinatie van raai en spatial wegen de raaien zwaar door voor dit geval.
+Omgekeerd, zien we ook situaties waar de spatial survey een beduidend hogere schatting geeft dan de raaien.
+Dit is bijvoorbeeld het geval in de zoete delen met korte verblijftijd, met name voor de middelhoge slikzone, maar ook voor de lage en de hoge slikzone en meer uitgesproken in 2019.
+Bij zoet met lange verblijftijd komen de schattingen voor 2019 goed overeen, maar in 2018 zijn de schattingen voor vooral de lage slikzone met de spatial survey hoger.
+In deze figuur zien we ook duidelijk de grote onzekerheid op het resultaat voor de raaien bij hard substraat omdat we daar weinig of geen data hebben.
+
+(ref:schattingen-raaispatial-ecotoop) Schatting van tonnage MZB voor elk jaar in elke saliniteitszone x ecotooptype combinatie met de MRP methode. Twee modellen werden gefit, één waarbij aparte schattingen per type survey bekomen werd en één waarbij het type survey uit het model gelaten werd (= schatting op basis van alle locaties samen ongeacht survey). De oppervlakte in km² van stratum is weergegeven in de figuur bij survey == "beide".
+
+```{r schattingen-raaispatial-ecotoop, fig.height = 200/25.4, fig.width=5,  fig.cap = "(ref:schattingen-raaispatial-ecotoop)"}
+plotdata <- bind_rows(mrp_rsp_salzone_ecotoop,
+          mrp_rsp2_salzone_ecotoop) %>%
+  select(jaar, SalZone,
+         ecotoop_werkelijk,
+         survey,
+         totopp_km2,
+         starts_with("mzb")) %>%
+  mutate(survey = ifelse(is.na(survey), "beide", survey))
+
+textdata <- plotdata %>%
+  filter(survey == "beide") %>%
+  group_by(jaar,
+         survey,
+         SalZone) %>%
+  summarize(y_positie = max(mzb_tonnage_upp),
+            .groups = "drop") %>%
+  right_join(plotdata %>%
+               filter(survey == "beide") %>%
+               mutate(totopp_km2 = round(totopp_km2, 1)),
+             by = c("jaar", "survey", "SalZone"))
+  
+
+plotdata %>%
+  ggplot() +
+  geom_pointinterval(aes(x = survey,
+                         y = mzb_tonnage,
+                         ymin = mzb_tonnage_low,
+                         ymax = mzb_tonnage_upp,
+                         colour = ecotoop_werkelijk),
+                     position = position_dodge(width = 0.6)) +
+  geom_text(
+    data = textdata,
+    aes(x = survey,
+        y = y_positie * 1.3,
+        label = totopp_km2,
+        colour = ecotoop_werkelijk
+    ),
+    position = position_dodge(width = 0.6),
+    size = 2
+  ) +
+  facet_grid(SalZone ~ jaar, scales = "free_y", 
+             labeller = label_wrap_gen(width = 20)) + 
+  scale_color_discrete(name = "werkelijk \n ecotoop", 
+                       labels = function(x) str_wrap(x, width = 15)) +
+  theme(legend.position = "bottom")
+```
+
+(ref:n-raai-spatial) Aantal locaties in de raai en spatial survey in elk van de strata.
+
+```{r n-raai-spatial}
+tab <- benthos_afdw_ps_zonder_survey %>%
+  select(jaar, SalZone, KRWzone, ecotoop_werkelijk,
+         n_locs_raai = n_raai,
+         n_locs_spatial = n_spatial) %>%
+  group_by(jaar, SalZone) %>%
+  gt(caption = "(ref:n-raai-spatial)")
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "n-raai-spatial")
+} else {
+  tab
+}
+```
+
+## Alternatief meetnetontwerp
+
+### Allocatie van totale steekproefgrootte over strata {#allocatie-strata}
+
+We gebruiken elk jaar apart om de varianties te schatten en gebruiken hiervoor enkel de spatial survey.
+Om een variantie of standaarddeviatie goed in te schatten zijn zeer veel data nodig, er is dan ook een grote onzekerheid op deze varianties die we hier echter niet in rekening brengen.
+
+Tabel \@ref(tab:allocatie) geeft het resultaat van de formule voor optimale allocatie van de steekproef over de strata waarbij rekening wordt gehouden met de oppervlakte van elk stratum, de standaarddeviatie en de kosten.
+Er is geen merkbaar verschil tussen raai en spatial survey omdat het beperkte effect van de kosten (raai 0.75 versus spatial 1.25 relatieve kosten) teniet wordt gedaan door de grotere relatieve effecten van de stratumgrootte en -heterogeniteit.
+Volgens deze resultaten zien we vrij stabiele allocatiepercentages in Zeeschelde I, II en III.
+Er zijn echter grote verschillen tussen Getijdedurme en Zeeschelde IV. In 2018 zouden we 30% alloceren naar Getijdedurme en 40% naar Zeeschelde IV, terwijl in 2019 dit respectievelijk 10% en 60% is.
+Ook binnen de KRW zones waar er globaal een gelijkaardige allocatie is, kunnen er voor individuele ecotopen toch behoorlijke verschillen zijn (bv. Zeeschelde I, lage slikzone).
+Deze grote verschillen kunnen zowel te maken hebben met de grote onzekerheid die zit op de berekening van de ruimtelijke (stratum) varianties als met grote verschillen in jaar-tot-jaar stratum-varianties (o.a. door de dynamiek veroorzaakt door baggerwerken).
+Dit toont aan dat het moeilijk is om de formule in de praktijk te gebruiken omdat we op voorhand nooit zeker zullen zijn van de stratum-varianties in een bepaald jaar.
+Bovendien is de formule alleen kostenoptimaal voor de schatting van de totale draagkracht van het intertidale systeem.
+Aangezien er ook uitspraken gevraagd worden per saliniteitszone, is een overbemonstering van sommige van deze zones ten opzichte van deze allocatie zeker verantwoord.
+
+(ref:allocatie) Allocatie van de steekproefgrootte. Kolommen spatial en raai tonen het resultaat van de allocatieformule uitgedrukt als een relatief percentage in een bepaald jaar.
+
+```{r allocatie}
+kost <- werklast %>%
+  filter(tidaal == "intertidaal") %>%
+  select(campagne, tot_uren_incl_reistijd, aantal_stalen) %>%
+  mutate(relkost_per_staal = tot_uren_incl_reistijd / aantal_stalen) %>%
+  select(campagne, relkost_per_staal)
+  
+
+tab <- benthos_design %>%
+  group_by(jaar, KRWzone, ecotoop_werkelijk.benthos) %>%
+  summarize(sigma = survey_sd(x = tot_afdw / opp_per_staal_m2),
+            stratum_opp_m2 = mean(stratum_opp_m2)) %>%
+  expand_grid(kost) %>%
+  group_by(jaar, campagne) %>%
+  mutate(allocatie = stratum_opp_m2 * sigma / sqrt(relkost_per_staal),
+         allocatie = allocatie / sum(allocatie) * 100) %>%
+  select(jaar, campagne, KRWzone,
+         ecotoop = ecotoop_werkelijk.benthos,
+         allocatie) %>%
+  pivot_wider(names_from = c(jaar, campagne),
+              values_from = c(allocatie)) %>%
+  gt(groupname_col = "KRWzone",
+     caption = "(ref:allocatie)") %>%
+  fmt_number(columns = where(is.double),
+             decimals = 1) %>%
+  summary_rows(groups = TRUE,
+               columns = contains(c("raai", "spatial")),
+               fns = list(Totaal = ~sum(.)),
+               decimals = 1) %>%
+  grand_summary_rows(columns = contains(c("raai", "spatial")),
+                     fns = list(Eindtotaal = ~sum(.)),
+                     decimals = 0)
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "allocatie")
+} else {
+  tab
+}
+```
+
+### Afweging meer locaties versus nauwkeuriger bemonsteren {#bemonsteringsinspanning}
+
+Om de afweging te maken tussen meer locaties bemonsteren versus per locatie een hogere bemonsteringsinspanning te doen, hebben we informatie nodig over de kosten geassocieerd met de selectie van de locaties, de bemonstering ter plaatse en de naverwerking in het labo.
+Daarnaast hebben we ook informatie nodig die toelaat om de totale variantie op te splitsen in variantie die het gevolg is van het trekken van een steekproef en variantie die het gevolg is van ter plaatse een bemonstering uit te voeren en de naverwerking in het labo.
+We hebben echter geen informatie die toelaat om deze opdeling in variantiecomponenten te maken.
+
+Tabel \@ref(tab:kosten-selectie-bemonstering) toont dat voor de raaien de bemonsteringskost `r round(0.8 / 7.2 * 100)`% bedraagt, de selectiekost `r round(1.2 / 7.2 * 100)`% bedraagt en de labokost `r round(5.2 / 7.2 * 100)`% bedraagt.
+Voor de spatial survey is dit respectievelijk `r round(1.2 / 8.4 * 100)`%, `r round(2.0 / 8.4 * 100)`% en `r round(5.2 / 8.4 * 100)`%.
+In deze berekening zitten echter alleen de kostenposten die kunnen uitgedrukt worden in gewerkte uren.
+Zaken zoals materiaalkosten zijn niet inbegrepen en dragen bij aan zowel de bemonsteringskost (staalnamemateriaal, bewaarmiddel, ...), labokosten (labomaterialen, ...) als de selectiekost (verplaatsingskosten, GPS, ...).
+Wanneer dit variabele kosten betreft, moeten deze worden toegevoegd om tot een betere inschatting van de verhouding tussen bemonsteringskost en selectiekost te komen.
+Vaste kosten zijn niet van belang voor de optimalisatie van de bemonstering.
+
+(ref:kosten-selectie-bemonstering) Overzicht van bemonsteringskosten, labokosten en selectiekosten (uitgedrukt in uren per staal; dus exclusief verbruikskosten).
+
+```{r kosten-selectie-bemonstering}
+a <- kosten %>%
+  filter(!str_detect(kostenpost, "subtidaal"),
+         taakgroep %in% c("voorbereiding", "labowerk"))
+
+a <- a %>%
+  mutate(survey = "raai") %>%
+  bind_rows(a %>% 
+              mutate(survey = "spatial"))
+
+
+tab <- kosten %>%
+  filter(!str_detect(kostenpost, "subtidaal"),
+         !(taakgroep %in% c("voorbereiding", "labowerk"))) %>%
+  mutate(survey = ifelse(taakgroep == "veldwerk_raai",
+                                "raai", "spatial"),
+         taakgroep = ifelse(str_detect(taakgroep, "veldwerk"),
+                            "veldwerk", taakgroep)) %>%
+  bind_rows(a) %>%
+  pivot_wider(names_from = survey,
+              values_from = uren_per_staal_gelogd) %>%
+  mutate(kostenallocatie = ifelse(taakgroep == "labowerk",
+                                  "labokosten",
+                                  kostenallocatie)) %>%
+  select(-taakgroep) %>%
+  group_by(kostenallocatie) %>%
+  gt(caption = "(ref:kosten-selectie-bemonstering)") %>%
+  fmt_number(columns = where(is.double), decimals = 1) %>%
+  sub_missing(columns = everything()) %>%
+  summary_rows(groups = TRUE,
+               columns = where(is.double),
+               fns = list(Totaal = ~sum(., na.rm = TRUE)),
+               decimals = 1)
+
+if (knitr::is_latex_output()) {
+  as_latex_with_caption(tab, "kosten-selectie-bemonstering")
+} else {
+  tab
+}
+```
+
+### Steekproeftrekkingstrategieën
+
+```{r steekproef, cache=TRUE}
+# ook hard substraat weglaten in veronderstelling dat het weinig bijdraagt
+rast <- raster::raster(ecotoop, resolution = c(2, 2))
+strata <- ecotoop %>%
+    filter(!str_detect(ecotoop_werkelijk, "subtidaal"),
+           !str_detect(ecotoop_werkelijk, "hard substraat"),
+           Naam %in% c("Zeeschelde", "Durme", "Rupel")) %>%
+    st_make_valid() %>%
+    group_by(ecotoop_werkelijk, KRWzone) %>%
+    summarize(.groups = "drop")
+
+raster_ecotoop <- exactextractr::coverage_fraction(
+  x = rast,
+  y = strata,
+  crop = TRUE
+)
+
+strata_df <- strata %>%
+  st_drop_geometry() %>%
+  mutate(stratum = paste(ecotoop_werkelijk, KRWzone, sep = "_"))
+
+for (i in seq_len(length(raster_ecotoop))) {
+  raster_ecotoop[[i]] <- rast(raster_ecotoop[[i]])
+  raster_ecotoop[[i]][raster_ecotoop[[i]] == 0] <- NA
+  names(raster_ecotoop[[i]]) <- strata_df$stratum[i]
+}
+```
+
+```{r eval=FALSE}
+for (i in seq_len(length(raster_ecotoop))) {
+  plot(raster_ecotoop[[i]])
+}
+
+# bereken allocatie van totale steekproefgrootte over volgens de formule
+# (variantie en kosten)
+
+# trekking ruimtelijk gebalanceerd in elk stratum
+# jaarlijkse steekproefgrootte x 2 of x 3
+# grts-achtige trekking zodat punten in volgorde geselecteerd
+
+# bv 1/2 of 2/3 van de punten beschouwen als permanent vaste punten,
+# overige als jaarlijks random
+
+# of alle punten in de populatie een random volgnummer geven (master sample)
+# jaar 1: set a, b, c; jaar 2: set b, c, d; jaar 3: set c, d, e; etc.
+# zodat in een willekeurig jaar een derde van de punten gedurende drie jaar
+# wordt opgevolgd
+
+
+```
+
+## Biomassa - hoogte {#biomassa-hoogte-relatie}
+
+Er lijkt een piek te zijn in de biomassa bij gemiddelde hoogte in het intertidaal.
+Dit is zowel in de spatial survey als de raai-survey te zien (Figuur \@ref(fig:biomassa-hoogte)).
+In principe kan dan de hoogtevariabele (die bij benadering overal gekend is via DTM beeld) gebruikt worden om de schattingen te verbeteren via design-based regressieschatters (**kan** leiden tot iets smallere betrouwbaarheidsintervallen).
+
+(ref:biomassa-hoogte) Biomassa in functie van hoogteligging in het intertidaal voor beide survey-types.
+
+```{r biomassa-hoogte, fig.cap="(ref:biomassa-hoogte)", message=FALSE}
+benthos_afdw_zs_durme_rupel %>%
+  filter(tidaal == "intertidaal",
+         Z >= 0) %>%
+  ggplot(aes(x = Z, y = tot_afdw, colour = jaar)) +
+  geom_point() +
+  geom_smooth() +
+  scale_y_sqrt() +
+  facet_wrap(tidaal~survey, scales = "free") +
+  labs(x = "Hoogte (m)",
+       y = "Biomassa (g)") + 
+  theme(legend.position = "bottom")
+```

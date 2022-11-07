@@ -41,3 +41,7 @@ vignettes/*.pdf
 # output of bookdown
 output/
 css/
+*_bookdown_files/
+
+# rds files
+*.rds

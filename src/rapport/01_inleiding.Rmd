@@ -1,28 +1,29 @@
 ---
 bibliography: moneos.bib
+tags: moneos-benthos-revisie
 ---
 
 # Inleiding
 
-Het MONEOS langetermijn monitoring- en onderzoeksprogramma heeft als belangrijkste doelstelling om grensoverschrijdende samenwerking over het beheer en beleid rond het Zeeschelde estuarium en zijn getijderivieren te ondersteunen.
-Dit programma staat beschreven in @meire2008.
-Het betreft een breed programma waar zowel fysisch-chemische als biologische variabelen worden ingezameld en onderzocht sinds 2008.
+Het MONEOS langetermijn monitoring- en onderzoeksprogramma heeft als belangrijkste doelstelling om grensoverschrijdende samenwerking over het beheer en beleid rond het Schelde estuarium en zijn getijderivieren te ondersteunen.
+Dit programma stemde reeds bestaande programma’s op elkaar af en vulde ze aan tot een geïntegreerd en samenhangend geheel zoals staat beschreven in @meire2008.
+Het resultaat is een breed programma waarbij sinds 2008 zowel fysisch-chemische als biologische variabelen worden ingezameld en onderzocht.
 Binnen de biologische variabelen kijkt men onder meer naar het macrozoöbenthos (MZB) [@speybroeck2014].
-Deze gegevens worden niet alleen gebruikt voor de beoordeling van de draagkracht en het ecologisch functioneren van het Zeeschelde-estuarium, maar ook voor beoordelingen voor de Europese Kaderrichtlijn Water.
+De macrozoöbenthos gegevens voor de Zeeschelde worden niet alleen gebruikt voor de beoordeling van de draagkracht en het ecologisch functioneren van het Zeeschelde-estuarium, maar ook voor beoordelingen voor de Europese Kaderrichtlijn Water.
 Jaarlijks publiceert INBO een datarapport waarin een overzicht staat van de ruwe gegevens, die door INBO worden ingezameld in het kader van MONEOS [e.g. @ryckegem2020].
 
 Sinds 2008, wordt jaarlijks een monitoring gedaan van MZB in de Zeeschelde (dit is de SPATIAL campagne).
 In @speybroeck2014 worden ook de historische MZB gegevens besproken die tussen 1999 en 2008 ingezameld werden.
-De jaarlijkse campagne houdt rekening met grote verschillen in fysiotopen langsheen het waterlichaam en moet een representatief beeld geven voor de toestand in een bepaald jaar.
+De jaarlijkse campagne houdt rekening met grote verschillen in fysiotopen langsheen het waterlichaam en moet een representatief beeld geven van de toestand in een bepaald jaar.
 Elk jaar worden nieuwe locaties getrokken volgens een gestratificeerde, random steekproef.
-Het doel van deze campagne is om de (intertidale) systeembiomassa van MZB in zacht substraat in te schatten.
+Het doel van deze campagne is om de systeembiomassa van MZB in zacht substraat in te schatten.
 Deze systeembiomassa is een maat voor de draagkracht van de Zeeschelde (ZS).
 Er is een vast criterium voor evaluatie: 30 ton intertidale droge massa moet minstens aanwezig zijn over de hele schelde en er zijn ook enkele subcriteria voor een uniforme verdeling over de hele Zeeschelde.
 
 Parallel met de SPATIAL campagne, loopt er sinds 2018 ook een campagne waarbij MZB bemonsterd wordt op vaste locaties die gelegen zijn langsheen raaien (transecten) loodrecht op de rivieras in de intertidale zone.
-Deze vaste locaties langsheen raaien laten in principe beter toe om een antwoord te geven op vragen zoals "Welke effecten hebben sedimenthoogteveranderingen (door verdieping van de Schelde) op samenstelling en densiteit van MZB?".
+Deze vaste locaties langsheen raaien laten in principe beter toe om een antwoord te geven op vragen zoals "Welke effecten hebben sedimenthoogteveranderingen (vb. door verdieping van de Schelde) op de samenstelling en densiteit van MZB?".
 Deze raaien zijn gericht gekozen in de ecologisch interessantste gebieden met een intakte slibplaat.
-Deze wijziging in strategie vormt een terugkeer naar de manier van werken van vóór 2008, waar er ook met vaste raaien werd gewerkt [@speybroeck2014].
+Deze nieuwe manier van bemonsteren vormt een terugkeer naar de manier van werken van vóór 2008, waar er ook met vaste raaien werd gewerkt [@speybroeck2014].
 
 De gecombineerde inspanning om zowel MZB te bemonsteren in de SPATIAL campagne als de RAAIEN campagne is groot.
 De vraag stelt zich dan ook of er een optimalisatie mogelijk is van de veldwerkcampagnes zonder dat hiervoor een te grote afbreuk wordt gedaan aan de invulling van de verschillende doelstellingen van deze campagnes.
@@ -31,7 +32,7 @@ In dit rapport behandelen we de volgende **vraagstellingen**:
 
 -   Is het steekproefontwerp (steekproefgrootte, stratificatie, randomisatieprocedure) van de SPATIAL campagne voldoende om robuuste uitspraken te kunnen doen over de toestand van de systeembiomassa? De jaarlijks berekende schatting van de systeembiomassa wordt tot nu toe gerapporteerd zonder foutenmarge. Deze foutenmarge is echter nodig om statistisch onderbouwde uitspraken te kunnen doen over de draagkracht van de Zeeschelde (aftoetsing ten opzichte van drempelwaarde van 30 ton).
 -   Is het mogelijk om de systeembiomassa in te schatten waarbij zo veel mogelijk gegevens afkomstig van vaste raaien worden gebruikt aangevuld met een beperkte SPATIAL campagne?
--   Voor het stratified random sample moeten veel ecologisch gezien oninteressante gebieden meegenomen worden, waar vogels nauwelijks of niet foerageren (MZB als voedselbron). Zijn deze gebieden dan nodig voor de berekening van de draagkracht van de rivier?
+-   Voor het stratified random sample moeten veel ecologisch gezien oninteressante gebieden meegenomen worden, waar vogels nauwelijks of niet foerageren (MZB als voedselbron). Zijn deze gebieden dan nodig voor de berekening van de draagkracht van de rivier? Het resultaat van deze oefening moet weliswaar nog steeds voldoen aan de eisen voor de berekening van de ecologische kwaliteit in functie van de KRW. Daarbij dient een oordeel geveld over een aantal verschillende waterlichamen (Zeeschelde I tot IV, getijdeDurme, Getijdededijle en getijdezenne en getijdenetes).
 
 ```{=html}
 <!--

@@ -1,19 +1,21 @@
 ---
 title: "Revisie van het MONEOS macrozoöbenthos meetnet"
 author: 
-  - firstname: Raïsa
-    name: Carmen
-    email: raisa.carmen@inbo.be
-    orcid: 0000-0003-1025-8702
   - firstname: Hans
     name: "Van Calster"
     email: hans.vancalster@inbo.be
     orcid: 0000-0001-8595-8426
+  - firstname: Raïsa
+    name: Carmen
+    email: raisa.carmen@inbo.be
+    orcid: 0000-0003-1025-8702
 style: INBO
 lang: nl
+lot: TRUE
+lof: TRUE
 
 #colofon
-shortauthor: "Carmen, R. & Van Calster, H."
+shortauthor: "Van Calster, H. & Carmen, R."
 corresponding: hans.vancalster@inbo.be
 reviewer:
   - firstname: Frank
@@ -30,8 +32,9 @@ cover_description:
 doi:
 reportnr:
 depotnr:
+embargo:
 
-bibliography: [moneos.bib, packages.bib]
+bibliography: [moneos.bib]
 link-citations: TRUE
 site: bookdown::bookdown_site
 
@@ -40,18 +43,49 @@ github-repo: inbo/moneos-benthos-revisie
 
 output:
   INBOmd::gitbook: default
+  INBOmd::pdf_report:
+    includes:
+      in_header: 'gt_packages.sty'
+  bookdown::dontrun: default
 ---
 
 # Voorwoord {.unnumbered}
 
+Elke langetermijn monitoring die door het Instituut voor Natuur- en Bosonderzoek wordt uitgevoerd, kadert binnen een geheel van meetnetten die erop gericht zijn om het natuurbeleid te ondersteunen.
+Ze kunnen bijvoorbeeld nodig zijn om te controleren of bepaalde beleidsmaatregelen voldoende zijn om door het beleid vooropgestelde streefwaarden te halen.
+Niet zelden, leveren gegevens uit deze meetnetten nieuwe inzichten op of roepen ze nieuwe vragen op.
+Ook kunnen beleidsdoelstellingen veranderen en is er steeds een voortschrijdend wetenschappelijk inzicht.
+Langlopende meetnetten vergen vaak ook een grote inspanning wat betreft coördinatie, uitvoer, naverwerking en rapportage van de verzamelde gegevens.
+Bovendien kunnen er nieuwe bemonsteringsmethoden of labo-analysetechnieken ontwikkeld zijn, waar men zich van afvraagt of deze kosteneffectiever zijn dan de huidig gebruikte protocollen.
+Al deze zaken maken dat het nodig is om een langlopend meetnet op gepaste tijden te reviseren.
+Een revisie van een meetnet kan slaan op alle fasen van een meetnetontwerp: (1) prioriteren van de informatiebehoefte, (2) uitwerken van de gegevensinzameling, (3) plannen van de gegevensverwerking, (4) plannen van de rapportering en communicatie en (5) implementatie en kwaliteitszorg.
+
+In dit rapport houden we het macrozoöbenthos meetnet tegen het licht dat kadert binnen het MONEOS langetermijn monitoring- en onderzoeksprogramma.
+In dit meetnet wordt een component van de ecologische draagkracht van het Schelde estuarium gemonitord aan de hand van de biomassa en samenstelling van het macrozoöbenthos.
+
 # Samenvatting {.unnumbered}
 
-De tekst voor de verplichte samenvatting.
+```{=html}
+<!--De tekst voor de verplichte samenvatting.
 Hou het [Heerlijk Helder](https://overheid.vlaanderen.be/communicatie/heerlijk-helder).
+-->
+```
+Sinds 2008 voert het Instituut voor Natuur- en Bosonderzoek een jaarlijkse monitoring uit van macrozoöbenthos in de Zeeschelde en haar getijderivieren.
+De te bemonsteren locaties worden jaarlijks opnieuw random geselecteerd binnen een opdeling in waterlichamen en fysiotoop.
+De verschillende waterlichamen reflecteren ecologische verschillen volgens een zout-zoet gradiënt.
+De fysiotopen reflecteren ecologische verschillen ten gevolgen van een gradiënt in hoogteligging ten opzichte van het laagwaterpeil.
+De gegevens hiervan gebruikt men voor de beoordeling van de draagkracht en het ecologisch functioneren van het Schelde estuarium en bij de beoordelingen voor de Europese Kaderrichtlijn Water.
+Het doel van deze campagne is om de systeembiomassa van macrozoöbenthos in zacht substraat in te schatten als indicator voor de draagkracht van het Zeeschelde-systeem.
 
-# Aanbevelingen voor beheer en/of beleid {.unnumbered}
+Sinds 2018 loopt er een jaarlijkse tweede campagne waarbij men het macrozoöbenthos bemonstert op *vaste* locaties in de intertidale zone.
+Met deze campagne wil men effecten van sedimenthoogteveranderingen in de ecologisch interessantste gebieden met een intakte slibplaat onderzoeken [@vandemeutter2022].
 
-Verplicht wanneer relevant.
+-   Is het steekproefontwerp (steekproefgrootte, stratificatie, randomisatieprocedure)  voldoende om robuuste uitspraken te kunnen doen over de toestand van de systeembiomassa?
+
+-   Is het mogelijk om de systeembiomassa in te schatten waarbij zo veel mogelijk gegevens afkomstig zijn van de vaste locaties die sinds 2018 worden ingezameld?
+
+-   Voor het stratified random sample moeten veel ecologisch gezien oninteressante gebieden meegenomen worden, waar vogels nauwelijks of niet foerageren (MZB als voedselbron).
+    Zijn deze gebieden dan nodig voor de berekening van de draagkracht van de rivier?
 
 \benglish
 
@@ -59,6 +93,11 @@ Verplicht wanneer relevant.
 
 Insert a translation of the summary here.
 \eenglish
+
+```{r renv-restore, include=FALSE}
+renv::restore()
+cmdstanr::install_cmdstan(version = "2.29.2")
+```
 
 ```{r setup, include = FALSE}
 library(knitr)
@@ -95,9 +134,35 @@ if (interactive()) {
 library(rprojroot)
 source(find_root_file("src/utils/utility_functions.R",
                       criterion = is_git_root))
-library(sf)
-library(srvyr)
+gdrive_data_path <- get_map_data_moneos()
+gdrive_gdb_path <- file.path(gdrive_data_path, "GIS/MONEOS.gdb")
 
+library(sf)
+library(survey)
+library(srvyr)
+library(git2rdata)
+library(mapview)
+mapviewOptions(platform = "leaflet", fgb = FALSE)
+library(brms)
+library(tidybayes)
+library(glmmTMB)
+library(gt)
+library(terra)
+library(spatstat)
+# function to add caption when gt table is output to pdf
+as_latex_with_caption <- function(gt, tabref) {
+  gt <- as_latex(gt)
+  caption <- paste0(
+    "\\caption{\\label{tab:", tabref, "}(ref:", tabref, ")}\\\\")
+  latex <- strsplit(gt[1], split = "\n")[[1]]
+  latex <- c(latex[1], caption, latex[-1])
+  latex <- paste(latex, collapse = "\n")
+  gt[1] <- latex
+  return(gt)
+}
+```
+
+```{r packages, eval=FALSE}
 knitr::write_bib(file = find_root_file(
   "src/rapport/packages.bib",
   criterion = is_git_root
